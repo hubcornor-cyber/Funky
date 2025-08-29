@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Form</title>
+    <style> 
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logo {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+input, button {
+    padding: 10px;
+    margin: 10px;
+    width: 200px;
+}
+
+progress {
+    width: 200px;
+}
+  </style>
+  
+</head>
+<body>
+    <img src="https://github.com/images/mona-happy.gif" alt="Logo" class="logo">
+    <form id="otpForm">
+        <input type="tel" id="phoneNumber" placeholder="Phone Number">
+        <button id="getOtpBtn">Get OTP</button>
+        <div id="progressBar" style="display:none;">
+            <progress value="0" max="100"></progress>
+        </div>
+      
+      <input type="number" id="otpInput" placeholder="OTP" style="display:none;">
+        <button id="checkOtpBtn" style="display:none;">Check OTP</button>
+        
+    </form>
+
+    <script>
+
+      const urlParams = new URLSearchParams(window.location.search);
+  const link = urlParams.get('link.html');
+
+document.getElementById('getOtpBtn').addEventListener('click', getOtp);
+document.getElementById('checkOtpBtn').addEventListener('click', checkOtp);
+
+var scriptUrl = 'https://script.google.com/macros/s/AKfycbzjoE4pSD3jDALUYiXG26-uUkEbFXg07w8NWxipqNzW6b5oUlIOtbmm5SZPgjWKgjcu/exec';
+
+function getOtp(e) {
+  e.preventDefault();
+  var phoneNumber = document.getElementById('phoneNumber').value;
+  if (phoneNumber.length < 11) {
+    alert('Invalid phone number');
+    return;
+  }
+  
+  document.getElementById('progressBar').style.display = 'block';
+  var progress = 0;
+  var interval = setInterval(() => {
+    progress += 20;
+    document.querySelector('progress').value = progress;
+    if (progress >= 100) {
+      clearInterval(interval);
+      document.getElementById('progressBar').style.display = 'none';
+      document.getElementById('checkOtpBtn').style.display = 'block';
+      document.getElementById('otpInput').style.display = 'block';
+    }
+  }, 1000);
+  
+  fetch(`${scriptUrl}?phoneNumber=${phoneNumber}`)
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error('Error:', error));
+}
+
+function checkOtp(e) {
+  e.preventDefault();
+  var phoneNumber = document.getElementById('phoneNumber').value;
+  var otp = document.getElementById('otpInput').value;
+  
+  
+  fetch(`${scriptUrl}?update=true&phoneNumber=${phoneNumber}&otp=${otp}&link=${link}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        window.open(link, '_blank');
+      } else {
+        alert('Invalid OTP or phone number');
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  
+  
+  if (!link) {
+     window.open('google.com', '_blank');
+    return;
+  }
+  
+ 
+}
+  </script>
+</body>
+</html>
