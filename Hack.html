@@ -1,0 +1,140 @@
+html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Whatsapp hack</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      font-family: monospace;
+      color: lime;
+      text-align: center;
+      padding: 20px 0 50px;
+    }
+    h1 {
+      color: red;
+      user-select: none;
+      margin-bottom: 20px;
+    }
+    #matrix {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: -1;
+      background: black;
+    }.status-text {
+      font-size: 1.5em;
+      margin: 20px auto;
+      animation: flicker 1.2s infinite;
+      user-select: none;
+      width: fit-content;
+    }
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }.progress-bar {
+      width: 80%;
+      height: 30px;
+      margin: 0 auto 20px;
+      border: 1px solid #555;
+      border-radius: 5px;
+      background: #333;
+      overflow: hidden;
+    }
+    #bar-fill {
+      height: 100%;
+      width: 0;
+      background: lime;
+      transition: width 0.3s;
+    }
+    #creator {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      color: red;
+      font-weight: bold;
+      user-select: none;
+      pointer-events: none;
+      z-index: 10;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="matrix"></canvas>
+
+  <h1>Whatsapp hack</h1>
+
+  <div class="status-text" id="status-text">Almost there...</div>
+
+  <div class="progress-bar">
+    <div id="bar-fill"></div>
+  </div>
+
+  <div id="creator">created by ELIAKIM</div>
+
+  <script>
+    // Matrix rain effect
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*'.split('');
+    const fontSize = 16;
+    const columns = Math.floor(width / fontSize);
+    const drops = new Array(columns).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = '#0F0';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 35);
+
+    window.addEventListener('resize', () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    });
+
+    // Progress bar animation for demo
+    const barFill = document.getElementById('bar-fill');
+    const status = document.getElementById('status-text');
+    let progress = 0;
+
+    function fillBar() {
+      if (progress >= 100) {
+        status.textContent = 'Target initiated';
+      } else {
+        progress += 10;
+        status.textContent = ['Initializing hack...', 'Bypassing security...', 'Extracting data...', 'Almost there...'][Math.floor(progress/25)] || 'Almost there...';
+        barFill.style.width = progress + '%';
+        setTimeout(fillBar, 700);
+      }
+    }
+    fillBar();
+  </script>
+
+</body>
+</html>
