@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iframe</title>
+    <style>
+        iframe {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="urlInput" placeholder="Enter Number" value="">
+    <button id="loadUrlBtn">Load URL</button>
+    <iframe id="iframe" src="" frameborder="0"></iframe>
+    <div id="iframeContent"></div>
+
+    <script>
+        document.getElementById('loadUrlBtn').addEventListener('click', loadUrl);
+
+        function loadUrl() {
+            var number = document.getElementById('urlInput').value;
+            var url = `https://freshsimdetails.com/?number=${number}`;
+            document.getElementById('iframe').src = url;
+            document.getElementById('iframe').onload = function() {
+                var iframe = document.getElementById('iframe');
+                var iframeContent = iframe.contentDocument.body.innerText;
+                document.getElementById('iframeContent').innerText = iframeContent;
+            };
+        }
+    </script>
+</body>
+</html>
