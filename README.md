@@ -2,6 +2,8 @@
 
 [Sheets](https://hubcornor-cyber.github.io/Funky/)
 
+[NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html)
+
 
 [Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html)
 
