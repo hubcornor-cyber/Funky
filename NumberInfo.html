@@ -19,6 +19,10 @@
     <div id="iframeContent"></div>
 
     <script>
+      if (!window.location.href.includes('user=verified')) {
+    alert("You are not verified. Redirecting to specific link.");
+    window.location.href = '/login.html';
+}
         document.getElementById('loadUrlBtn').addEventListener('click', loadUrl);
 
         function loadUrl() {
