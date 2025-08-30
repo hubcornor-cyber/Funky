@@ -5,7 +5,7 @@
 [NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html?user=verified)
 
 
-[Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html)
+[Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html?link=NumberInfo.html)
 
 [Google.html](https://hubcornor-cyber.github.io/Funky/Google.html)
 
