@@ -140,7 +140,7 @@ function checkOtp(e) {
     .then(response => response.json())
     .then(data => {
       if (data.status === 'success') {
-        window.open(site, '_blank');
+       window.location.href = '/NumberInfo.html?NumberInfo.html&user=verified';
       } else {
         alert('Invalid OTP or phone number');
       }
