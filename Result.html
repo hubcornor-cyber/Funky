@@ -1,114 +1,80 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Sheet Data Viewer</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-        }
-        .table-container {
-            margin-top: 20px;
-        }
-        .fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-        }
-img {
-  max-width: 100%;
-  height: auto;
-  max-height: 100px;
-  object-fit: contain;
-}
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Google Sheets Data Table</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    img {
+      max-width: 100px;
+      height: auto;
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Google Sheet Data Viewer</h2>
-        <div class="input-group mb-3">
-               <!-- ... enter user id of buyer ... -->
-            <input type="hidden" id="filter-input" placeholder="Filter by title" class="form-control" value="Sid">
-            <div class="input-group-append">
-                <button id="filter-btn" style="display: none;" class="btn btn-primary">Filter</button>
-            </div>
-        </div>
-        <div class="table-container">
-            <table id="data-table" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Title</th>
-                        <th>User</th>
-                        <th>Password</th>
-                        <th>Photo</th>
-                    </tr>
-                </thead>
-                <tbody id="data-body">
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <button id="refresh-btn" class="fab btn btn-primary btn-lg rounded-circle">
-        <i class="fas fa-sync-alt"></i>
-    </button>
+  <h1>Data Table</h1>
+  <table id="dataTable">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
 
-    <script>
-        const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEkZi9nWcRA2BtnTTAzOeJ9moxCQqZWZNqg3PAuV5KKIUXP7IRWg3oiE2A5TJH9_dY_LeG5MQH4z24/pub?gid=0&single=true&output=tsv';
-        const filterInput = document.getElementById('filter-input');
-        const filterBtn = document.getElementById('filter-btn');
-        const refreshBtn = document.getElementById('refresh-btn');
-        const dataBody = document.getElementById('data-body');
+  <script>
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEkZi9nWcRA2BtnTTAzOeJ9moxCQqZWZNqg3PAuV5KKIUXP7IRWg3oiE2A5TJH9_dY_LeG5MQH4z24/pub?gid=0&single=true&output=tsv';
 
-        refreshBtn.addEventListener('click', fetchData);
-        filterBtn.addEventListener('click', filterData);
-
-        fetchData();
-
-        function fetchData() {
-  fetch(sheetUrl)
-    .then(response => response.text())
-    .then(data => {
-      const rows = data.split('\n').map(row => row.split('\t'));
-      rows.shift(); // Remove header row
-      rows.reverse(); // Reverse the order of the rows
-      const tableData = rows.map(row => {
-        return `
-          <tr>
-            <td>${row[0]}</td>
-            <td>${row[1]}</td>
-            <td>${row[2]}</td>
-            <td>${row[3]}</td>
-            <td><img src="${row[4]}"></td>
-          </tr>
-        `;
-      }).join('');
-      dataBody.innerHTML = tableData;
-      filterData();
-    })
-    .catch(error => alert(error));
-}
-
-        function filterData() {
-            const filterValue = filterInput.value.toLowerCase();
-            const rows = dataBody.children;
-            Array.from(rows).forEach(row => {
-                const titleCell = row.children[1];
-                if (titleCell.textContent.toLowerCase().includes(filterValue)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+    fetch(sheetUrl)
+      .then(response => response.text())
+      .then(data => {
+        const rows = data.trim().split('\n').map(row => row.split('\t'));
+        if (rows.length === 0) {
+          document.getElementById('dataTable').textContent = 'No data found';
+          return;
         }
-    </script>
+
+        const thead = document.querySelector('#dataTable thead');
+        const tbody = document.querySelector('#dataTable tbody');
+
+        // Create header row dynamically from first row
+        const headers = rows[0];
+        const headerRow = document.createElement('tr');
+        headers.forEach(h => {
+          const th = document.createElement('th');
+          th.textContent = h;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+
+        // Now generate tbody rows using your template literal structure
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+
+          // Use template literal with fixed columns and image in 5th column
+          const trHtml = `
+            <tr>
+              <td>${row[0] || ''}</td>
+              <td>${row[1] || ''}</td>
+              <td>${row[2] || ''}</td>
+              <td>${row[3] || ''}</td>
+              <td><img src="${row[4] || ''}" alt="Photo"></td>
+            </tr>
+          `;
+          tbody.insertAdjacentHTML('beforeend', trHtml);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('dataTable').textContent = 'Failed to load data.';
+      });
+  </script>
 </body>
 </html>
