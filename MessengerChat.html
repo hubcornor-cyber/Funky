@@ -1,0 +1,396 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Chat Simulator — Start Script Fixed</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+<style>
+  :root{
+    --blue:#0084FF;
+    --bg:#f0f2f5;
+  }
+  body{margin:0;font-family:Inter, "Segoe UI", Roboto, sans-serif;background:#fff;display:flex;align-items:center;justify-content:center;height:92vh;overflow:hidden}
+  .container{width:100%;height:100%;display:flex;flex-direction:column;box-shadow:0 0 18px rgba(0,0,0,.12)}
+  .header{background:var(--blue);color:#fff;padding:10px;display:flex;align-items:center;justify-content:space-between}
+  .header-left{display:flex;align-items:center;gap:10px}
+  .back{font-size:20px;cursor:pointer}
+  .header img{width:36px;height:36px;border-radius:50%}
+  .title{font-weight:600}
+  .actions{display:flex;gap:14px;font-size:18px;align-items:center}
+  .chat{flex:1;padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;background:var(--bg)}
+  .chat::-webkit-scrollbar{display:none}
+  .message{max-width:70%;padding:10px 14px;border-radius:18px;line-height:1.4;font-size:14px;white-space:pre-wrap;word-wrap:break-word}
+  .outgoing{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+  .incoming{align-self:flex-start;background:#E4E6EB;color:#050505;border-bottom-left-radius:4px}
+  .time{display:block;font-size:11px;text-align:right;margin-top:6px;opacity:.7}
+  .ticks{font-size:12px;color:#fff;margin-left:6px}
+  .typing-indicator{align-self:flex-start;background:#E4E6EB;border-radius:18px;padding:8px 12px;display:flex;gap:6px;align-items:center}
+  .dot{width:6px;height:6px;border-radius:50%;background:#555;animation:blink 1s infinite}
+  .dot:nth-child(2){animation-delay:.16s}
+  .dot:nth-child(3){animation-delay:.32s}
+  @keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+
+  .input-bar{display:flex;align-items:center;padding:8px;border-top:1px solid #ddd;gap:8px;background:#fff}
+  .emoji{font-size:22px;cursor:pointer}
+  textarea#messageInput{flex:1;border:1px solid #ccc;resize:none;overflow:hidden;padding:8px 12px;border-radius:20px;font-size:14px;outline:none;line-height:1.4;max-height:4.5em}
+  button#sendBtn{width:36px;height:36px;border-radius:50%;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:16px}
+
+  /* Admin panel (list / card style) */
+  #adminPage{display:none;flex-direction:column;gap:14px;padding:18px;height:100%;overflow-y:auto;background:#fafafa}
+  #adminPage h3{margin:0;color:#222}
+  .block{background:#fff;border:1px solid #e6e6e6;border-radius:8px;padding:12px}
+  pre#demoScript{margin:0;background:#f7f7f7;padding:10px;border-radius:6px;white-space:pre-wrap;max-height:160px;overflow:auto}
+  .copy-btn{background:var(--blue);color:#fff;border:none;padding:7px 12px;border-radius:6px;cursor:pointer;margin-top:10px}
+  #scriptInput{width:100%;height:120px;border-radius:6px;border:1px solid #ccc;padding:8px;font-size:14px}
+  .slider-block{display:flex;flex-direction:column;gap:8px; display:block;}
+  .btn-group{display:flex;gap:10px}
+  .btn-group button{flex:1;padding:10px;border-radius:6px;border:none;font-weight:600;cursor:pointer}
+  #startScript{background:#28a745;color:#fff}
+  #clearWindow{background:#dc3545;color:#fff}
+.chat img{border-radius:10px}
+  /* responsive narrow */
+  @media (max-width:420px){
+    .container{max-width:420px}
+  }
+</style>
+</head>
+<body>
+
+<!-- Main chat container -->
+<div class="container" id="mainContainer">
+  <div class="header">
+    <div class="header-left">
+      <div class="back" id="backBtn">←</div>
+      <img src="https://banner2.cleanpng.com/cb2/ykn/pfc/adoi6oygb.webp" alt="User">
+      <div class="title" id="chatTitle">Messenger Chat</div>
+    </div>
+    <div class="actions">
+      <i class="fas fa-phone" title="Call"></i>
+      <i class="fas fa-video" title="Video"></i>
+      <i class="fas fa-info-circle" title="Info"></i>
+    </div>
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="input-bar">
+    <div class="emoji">😊</div>
+    <textarea id="messageInput" placeholder="Type a message" rows="1"></textarea>
+    <button id="sendBtn"><i class="fas fa-microphone"></i></button>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPage">
+  <h3>Admin Panel</h3>
+
+  <div class="block">
+    <label><strong>Prompt & Demo (read-only)</strong></label>
+    <pre id="demoScript">
+Create a realistic chat conversation about [TOPIC] between two people in CSV format.  
+
+Rules:
+1. Maximum 20 messages (roughly 10 outgoing, 10 incoming).  
+2. Messages should be short, casual texting style, natural, sometimes with emojis.  
+3. Use **bold**, *italic*, or highlight for emotions where appropriate in html style <b></b> <i></i> <mark></mark>.  
+4. Format must be CSV like this:
+"Person","Message","Time"
+"You","...","HH:MM AM/PM"
+"Friend","<img src='Image1.png' alt='...' width='220px' border-radius='25px'><br> ...","HH:MM AM/PM"
+5. Only incoming messages (Friend) should contain images. Outgoing messages (You) should not have images.  
+6. Make the conversation feel like a **complete short story** with beginning, conflict, and resolution.  
+7. Keep the conversation natural, fun, or emotional depending on the topic.  
+
+[TOPIC] = Replace this with any topic you want (example: stress, weekend plans, coffee habits, travel ideas, work gossip, etc.).
+
+8. Create prompt for images given in conversation with copy button
+    </pre>
+    <button class="copy-btn" id="copyDemo">Copy Demo Prompt</button>
+  </div>
+
+  <div class="block">
+    <label><strong>Paste your CSV Script (Person,Message,Time)</strong></label>
+    <textarea id="scriptInput" placeholder='"Person","Message","Time"&#10;"You","Hello","12:30 PM"'></textarea>
+  </div>
+
+  <div class="block slider-block">
+    <label>Message Delay between messages: <span id="delayValue">2000</span> ms</label>
+    <input type="range" id="delaySlider" min="500" max="5000" step="250" value="2000">
+  </div>
+
+  <div class="block btn-group">
+    <button id="startScript">Start Script</button>
+    <button id="clearWindow">Clear Window</button>
+  </div>
+</div>
+
+<script>
+/* -------- Elements -------- */
+const chat = document.getElementById('chat');
+const input = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const backBtn = document.getElementById('backBtn');
+const mainContainer = document.getElementById('mainContainer');
+const adminPage = document.getElementById('adminPage');
+const scriptInput = document.getElementById('scriptInput');
+const startScript = document.getElementById('startScript');
+const clearWindow = document.getElementById('clearWindow');
+const delaySlider = document.getElementById('delaySlider');
+const delayValue = document.getElementById('delayValue');
+const copyDemo = document.getElementById('copyDemo');
+const demoScript = document.getElementById('demoScript');
+
+let adminVisible = false;
+let delay = parseInt(delaySlider.value);
+let playing = false; // prevent concurrent runs
+
+/* -------- Helpers -------- */
+delaySlider.addEventListener('input', ()=> {
+  delay = parseInt(delaySlider.value);
+  delayValue.textContent = delay;
+});
+
+/* Keep mic/send icon synced (works during auto-typing too) */
+setInterval(()=>{
+  if(input.value.trim().length > 0){
+    sendBtn.innerHTML = "<i class='fas fa-paper-plane'></i>";
+  } else {
+    sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
+  }
+}, 200);
+
+/* Add message bubble (text may contain HTML tags) */
+function addMessage(person, text, time){
+  const msg = document.createElement('div');
+  msg.className = 'message ' + (person.toLowerCase()==='you' ? 'outgoing' : 'incoming');
+  const displayTime = time || new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  msg.innerHTML = `${text}<span class="time">${displayTime}${person.toLowerCase()==='you' ? ' <span class="ticks">✔✔</span>' : ''}</span>`;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+/* Show typing indicator (dots) — returns node so it can be removed */
+function showTypingIndicator(){
+  const row = document.createElement('div');
+  row.className = 'typing-indicator';
+  row.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+  return row;
+}
+
+/* Auto-type into textarea (outgoing) — expands up to 3 lines */
+function typeInInput(text, cb){
+  input.value = '';
+  input.style.height = 'auto';
+  let i = 0;
+  const lineHeight = parseFloat(getComputedStyle(input).lineHeight) || 20;
+  const maxHeight = lineHeight * 3;
+  const timer = setInterval(()=>{
+    input.value = text.substring(0,i);
+    // expand
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, maxHeight) + 'px';
+    i++;
+    if(i > text.length){
+      clearInterval(timer);
+      // reset to single line (approx)
+      input.style.height = (lineHeight + 8) + 'px';
+      if(cb) cb();
+    }
+  },150); // ~40 wpm as requested
+}
+
+/* Robust CSV parser that supports commas inside quotes.
+   Returns array of rows, each row is array of fields (strings).
+*/
+function parseCSV(text){
+  text = (text || '').trim();
+  if(!text) return [];
+  const rows = [];
+  let field = '';
+  let row = [];
+  let insideQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(ch === '"'){
+      // handle double quotes escape ""
+      if(insideQuotes && text[i+1] === '"'){
+        field += '"';
+        i++; // skip escaped quote
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+    } else if(ch === ',' && !insideQuotes){
+      row.push(field);
+      field = '';
+    } else if((ch === '\n' || ch === '\r') && !insideQuotes){
+      // handle CRLF: if CR then skip next LF
+      if(ch === '\r' && text[i+1] === '\n'){ /* skip, will handle on \n */ }
+      if(field !== '' || row.length > 0){
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+      }
+      // skip additional newlines (continue)
+    } else {
+      field += ch;
+    }
+  }
+  if(field !== '' || row.length > 0){
+    row.push(field);
+    rows.push(row);
+  }
+  // Trim quotes and whitespace from each field
+  for(const r of rows){
+    for(let j=0;j<r.length;j++){
+      let f = r[j] || '';
+      f = f.trim();
+      if(f.startsWith('"') && f.endsWith('"')) f = f.slice(1,-1);
+      r[j] = f;
+    }
+  }
+  return rows;
+}
+
+/* Decide parsedRows from CSV content:
+   - If header row exists ("Person"), skip it
+   - Else use rows as-is (each row expected to have 3 cols)
+*/
+function getParsedRows(csvText){
+  const rows = parseCSV(csvText);
+  if(rows.length === 0) return [];
+  const first = rows[0].map(c=>c.toString().toLowerCase());
+  if(first[0] && first[0].includes('person')) {
+    return rows.slice(1);
+  }
+  return rows;
+}
+
+/* -------- Default demo CSV (used when scriptInput empty) -------- */
+const defaultCSV = `"Person","Message","Time"
+"You","Hello 👋, how are you?","12:30 PM"
+"User","I'm good, thanks! <i>How about you?</i>","12:31 PM"
+
+/* -------- Script player -------- */
+async function playScriptRows(rows){
+  if(!rows || rows.length === 0) return;
+  playing = true;
+  startScript.disabled = true;
+  for(let i=0;i<rows.length;i++){
+    const r = rows[i];
+    const person = (r[0] || '').trim();
+    const message = (r[1] || '').trim();
+    const time = (r[2] || '').trim() || null;
+
+    if(!person || !message) continue;
+
+    if(person.toLowerCase() === 'you'){
+      // outgoing -> auto type into input, then add
+      await new Promise(resolve=>{
+        typeInInput(message, ()=>{
+          // after typing completes, simulate send
+          addMessage(person, message, time);
+          input.value = '';
+          sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
+          setTimeout(resolve, delay);
+        });
+      });
+    } else {
+      // incoming -> show dots (typing indicator) for calculated time, then show full message
+      chatTitle.textContent = person;
+      const typingNode = showTypingIndicator();
+      // typing time based on 35 wpm ~ 170ms/char, but minimum 1000ms
+      const typingTime = Math.max(1000, message.length * 170);
+      await new Promise(resolve=>{
+        setTimeout(()=>{
+          // remove dots, show full message
+          if(typingNode && typingNode.parentNode) typingNode.remove();
+          addMessage(person, message, time);
+          setTimeout(resolve, delay);
+        }, typingTime);
+      });
+    }
+  }
+  playing = false;
+  startScript.disabled = false;
+}
+
+/* Start Script handler */
+startScript.addEventListener('click', ()=>{
+  if(playing) return; // ignore while playing
+  chat.innerHTML = '';
+
+  // use provided script if present, else fallback to defaultCSV
+  const csvText = (scriptInput.value && scriptInput.value.trim().length>0) ? scriptInput.value.trim() : defaultCSV;
+
+  let rows = getParsedRows(csvText);
+
+  // if parsing returned rows but columns are not 3, attempt a secondary parse by splitting lines
+  if(rows.length > 0 && rows.some(r => r.length < 2)){
+    // try simple split on lines and split by | (not ideal but safety)
+    const lines = csvText.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    rows = lines.map(line=>{
+      // try to extract three parts using regex that matches "x","y","z" or x,y,z
+      const matchQuoted = line.match(/^"(.+?)","([\s\S]*?)","(.*?)"$/);
+      if(matchQuoted) return [matchQuoted[1], matchQuoted[2], matchQuoted[3]];
+      const parts = line.split(',');
+      return parts.map(p=>p.replace(/^"|"$/g,'').trim());
+    }).filter(r=>r.length>=2);
+  }
+
+  // If still nothing, inform user and abort
+  if(!rows || rows.length === 0){
+    alert('No valid CSV script found. Paste a CSV (with header "Person,Message,Time") or leave empty to use demo.');
+    return;
+  }
+
+  // Hide admin and show main
+  adminPage.style.display = 'none';
+  mainContainer.style.display = 'flex';
+  adminVisible = false;
+
+  // play
+  playScriptRows(rows);
+});
+
+/* Clear window */
+clearWindow.addEventListener('click', ()=> chat.innerHTML = '');
+
+/* Back button toggles main <-> admin */
+backBtn.addEventListener('click', ()=>{
+  adminVisible = !adminVisible;
+  if(adminVisible){
+    mainContainer.style.display = 'none';
+    adminPage.style.display = 'flex';
+  } else {
+    mainContainer.style.display = 'flex';
+    adminPage.style.display = 'none';
+  }
+});
+
+/* Send button manual (user typing + sending) */
+sendBtn.addEventListener('click', ()=>{
+  const text = input.value.trim();
+  if(!text) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  addMessage('You', text, time);
+  input.value = '';
+  sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
+});
+
+/* Copy demo to clipboard */
+copyDemo.addEventListener('click', ()=>{
+  navigator.clipboard.writeText(demoScript.textContent.trim()).then(()=>{
+    copyDemo.textContent = 'Copied!';
+    setTimeout(()=> copyDemo.textContent = 'Copy Demo Script',1200);
+  });
+});
+
+</script>
+</body>
+</html>
