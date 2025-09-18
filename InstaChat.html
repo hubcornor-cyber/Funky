@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp Modern Clone</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background: #fafafa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 95vh;
+}
+
+.container {
+  width: 98%;
+ 
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Header */
+.header {
+  background: #f09433;  /* Instagram gradient start color */
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: white;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 17px;
+  font-weight: 500;
+}
+.header .header-left { display:flex; align-items:center; gap:10px;}
+.header img { width:36px; height:36px; border-radius:50%; }
+.header .back, .header .menu { cursor:pointer; font-size:22px; }
+
+/* Chat area */
+.chat {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  background: #f0f0f0;
+}
+.chat::-webkit-scrollbar { width: 6px; }
+.chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius:3px; }
+
+.message {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 20px;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  white-space: pre-wrap;
+}
+.outgoing {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); /* Instagram gradient */
+  color: white;
+  border-bottom-right-radius:4px;
+}
+.incoming {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #36d1dc, #5b86e5);
+  color: white;
+  border-bottom-left-radius:4px;
+}
+.message img { max-width: 180px; border-radius: 12px; display:block; margin-bottom:4px; }
+
+.time { display:block; font-size:11px; text-align:right; margin-top:4px; opacity:0.7; }
+.ticks { font-size:12px; color:white; margin-left:4px; }
+
+.typing-indicator { align-self:flex-start; background:#ddd; border-radius:20px; padding:8px 12px; display:flex; gap:4px;}
+.dot { width:6px; height:6px; border-radius:50%; background:#888; animation:blink 1s infinite;}
+.dot:nth-child(2){animation-delay:0.2s;}
+.dot:nth-child(3){animation-delay:0.4s;}
+@keyframes blink {0%,80%,100%{opacity:.3}40%{opacity:1}}
+
+.input-bar { display:flex; align-items:center; padding:8px 12px; border-top:1px solid #ccc; gap:8px; background:#fff;}
+.input-bar .emoji { font-size:22px; cursor:pointer;}
+.input-bar textarea { flex:1; padding:8px 12px; border-radius:20px; border:1px solid #ccc; font-size:14px; resize:none; line-height:1.4; max-height:4.5em; overflow-y:auto; outline:none; }
+.input-bar button { width:36px; height:36px; border:none; border-radius:50%; background:#833ab4; color:white; font-size:18px; cursor:pointer; }
+
+/* Admin panel */
+#adminPage { display:none; flex-direction:column; padding:20px; overflow-y:auto; background:#f7f7f7; }
+#adminPage textarea { width:100%; height:120px; margin-bottom:10px; }
+#adminPage button { margin:5px; padding:6px 12px; border-radius:6px; border:none; cursor:pointer; background:#833ab4; color:white;}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="back" id="backBtn">⇦</div>
+      <img src="https://banner2.cleanpng.com/cb2/ykn/pfc/adoi6oygb.webp" alt="User">
+      <div id="chatTitle">Chat</div>
+    </div>
+    <div class="menu">⋮</div>
+  </div>
+
+  <!-- Chat area -->
+  <div class="chat" id="chat"></div>
+
+  <!-- Input bar -->
+  <div class="input-bar">
+    <div class="emoji">😊</div>
+    <textarea id="messageInput" placeholder="Type a message"></textarea>
+    <button id="sendBtn"><i class="fas fa-microphone"></i></button>
+  </div>
+
+  <!-- Admin panel -->
+  <div id="adminPage">
+    <h3>Admin Panel</h3>
+    <textarea id="scriptInput" placeholder="Paste CSV script here: Person,Message,Time"></textarea>
+    <div>
+      <label>Message Delay: <span id="delayValue">2000</span> ms</label>
+      <input type="range" id="delaySlider" min="1000" max="5000" step="500" value="2000">
+    </div>
+    <button id="startScript">Start Script</button>
+    <button id="clearWindow">Clear Chat</button>
+  </div>
+</div>
+
+<script>
+// Elements
+const chat = document.getElementById('chat');
+const input = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const chatTitle = document.getElementById('chatTitle');
+const backBtn = document.getElementById('backBtn');
+const adminPage = document.getElementById('adminPage');
+const scriptInput = document.getElementById('scriptInput');
+const startScript = document.getElementById('startScript');
+const clearWindow = document.getElementById('clearWindow');
+const delaySlider = document.getElementById('delaySlider');
+const delayValue = document.getElementById('delayValue');
+
+let delay = parseInt(delaySlider.value);
+
+// Update delay display
+delaySlider.addEventListener('input', () => {
+  delay = parseInt(delaySlider.value);
+  delayValue.textContent = delay;
+});
+
+// Toggle input button icon
+input.addEventListener('input', () => {
+  sendBtn.innerHTML = input.value.trim() ? "<i class='fas fa-paper-plane'></i>" : "<i class='fas fa-microphone'></i>";
+});
+
+// Add message
+function addMessage(person, text, time){
+  const msg = document.createElement('div');
+  msg.className = 'message ' + (person.toLowerCase() === 'you' ? 'outgoing' : 'incoming');
+  msg.innerHTML = `${text}<span class="time">${time}${person.toLowerCase() === 'you'?'<span class="ticks">✔✔</span>':''}</span>`;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// Typing indicator
+function showTypingIndicator(){
+  const typing = document.createElement('div');
+  typing.className = 'typing-indicator';
+  typing.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  chat.appendChild(typing);
+  chat.scrollTop = chat.scrollHeight;
+  return typing;
+}
+
+// CSV Parser
+function parseCSV(text){
+  const rows = [];
+  let current = [];
+  let insideQuotes = false;
+  let field = '';
+  for(let char of text){
+    if(char === '"') insideQuotes = !insideQuotes;
+    else if(char === ',' && !insideQuotes){ current.push(field.trim()); field=''; }
+    else if(char === '\n' && !insideQuotes){ current.push(field.trim()); rows.push(current); current=[]; field=''; }
+    else field += char;
+  }
+  if(field.length>0) current.push(field.trim());
+  if(current.length>0) rows.push(current);
+  return rows;
+}
+
+  // Auto-type function for outgoing messages
+function autoType(text, callback){
+  input.value = '';
+  let index = 0;
+  const typingInterval = setInterval(() => {
+    input.value += text[index];
+    index++;
+    // Keep send button icon in sync
+    sendBtn.innerHTML = "<i class='fas fa-paper-plane'></i>";
+    if(index >= text.length){
+      clearInterval(typingInterval);
+      callback();
+    }
+  }, 100); // typing speed in ms per character
+}
+
+// Play script function using CSV time for both outgoing and incoming
+function playScript(rows, index = 0){
+  if(index >= rows.length) return;
+  const row = rows[index];
+  const person = row[0].replace(/^\"|\"$/g,'');
+  const message = row[1].replace(/^\"|\"$/g,'');
+  const csvTime = row[2].replace(/^\"|\"$/g,'');
+
+  if(person.toLowerCase() === 'you'){
+    chatTitle.textContent = 'You';
+    autoType(message, () => {
+      addMessage('You', message, csvTime); // use CSV time
+      input.value = '';
+      sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
+      setTimeout(() => playScript(rows, index + 1), delay);
+    });
+  } else {
+    chatTitle.textContent = person;
+    const typing = showTypingIndicator();
+    const typingTime = Math.max(1000, message.length * 150);
+    setTimeout(() => {
+      typing.remove();
+      addMessage(person, message, csvTime); // use CSV time
+      setTimeout(() => playScript(rows, index + 1), delay);
+    }, typingTime);
+  }
+}
+
+  
+// Admin toggle
+backBtn.addEventListener('click', ()=>{
+  const visible = adminPage.style.display === 'flex';
+  adminPage.style.display = visible ? 'none' : 'flex';
+  chat.style.display = visible ? 'flex' : 'none';
+  document.querySelector('.input-bar').style.display = visible ? 'flex' : 'none';
+});
+
+// Start script
+startScript.addEventListener('click', ()=>{
+  chat.innerHTML = '';
+  const rows = parseCSV(scriptInput.value.trim()).slice(1);
+  adminPage.style.display = 'none';
+  chat.style.display = 'flex';
+  document.querySelector('.input-bar').style.display = 'flex';
+  playScript(rows,0);
+});
+
+// Clear chat
+clearWindow.addEventListener('click', ()=> chat.innerHTML='');
+
+// Send button
+sendBtn.addEventListener('click', ()=>{
+  const text = input.value.trim();
+  if(!text) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  addMessage('You',text,time);
+  input.value = '';
+  sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
+});
+
+// Keep icon sync
+setInterval(()=>{
+  sendBtn.innerHTML = input.value.trim() ? "<i class='fas fa-paper-plane'></i>" : "<i class='fas fa-microphone'></i>";
+},300);
+</script>
+</body>
+</html>
