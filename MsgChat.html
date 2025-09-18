@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatGPT Clone</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* Body & Container */
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background: #f7f7f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+/* Header */
+.header {
+  background: #343541;
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 500;
+  position: relative;
+}
+
+/* Optional menu icon */
+.header .menu {
+  position: absolute;
+  right: 20px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #ccc;
+}
+
+/* Chat area */
+.chat {
+  flex: 1;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  background: #f7f7f8;
+}
+.chat::-webkit-scrollbar { width: 6px; }
+.chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+
+/* Messages */
+.message {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+.outgoing { align-self: flex-end; background: linear-gradient(135deg,#10a37f,#2bd9a9); color:#fff; border-bottom-right-radius:4px; }
+.incoming { align-self: flex-start; background: linear-gradient(135deg,#e2e8f0,#cfd8dc); color:#000; border-bottom-left-radius:4px; }
+
+.time { display:block; font-size:11px; text-align:right; margin-top:4px; opacity:0.6; }
+
+/* Typing indicator */
+.typing-indicator { display:flex; gap:4px; align-items:center; justify-content:flex-start; padding:8px 12px; border-radius:18px; background:#e2e8f0; max-width:40px;}
+.dot { width:6px; height:6px; background:#888; border-radius:50%; animation:blink 1s infinite;}
+.dot:nth-child(2){animation-delay:0.2s;} .dot:nth-child(3){animation-delay:0.4s;}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+
+/* Input Bar */
+.input-bar { display:flex; align-items:center; padding:10px 16px; border-top:1px solid #ddd; background:#fff; gap:10px; box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);}
+.input-bar textarea { flex:1; padding:10px 14px; border-radius:999px; border:1px solid #ccc; font-size:14px; outline:none; resize:none; background:#f0f0f0; max-height:80px; }
+.input-bar button { width:36px; height:36px; border:none; border-radius:50%; background:#10a37f; color:#fff; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+/* Admin Panel */
+#adminPanel {
+  display:none;
+  flex-direction:column;
+  padding:16px;
+  border-top:1px solid #ddd;
+  background:#f4f4f4;
+}
+#adminPanel textarea { width:100%; height:120px; margin-bottom:10px; padding:10px; border-radius:8px; border:1px solid #ccc; resize:none; }
+#adminPanel button { margin:5px; padding:6px 12px; border:none; border-radius:6px; background:#10a37f; color:white; cursor:pointer; }
+#adminPanel label { font-size:14px; margin-right:8px; }
+#adminPanel input[type=range] { vertical-align:middle; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    Shan Awan
+    <div class="menu" id="adminToggle"><i class="fas fa-cog"></i></div>
+  </div>
+  <div class="chat" id="chat"></div>
+  <div class="input-bar">
+    <textarea id="messageInput" placeholder="Type a message..."></textarea>
+    <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="adminPanel">
+    <h3>Admin Panel</h3>
+    <textarea id="scriptInput" placeholder="Paste CSV script: Person,Message,Time"></textarea>
+    <div>
+      <label>Message Delay: <span id="delayValue">2000</span> ms</label>
+      <input type="range" id="delaySlider" min="500" max="5000" step="200" value="2000">
+    </div>
+    <div>
+      <button id="startScript">Start Script</button>
+      <button id="clearChat">Clear Chat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Elements
+const chat = document.getElementById('chat');
+const input = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const adminPanel = document.getElementById('adminPanel');
+const adminToggle = document.getElementById('adminToggle');
+const scriptInput = document.getElementById('scriptInput');
+const startScript = document.getElementById('startScript');
+const clearChat = document.getElementById('clearChat');
+const delaySlider = document.getElementById('delaySlider');
+const delayValue = document.getElementById('delayValue');
+
+let delay = parseInt(delaySlider.value);
+
+// Scroll chat
+function scrollChat(){ chat.scrollTop = chat.scrollHeight; }
+
+// Add message
+function addMessage(person,text,time){
+  const msg=document.createElement('div');
+  msg.className='message '+(person.toLowerCase()==='you'?'outgoing':'incoming');
+  msg.innerHTML=`${text}<span class="time">${time}</span>`;
+  chat.appendChild(msg);
+  scrollChat();
+}
+
+// Typing indicator
+function showTyping(){ 
+  const t = document.createElement('div'); 
+  t.className='typing-indicator';
+  t.innerHTML='<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  chat.appendChild(t); scrollChat(); return t;
+}
+
+// CSV parser
+function parseCSV(text){
+  const rows=[]; let current=[]; let inside=false; let field='';
+  for(let c of text){
+    if(c==='"') inside=!inside;
+    else if(c===','&&!inside){ current.push(field.trim()); field=''; }
+    else if(c==='\n'&&!inside){ current.push(field.trim()); rows.push(current); current=[]; field=''; }
+    else field+=c;
+  }
+  if(field) current.push(field.trim());
+  if(current.length) rows.push(current);
+  return rows;
+}
+
+// Auto-type outgoing
+function typeOutgoing(text,callback){
+  input.value='';
+  let i=0;
+  const interval=setInterval(()=>{
+    input.value=text.substring(0,i); i++;
+    if(i>text.length){ clearInterval(interval); if(callback) callback(); }
+  },100);
+}
+
+// Play script
+function playScript(rows,index=0){
+  if(index>=rows.length) return;
+  const row = rows[index];
+  const person=row[0].replace(/^\"|\"$/g,'');
+  const message=row[1].replace(/^\"|\"$/g,'');
+  const time=row[2].replace(/^\"|\"$/g,'');
+  if(person.toLowerCase()==='you'){
+    typeOutgoing(message,()=>{
+      addMessage(person,message,time);
+      input.value='';
+      setTimeout(()=>playScript(rows,index+1),delay);
+    });
+  } else {
+    const typing=showTyping();
+    const tTime=Math.max(1000,message.length*150);
+    setTimeout(()=>{
+      typing.remove();
+      addMessage(person,message,time);
+      setTimeout(()=>playScript(rows,index+1),delay);
+    },tTime);
+  }
+}
+
+// Send manual
+sendBtn.addEventListener('click',()=>{
+  const text=input.value.trim();
+  if(!text) return;
+  const now=new Date();
+  const time=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  addMessage('You',text,time);
+  input.value='';
+});
+
+// Toggle admin
+adminToggle.addEventListener('click',()=>{
+  adminPanel.style.display = adminPanel.style.display==='flex'?'none':'flex';
+});
+
+// Delay slider
+delaySlider.addEventListener('input',()=>{ delay=parseInt(delaySlider.value); delayValue.textContent=delay; });
+
+// Start script
+startScript.addEventListener('click',()=>{
+  chat.innerHTML='';
+  const rows=parseCSV(scriptInput.value.trim()).slice(1);
+  playScript(rows,0);
+});
+
+// Clear chat
+clearChat.addEventListener('click',()=> chat.innerHTML='');
+</script>
+</body>
+</html>
