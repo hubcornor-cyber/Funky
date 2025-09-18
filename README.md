@@ -35,5 +35,8 @@ Chat + Script + InstaChat + ColorFul Display UI = Screen Recorder Video
 [WhatsappChat.html](https://hubcornor-cyber.github.io/Funky/WhatsappChat.html)
 Chat + Script + Whatsapp = Screen Recorder Video
 
+[ChatPrompt](https://hubcornor-cyber.github.io/Funky/Prompt.txt)
+Chat + Script + Whatsapp = Screen Recorder Video
+
 [Vidmaker.html](https://hubcornor-cyber.github.io/Funky/Vidmaker.html)
 Images + Sound = Video
