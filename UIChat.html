@@ -1,0 +1,282 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portrait Chat Multi-Scene</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  .container {
+    width: 95%;
+    max-width: 400px;
+    height: 95vh;
+    background: rgba(255,255,255,0.95);
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Header as button */
+  #chatHeader {
+    background: #075e54;
+    color: white;
+    padding: 15px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    user-select: none;
+  }
+  #chatHeader:hover {
+    background: #0a7861;
+    transform: scale(1.02);
+  }
+
+  .chat-body {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background-size: cover;
+    background-position: center;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .chat-body::-webkit-scrollbar { display: none; }
+
+  .message-container { display: flex; margin: 5px 0; align-items: flex-end; }
+  .message { max-width: 70%; padding: 10px 15px; border-radius: 20px; position: relative; opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s ease; word-wrap: break-word; }
+  .message.show { opacity: 1; transform: translateY(0); }
+  .message.left { background: #e5e5ea; border-bottom-left-radius: 0; }
+  .message.right { background: #25d366; color: white; border-bottom-right-radius: 0; margin-left: auto; }
+  .avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 10px; }
+
+  .typing { display: flex; align-items: center; gap: 5px; padding: 5px 10px; font-style: italic; color: gray; opacity: 0; }
+  .dot { width: 8px; height: 8px; background: gray; border-radius: 50%; animation: blink 1s infinite; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,20%,50%,80%,100%{opacity:0.3;} 40%{opacity:1;} 60%{opacity:0.5;} }
+
+  .admin-panel { display: none; padding: 10px; background: #fff; border-top: 1px solid #ccc; }
+  .admin-panel textarea { width: 100%; height: 150px; font-family: monospace; margin-bottom: 10px; }
+
+  .upload-section { display: flex; justify-content: space-between; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+  .upload-section label { display: inline-block; padding: 10px 15px; background: #25d366; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; flex: 1; margin-bottom: 5px; transition: background 0.3s ease; }
+  .upload-section label:hover { background: #1ebe57; }
+  .upload-section input[type="file"] { display: none; }
+
+  .run-btn { width: 100%; padding: 12px; background: #128c7e; color: white; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.3s ease, transform 0.2s ease; }
+  .run-btn:hover { background: #075e54; transform: scale(1.02); }
+
+  #sceneOverlay {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background: rgba(0,0,0,0.6); color:white; padding:20px 30px;
+    font-size: 18px; border-radius: 10px; display:none; z-index: 1000; text-align:center;
+  }
+
+  @media(max-width: 400px){
+    .chat-body { height: 600px; }
+    .message { max-width: 80%; }
+    .avatar { width: 40px; height: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="chat-header" id="chatHeader">Sid Store</div>
+
+  <div class="chat-body" id="chatBody"></div>
+  <div id="sceneOverlay"></div>
+
+  <div class="admin-panel" id="adminPanel">
+    <p>Paste multiple CSVs here. Separate scenes with --- and optional Title:</p>
+    <textarea id="csvInput">Title: Morning Chat
+"Person","Message","Time","BG","DP"
+"You","Hey! Ready?","10:00 AM","",""
+"Friend","Yes!","10:01 AM","",""
+---
+Title: Evening Chat
+"Person","Message","Time","BG","DP"
+"You","Good evening!","06:00 PM","",""
+"Friend","Hello!","06:01 PM","",""</textarea>
+
+    <div class="upload-section">
+      <label for="bgUpload">Choose Background</label>
+      <input type="file" id="bgUpload" accept="image/*">
+    </div>
+
+    <div class="upload-section">
+      <label for="youDP">Your DP</label>
+      <input type="file" id="youDP" accept="image/*">
+      <label for="friendDP">Friend DP</label>
+      <input type="file" id="friendDP" accept="image/*">
+    </div>
+
+    <button class="run-btn" id="runCSV">Run Chat</button>
+  </div>
+</div>
+
+<audio id="sendSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+<audio id="receiveSound" src="https://www.soundjay.com/button/button-3.mp3"></audio>
+
+<script>
+const chatBody = document.getElementById('chatBody');
+const chatHeader = document.getElementById('chatHeader');
+const adminPanel = document.getElementById('adminPanel');
+const runCSV = document.getElementById('runCSV');
+const csvInput = document.getElementById('csvInput');
+const bgUpload = document.getElementById('bgUpload');
+const youDPInput = document.getElementById('youDP');
+const friendDPInput = document.getElementById('friendDP');
+const sendSound = document.getElementById('sendSound');
+const receiveSound = document.getElementById('receiveSound');
+const sceneOverlay = document.getElementById('sceneOverlay');
+
+let adminMode = false;
+let defaultBG = '';
+let youDP = 'https://randomuser.me/api/portraits/women/65.jpg';
+let friendDP = 'https://randomuser.me/api/portraits/men/32.jpg';
+
+chatHeader.addEventListener('click', () => {
+    adminMode = !adminMode;
+    adminPanel.style.display = adminMode ? 'block' : 'none';
+    chatHeader.textContent = adminMode ? 'Admin Mode (Click to Chat)' : 'Sid Store';
+});
+
+bgUpload.addEventListener('change', e => { const file = e.target.files[0]; if(file) defaultBG = URL.createObjectURL(file); });
+youDPInput.addEventListener('change', e => { const file = e.target.files[0]; if(file) youDP = URL.createObjectURL(file); });
+friendDPInput.addEventListener('change', e => { const file = e.target.files[0]; if(file) friendDP = URL.createObjectURL(file); });
+
+// Parse scenes
+function parseScenes(data) {
+    const rawScenes = data.split('---');
+    return rawScenes.map(sceneText => {
+        sceneText = sceneText.trim();
+        let title = '';
+        if(sceneText.startsWith('Title:')){
+            const firstLineEnd = sceneText.indexOf('\n');
+            title = sceneText.slice(6, firstLineEnd).trim();
+            sceneText = sceneText.slice(firstLineEnd+1);
+        }
+        const lines = sceneText.split("\n").slice(1);
+        const messages = lines.map(line => {
+            const match = line.match(/"(.*?)","(.*?)","(.*?)","(.*?)","(.*?)"/);
+            if(match){
+                return { person: match[1], message: match[2], time: match[3], bg: match[4], dp: match[5] };
+            }
+            return null;
+        }).filter(x=>x);
+        return { title, messages };
+    });
+}
+
+function fixBrokenImages() {
+    document.querySelectorAll('img').forEach(img => { img.onerror = () => { img.src = 'https://via.placeholder.com/50?text=?'; }; });
+}
+
+function showTyping(side, avatar){
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing';
+    typingDiv.innerHTML = `<img class="avatar" src="${avatar}"> <div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
+    chatBody.appendChild(typingDiv);
+    fixBrokenImages();
+    chatBody.scrollTop = chatBody.scrollHeight;
+    typingDiv.style.opacity = 1;
+    return typingDiv;
+}
+
+function showMessage(msg){
+    const container = document.createElement('div');
+    container.className = 'message-container ' + (msg.person==='You'?'right':'left');
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ' + (msg.person==='You'?'right':'left');
+    messageDiv.innerHTML = msg.message + `<div style="font-size:10px;text-align:right;margin-top:5px;">${msg.time}</div>`;
+
+    const avatarImg = document.createElement('img');
+    avatarImg.className = 'avatar';
+    avatarImg.src = msg.dp || (msg.person==='You'? youDP : friendDP);
+
+    if(msg.person==='You'){
+        container.appendChild(messageDiv);
+        container.appendChild(avatarImg);
+        sendSound.play();
+    }else{
+        container.appendChild(avatarImg);
+        container.appendChild(messageDiv);
+        receiveSound.play();
+    }
+
+    chatBody.appendChild(container);
+    setTimeout(()=>messageDiv.classList.add('show'),50);
+    fixBrokenImages();
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function playScenes(scenes, index=0){
+    if(index >= scenes.length) return;
+
+    const scene = scenes[index];
+    chatBody.innerHTML = '';
+    chatBody.style.background = defaultBG ? `url(${defaultBG})` : 'linear-gradient(to bottom, #a1c4fd, #c2e9fb)';
+
+    if(scene.title){
+        sceneOverlay.textContent = scene.title;
+        sceneOverlay.style.display = 'block';
+    }
+
+    setTimeout(()=>{
+        sceneOverlay.style.display = 'none';
+        let msgIndex = 0;
+
+        function nextMessage(){
+            if(msgIndex >= scene.messages.length){
+                setTimeout(()=>playScenes(scenes, index+1), 1500);
+                return;
+            }
+
+            const msg = scene.messages[msgIndex];
+            if(msg.bg) chatBody.style.background = `url(${msg.bg})`;
+            const typingDiv = showTyping(msg.person==='You'? youDP : friendDP, msg.person);
+            const typingTime = 1000 + Math.random()*1000;
+
+            setTimeout(()=>{
+                typingDiv.remove();
+                showMessage(msg);
+                msgIndex++;
+                setTimeout(nextMessage, 800);
+            }, typingTime);
+        }
+
+        nextMessage();
+    }, 2000);
+}
+
+runCSV.addEventListener('click', () => {
+    const scenes = parseScenes(csvInput.value);
+    playScenes(scenes);
+    adminPanel.style.display = 'none';
+    adminMode = false;
+    chatHeader.textContent = 'Sid Store';
+});
+</script>
+</body>
+</html>
