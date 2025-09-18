@@ -1,0 +1,17 @@
+Create a realistic chat conversation about [TOPIC] between two people in CSV format.  
+
+Rules:
+1. Maximum 20 messages (roughly 10 outgoing, 10 incoming).  
+2. Messages should be short, casual texting style, natural, sometimes with emojis.  
+3. Use **bold**, *italic*, or highlight for emotions where appropriate.  
+4. Format must be CSV like this:
+"Person","Message","Time"
+"You","...","HH:MM AM/PM"
+"Friend/Other","<img src='Image1.png' alt='...' width='220px' border-radius='25px'><br>...","HH:MM AM/PM"
+5. Only incoming messages (Friend/Other) should contain images. Outgoing messages (You) should not have images.  
+6. Make the conversation feel like a **complete short story** with beginning, conflict, and resolution.  
+7. Keep the conversation natural, fun, or emotional depending on the topic.  
+
+[TOPIC] = Replace this with any topic you want (example: stress, weekend plans, coffee habits, travel ideas, work gossip, etc.).
+
+8. Create prompt for images given in conversation with copy button
