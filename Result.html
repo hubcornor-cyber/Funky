@@ -11,7 +11,7 @@
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 8px;
+      padding: 1px;
       text-align: left;
       vertical-align: middle;
     }
@@ -53,7 +53,7 @@
           headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
-
+ 
         // Now generate tbody rows using your template literal structure
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i];
@@ -65,7 +65,10 @@
               <td>${row[1] || ''}</td>
               <td>${row[2] || ''}</td>
               <td>${row[3] || ''}</td>
-              <td><img src="${row[4] || ''}" alt="Photo"></td>
+              <td>${row[4] || ''}</td>
+              <td>${row[5] || ''}</td>
+              <td>${row[6] || ''}</td>
+              <td><img src="${row[7] || ''}" alt="Photo"></td>
             </tr>
           `;
           tbody.insertAdjacentHTML('beforeend', trHtml);
