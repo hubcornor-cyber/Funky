@@ -21,3 +21,4 @@
 [Result](https://hubcornor-cyber.github.io/Funky/Result.html)
 
 [Vidmaker.html](https://hubcornor-cyber.github.io/Funky/Vidmaker.html)
+Images + Sound = Video
