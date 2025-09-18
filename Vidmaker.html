@@ -1,0 +1,132 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image → Video Converter (Client‑Side)</title>
+  <style>
+    :root{
+      --bg:#0f172a;--panel:#111827;--muted:#94a3b8;--text:#e5e7eb;--accent:#22c55e;--accent-2:#06b6d4;--danger:#ef4444;--warning:#f59e0b;--border:#1f2937;--shadow:0 10px 25px rgba(0,0,0,.35);--radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(120deg,var(--bg),#0b1227);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    header h1{font-size:clamp(22px,2.8vw,32px);margin:0}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .grid{display:grid;grid-template-columns:1fr;gap:18px}
+    @media(min-width:960px){.grid{grid-template-columns: 2.2fr 1fr}}
+    .controls{padding:18px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    label{font-size:13px;color:var(--muted)}
+    input[type="file"]{display:none}
+    .btn{appearance:none;border:1px solid var(--border);background:#0b1227;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.15s transform,.15s background; box-shadow: inset 0 0 0 1px rgba(255,255,255,.03)}
+    .btn:hover{transform:translateY(-1px);background:#0c132b}
+    .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none}
+    .btn.danger{background:transparent;border-color:#3b1111;color:#fecaca}
+    .btn.ghost{background:transparent}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed var(--border);border-radius:999px;color:var(--muted);font-size:13px}
+    .select,.number,.text{background:#0b1227;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;min-width:90px}
+    .number{width:110px}
+    .list{padding:14px 14px 6px;max-height:420px;overflow:auto;border-top:1px solid var(--border)}
+    .item{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;background:#0b1227}
+    .thumb{width:64px;height:64px;border-radius:12px;overflow:hidden;background:#0a0f1f;display:grid;place-items:center;border:1px solid var(--border)}
+    .thumb img{max-width:100%;max-height:100%;object-fit:cover}
+    .meta{display:flex;flex-direction:column;gap:6px}
+    .meta .name{font-weight:600;font-size:14px;word-break:break-all}
+    .meta .sub{font-size:12px;color:var(--muted)}
+    .actions{display:flex;gap:8px}
+    .footer{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:14px;border-top:1px solid var(--border)}
+    .progress{height:10px;background:#0b1120;border:1px solid var(--border);border-radius:999px;overflow:hidden}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+    .errors{padding:12px 14px;color:#fecaca;background:#2b0d0d;border:1px solid #3b1111;border-radius:12px;margin-top:10px;display:none}
+    .hint{font-size:12px;color:var(--muted)}
+    video{width:100%;border-bottom-left-radius:var(--radius);border-bottom-right-radius:var(--radius)}
+    .preview{padding:14px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7a2 2 0 0 1 2-2h2l1-2h6l1 2h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="#22c55e" stroke-width="1.2"/><path d="M12 9.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z" stroke="#06b6d4" stroke-width="1.2"/></svg>
+      <h1>Image → Video Converter</h1>
+      <span class="pill"><strong>Client‑side</strong> • No server needed</span>
+    </header>
+    <div class="grid">
+      <section class="card">
+        <div class="controls">
+          <div class="row" style="justify-content:space-between">
+            <div class="row">
+              <label for="fileInput">Images</label>
+              <label class="btn" for="fileInput">+ Add Images</label>
+              <input id="fileInput" type="file" accept="image/*" multiple />
+              <span class="hint">Tip: drag in multiple photos • order can be changed</span>
+            </div>
+            <div class="row">
+              <label for="fps">FPS</label>
+              <input id="fps" class="number" type="number" min="1" max="60" value="30" />
+              <label for="size">Resolution</label>
+              <select id="size" class="select">
+                <option value="1920x1080">YouTube (1920×1080)</option>
+                <option value="1080x1920">TikTok / Reels / Shorts (1080×1920)</option>
+                <option value="1080x1080">Instagram Post / Facebook Ad (1080×1080)</option>
+                <option value="1280x720">Facebook / Twitter (1280×720)</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <label for="audioInput">Soundtrack</label>
+            <label class="btn" for="audioInput">+ Add Audio</label>
+            <input id="audioInput" type="file" accept="audio/*" />
+            <span class="hint">Optional — will be auto‑trimmed to slideshow length</span>
+          </div>
+        </div>
+        <div class="list" id="list"></div>
+        <div class="footer">
+          <div class="row" style="gap:14px">
+            <button id="generateBtn" class="btn primary">▶ Generate Video</button>
+            <a id="downloadLink" class="btn ghost" download="slideshow.webm" style="display:none">⬇ Download Video</a>
+          </div>
+          <div class="progress" style="flex:1;min-width:200px"><div class="bar" id="bar"></div></div>
+        </div>
+        <div id="errors" class="errors"></div>
+      </section>
+      <section class="card">
+        <div class="preview"><label>Preview</label></div>
+        <video id="outVideo" controls playsinline></video>
+      </section>
+    </div>
+  </div>
+  <canvas id="canvas" style="display:none"></canvas>  <script>
+    const state = { items:[], nextId:1, chunks:[], recorder:null, audioFile:null };
+    const el = id=>document.getElementById(id);
+    const list=el('list'), errors=el('errors'), bar=el('bar'), fileInput=el('fileInput'), fpsInput=el('fps'), sizeInput=el('size'), generateBtn=el('generateBtn'), downloadLink=el('downloadLink'), outVideo=el('outVideo'), canvas=el('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function showError(m){errors.style.display='block';errors.textContent=m}
+    function clearError(){errors.style.display='none';errors.textContent=''}
+    function setProgress(p){bar.style.width=Math.max(0,Math.min(100,p))+'%'}
+
+    function renderList(){list.innerHTML='';state.items.forEach((it,idx)=>{const row=document.createElement('div');row.className='item';row.innerHTML=`<div class="thumb"><img src="${it.url}"></div><div class="meta"><div class="name">${it.file.name}</div><div class="sub">${it.img.naturalWidth}×${it.img.naturalHeight}</div><div class="row"><label>Duration (sec)</label><input type="number" class="number" value="${it.duration}" min="0.1" step="0.1"></div></div><div class="actions"><button class="btn ghost">▲</button><button class="btn ghost">▼</button><button class="btn danger">Remove</button></div>`;list.appendChild(row);const input=row.querySelector('input');input.addEventListener('input',()=>{const v=parseFloat(input.value);it.duration=isFinite(v)&&v>0?v:0});row.querySelectorAll('button')[0].onclick=()=>{if(idx>0)[state.items[idx-1],state.items[idx]]=[state.items[idx],state.items[idx-1]],renderList()};row.querySelectorAll('button')[1].onclick=()=>{if(idx<state.items.length-1)[state.items[idx+1],state.items[idx]]=[state.items[idx],state.items[idx+1]],renderList()};row.querySelectorAll('button')[2].onclick=()=>{URL.revokeObjectURL(it.url);state.items.splice(idx,1);renderList()}})}
+
+    fileInput.onchange=async e=>{clearError();for(const f of e.target.files){if(!/^image\//.test(f.type)){showError(`Invalid image: ${f.name}`);continue}const url=URL.createObjectURL(f);const img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url});state.items.push({id:state.nextId++,file:f,url,img,duration:3})}renderList()};
+    el('audioInput').onchange=e=>{const f=e.target.files[0];if(f && /^audio\//.test(f.type)){state.audioFile=f}else{state.audioFile=null}};
+
+    function computeCoverRect(sw,sh,dw,dh){const sr=sw/sh,dr=dw/dh;let w,h,x,y;if(sr>dr){h=dh;w=h*sr;x=(dw-w)/2;y=0}else{w=dw;h=w/sr;x=0;y=(dh-h)/2}return{x,y,w,h}};
+
+    async function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+    async function generate(){clearError();setProgress(0);downloadLink.style.display='none';outVideo.removeAttribute('src');outVideo.load();if(!state.items.length){showError('Add images first');return}
+      const [W,H]=sizeInput.value.split('x').map(Number),fps=Math.max(1,Math.min(60,parseInt(fpsInput.value)||30));canvas.width=W;canvas.height=H;
+      const mime='video/webm;codecs=vp9';const stream=canvas.captureStream(fps);
+
+      // attach audio if present
+      if(state.audioFile){const audio=new Audio(URL.createObjectURL(state.audioFile));audio.crossOrigin='anonymous';const ctxA=new AudioContext();const src=ctxA.createMediaElementSource(audio);const dst=ctxA.createMediaStreamDestination();src.connect(dst);src.connect(ctxA.destination);stream.addTrack(dst.stream.getAudioTracks()[0]);audio.play()}
+
+      const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:6_000_000});state.chunks=[];rec.ondataavailable=e=>{if(e.data.size)state.chunks.push(e.data)};const stopP=new Promise(r=>rec.onstop=r);rec.start();
+      let elapsed=0,totalDur=state.items.reduce((a,b)=>a+b.duration,0);
+      for(const it of state.items){const frames=Math.round(it.duration*fps),rect=computeCoverRect(it.img.naturalWidth,it.img.naturalHeight,W,H);for(let f=0;f<frames;f++){ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);ctx.drawImage(it.img,rect.x,rect.y,rect.w,rect.h);elapsed+=1/fps;setProgress(elapsed/totalDur*100);await sleep(1000/fps)}}
+      rec.stop();await stopP;
+      const blob=new Blob(state.chunks,{type:mime});const url=URL.createObjectURL(blob);downloadLink.href=url;downloadLink.style.display='inline-flex';downloadLink.textContent=`⬇ Download Video (${(blob.size/1024/1024).toFixed(1)} MB)`;outVideo.src=url;outVideo.play().catch(()=>{});setProgress(100)}
+
+    generateBtn.onclick=generate;
+  </script></body>
+</html>
