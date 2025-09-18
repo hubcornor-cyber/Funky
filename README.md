@@ -4,8 +4,7 @@
 
 [NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html)
 
-
-[Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html?link=NumberInfo.html)
+[Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html)
 
 [Google.html](https://hubcornor-cyber.github.io/Funky/Google.html)
 
@@ -21,10 +20,4 @@
 
 [Result](https://hubcornor-cyber.github.io/Funky/Result.html)
 
-[TextToolDashboard](https://hubcornor-cyber.github.io/Funky/xtrdashboard.html)
-
-[TextToolProduct](https://hubcornor-cyber.github.io/Funky/xtrProduct.html)
-
-[TextToolExplore](https://hubcornor-cyber.github.io/Funky/xtrExplore.html)
-
-https://docs.google.com/spreadsheets/u/0/d/11IV1cDXwy218_scGamEWGyUnBxOftg68rsutomF5mn8/htmlview
+[Vidmaker.html](https://hubcornor-cyber.github.io/Funky/Vidmaker.html)
