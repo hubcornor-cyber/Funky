@@ -20,6 +20,9 @@
 
 [Result](https://hubcornor-cyber.github.io/Funky/Result.html)
 
+[MsgChat.html](https://hubcornor-cyber.github.io/Funky/MsgChat.html)
+Chat + Script + Simple UI  = Screen Recorder Video
+
 [UIChat.html](https://hubcornor-cyber.github.io/Funky/UIChat.html)
 Chat + Script + Image BG + User + Your DP = Screen Recorder Video
 
