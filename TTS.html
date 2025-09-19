@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Text to Speech</h2>
+        <textarea id="text" placeholder="Enter text here"></textarea>
+        <button id="speak">Speak</button>
+    </div>
+
+    <script>
+        const textElement = document.getElementById('text');
+        const speakButton = document.getElementById('speak');
+
+        speakButton.addEventListener('click', () => {
+            const text = textElement.value.trim();
+            if (text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 1;
+                utterance.pitch = 1;
+                utterance.volume = 1;
+                // Use a more human-like voice
+                const voices = window.speechSynthesis.getVoices();
+                const voice = voices.find(voice => voice.name === 'Google US hindi');
+                if (voice) {
+                    utterance.voice = voice;
+                }
+                window.speechSynthesis.speak(utterance);
+            }
+        });
+
+        // Populate voices
+        window.speechSynthesis.onvoiceschanged = () => {
+            const voices = window.speechSynthesis.getVoices();
+            console.log(voices);
+        };
+    </script>
+</body>
+</html>
