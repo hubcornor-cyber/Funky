@@ -1,292 +1,287 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Image → Video Converter</title>
-<style>
-:root{
-  --bg:#fffef5; --panel:#fff; --muted:#ff8c00; --text:#333;
-  --accent:#ffb300; --accent-2:#ff8c00; --border:#ffd89b;
-  --shadow:0 8px 20px rgba(0,0,0,.06); --radius:12px;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif;padding:20px;}
-.container{max-width:1100px;margin:0 auto}
-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-h1{margin:0;color:var(--accent-2)}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:14px}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-label{font-size:13px;color:#555}
-input[type="file"]{display:none}
-input.number,input.select{padding:6px 8px;border-radius:8px;border:1px solid var(--border)}
-.btn{appearance:none;border:1px solid transparent;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer}
-.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
-.btn.danger{background:transparent;border:1px solid #f5c2c2;color:#ef4444}
-.list{padding:10px;max-height:360px;overflow:auto;border-top:1px solid var(--border);margin-top:10px}
-.item{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:8px;border-radius:10px;border:1px solid #fff;margin-bottom:8px;background:linear-gradient(180deg,#fff,#fffef0)}
-.thumb{width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--border);display:grid;place-items:center}
-.thumb img{width:100%;height:100%;object-fit:cover}
-.meta{display:flex;flex-direction:column;gap:4px}
-.meta .row{gap:6px;align-items:center}
-.actions{display:flex;gap:8px;align-items:center}
-#effectPreviewCanvas{background:#000;border-radius:8px;border:1px solid var(--border);max-width:100%}
-.progress{height:12px;background:#f1f1f1;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
-.bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
-video{width:100%;border-radius:8px;margin-top:10px;background:#000}
-.muted{color:#666;font-size:13px}
-.small{font-size:12px;color:#666}
-footer{margin-top:12px;text-align:right;color:#666;font-size:13px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Image → Video Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      padding: 20px;
+    }
+
+    .container {
+      width: 80%;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .btn.ghost {
+      background-color: transparent;
+      color: #007bff;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    input[type="number"] {
+      width: 80px;
+    }
+
+    select {
+      width: 100%;
+    }
+
+    #outVideo {
+      display: none;
+      margin-top: 20px;
+      max-width: 100%;
+    }
+
+    .progress {
+      background-color: #ddd;
+      width: 100%;
+      height: 10px;
+      border-radius: 5px;
+    }
+
+    .bar {
+      background-color: #007bff;
+      width: 0;
+      height: 100%;
+      border-radius: 5px;
+    }
+
+    small {
+      font-size: 12px;
+      color: #888;
+    }
+  </style>
 </head>
-
 <body>
-<div class="container">
-<header><h1>Image → Video Converter</h1><div class="muted">Client-side • MP4/MKV</div></header>
+  <div class="container">
+    <header>
+      <h1>Image → Video Converter</h1>
+      <div class="muted">Client-side • MP4/MKV</div>
+    </header>
 
-<section class="card">
-  <div class="row" style="justify-content:space-between">
-    <label class="btn">+ Add Images<input id="fileInput" type="file" accept="image/*" multiple></label>
-    <label class="btn ghost">+ Add Captions (SRT)<input id="srtInput" type="file" accept=".srt"></label>
-    <label class="btn ghost">+ Add Audio<input id="audioInput" type="file" accept="audio/*"></label>
-    <span id="srtFileName" class="small">No captions loaded</span>
-    <div class="small">Tip: add images, set duration and transition for each</div>
-  </div>
-  <div style="margin-top:12px" class="row">
-    <label class="small">FPS</label><input id="fps" class="number" type="number" min="1" max="60" value="30" style="width:72px">
-    <label class="small">Resolution</label>
-    <select id="size" class="select">
-      <option value="1920x1080">YouTube (1920×1080)</option>
-      <option value="1080x1920">TikTok (1080×1920)</option>
-      <option value="1080x1080">Instagram (1080×1080)</option>
-      <option value="1280x720">720p (1280×720)</option>
-    </select>
-  </div>
-  <div style="margin-top:12px" class="row">
-    <div>Total Video Length: <span id="totalDuration">0s</span></div>
-  </div>
-</section>
-
-<section class="card">
-  <div class="small">Images</div>
-  <div id="list" class="list"></div>
-  <div class="preview-row" style="margin-top:10px">
-    <div style="flex:1">
-      <div class="small">Effect Preview</div>
-      <canvas id="effectPreviewCanvas" width="480" height="270"></canvas>
-      <div style="margin-top:8px" class="row">
-        <button id="playPreview" class="btn">▶ Play</button>
-        <button id="stopPreview" class="btn ghost">■ Stop</button>
-        <div class="muted" style="margin-left:8px">Click an item to select for preview</div>
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <label class="btn">+ Add Images
+          <input id="fileInput" type="file" accept="image/*" multiple>
+        </label>
+        <label class="btn ghost">+ Add Audio
+          <input id="audioInput" type="file" accept="audio/*">
+        </label>
+        <span id="srtFileName" class="small">No captions loaded</span>
       </div>
-    </div>
-  </div>
-</section>
+      <div style="margin-top:12px" class="row">
+        <label class="small">FPS</label><input id="fps" class="number" type="number" min="1" max="60" value="30" style="width:72px">
+        <label class="small">Resolution</label>
+        <select id="size" class="select">
+          <option value="1920x1080">YouTube (1920×1080)</option>
+          <option value="1080x1920">TikTok (1080×1920)</option>
+          <option value="1080x1080">Instagram (1080×1080)</option>
+          <option value="1280x720">720p (1280×720)</option>
+        </select>
+      </div>
+      <div style="margin-top:12px" class="row">
+        <div>Total Video Length: <span id="totalDuration">0s</span></div>
+      </div>
+    </section>
 
-<section class="card">
-  <div class="row" style="gap:8px;align-items:center">
-    <button id="generateBtn" class="btn">▶ Generate Video</button>
-    <button id="cancelBtn" class="btn ghost" style="display:none">✖ Cancel</button>
-  </div>
-  <div style="margin-top:10px">
-    <div class="progress"><div id="bar" class="bar"></div></div>
-    <div style="display:flex;justify-content:space-between;margin-top:6px">
-      <div class="small" id="progressPercent">0%</div>
-      <div class="small" id="progressTime">0s / 0s</div>
-    </div>
-    <video id="outVideo" controls playsinline></video>
-    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-      <a id="downloadLink" class="btn ghost" style="display:none">⬇ Download MP4</a>
-      <div id="statusText" class="small muted"></div>
-    </div>
-  </div>
-</section>
-
-<footer>Built with MediaRecorder + Canvas</footer>
-</div>
-
-<script>
-(async() => {
-  const state = {
-    items: [],
-    nextId: 1,
-    selectedItemIdx: -1,
-    captions: [],
-    audio: null,
-  };
-
-  const fileInput = document.getElementById('fileInput');
-  const srtInput = document.getElementById('srtInput');
-  const audioInput = document.getElementById('audioInput');
-  const listEl = document.getElementById('list');
-  const fpsInput = document.getElementById('fps');
-  const sizeSelect = document.getElementById('size');
-  const totalDurationEl = document.getElementById('totalDuration');
-  const playPreviewBtn = document.getElementById('playPreview');
-  const stopPreviewBtn = document.getElementById('stopPreview');
-  const previewCanvas = document.getElementById('effectPreviewCanvas');
-  const pctx = previewCanvas.getContext('2d');
-  const generateBtn = document.getElementById('generateBtn');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const barEl = document.getElementById('bar');
-  const progressPercent = document.getElementById('progressPercent');
-  const progressTime = document.getElementById('progressTime');
-  const outVideo = document.getElementById('outVideo');
-  const downloadLink = document.getElementById('downloadLink');
-  const statusText = document.getElementById('statusText');
-  const srtFileName = document.getElementById('srtFileName');
-
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-
-  let previewRAF = null;
-  let mediaRecorder = null, recordedChunks = [], cancelled = false;
-
-  // Update total video duration
-  function updateTotalDuration() {
-    let total = 0;
-    state.items.forEach(it => total += parseFloat(it.duration || 3));
-    totalDurationEl.textContent = Math.round(total) + 's';
-  }
-
-  // Render image list with duration & transition
-  function renderList() {
-    listEl.innerHTML = '';
-    state.items.forEach((it, idx) => {
-      const row = document.createElement('div');
-      row.className = 'item';
-      row.dataset.idx = idx;
-      row.innerHTML = `
-        <div class="thumb"><img src="${it.url}"></div>
-        <div class="meta">
-          <div class="name">${it.file.name}</div>
-          <div class="sub small">Res: ${it.img.naturalWidth}×${it.img.naturalHeight}</div>
-          <div class="row">
-            <label class="small">Duration</label>
-            <input data-idx="${idx}" class="number dur" type="number" value="${it.duration}" min="0.2" step="0.1" style="width:60px">
-            <label class="small">Transition</label>
-            <select data-idx="${idx}" class="select tr">
-              <option value="none">None</option>
-              <option value="fade">Fade</option>
-              <option value="zoomIn">Zoom In</option>
-              <option value="zoomOut">Zoom Out</option>
-              <option value="rotate">Rotate</option>
-              <option value="leftToRight">Left → Right</option>
-              <option value="rightToLeft">Right → Left</option>
-              <option value="panUp">Pan Up</option>
-              <option value="panDown">Pan Down</option>
-            </select>
+    <section class="card">
+      <div class="small">Images</div>
+      <div id="list" class="list"></div>
+      <div class="preview-row" style="margin-top:10px">
+        <div style="flex:1">
+          <div class="small">Effect Preview</div>
+          <canvas id="effectPreviewCanvas" width="480" height="270"></canvas>
+          <div style="margin-top:8px" class="row">
+            <button id="playPreview" class="btn">▶ Play</button>
+            <button id="stopPreview" class="btn ghost">■ Stop</button>
           </div>
         </div>
-        <div class="actions">
-          <button class="btn ghost up">▲</button>
-          <button class="btn ghost down">▼</button>
-          <button class="btn ghost remove">Remove</button>
-        </div>`;
-      listEl.appendChild(row);
+      </div>
+    </section>
 
-      row.querySelector('.dur').addEventListener('input', e => { state.items[idx].duration = parseFloat(e.target.value) || 3; updateTotalDuration(); });
-      const sel = row.querySelector('.tr');
-      sel.value = it.transition || 'none';
-      sel.addEventListener('change', e => state.items[idx].transition = e.target.value);
-      row.querySelector('.remove').addEventListener('click', () => { state.items.splice(idx, 1); renderList(); updateTotalDuration(); });
-      row.querySelector('.up').addEventListener('click', () => { if (idx > 0) { [state.items[idx - 1], state.items[idx]] = [state.items[idx], state.items[idx - 1]]; renderList(); } });
-      row.querySelector('.down').addEventListener('click', () => { if (idx < state.items.length - 1) { [state.items[idx + 1], state.items[idx]] = [state.items[idx], state.items[idx + 1]]; renderList(); } });
+    <section class="card">
+      <div class="row" style="gap:8px;align-items:center">
+        <button id="generateBtn" class="btn">▶ Generate Video</button>
+        <button id="cancelBtn" class="btn ghost" style="display:none">✖ Cancel</button>
+      </div>
+      <div style="margin-top:10px">
+        <div class="progress"><div id="bar" class="bar"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px">
+          <div class="small" id="progressPercent">0%</div>
+          <div class="small" id="progressTime">0s / 0s</div>
+        </div>
+        <video id="outVideo" controls playsinline></video>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+          <a id="downloadLink" class="btn ghost" style="display:none">⬇ Download MP4</a>
+        </div>
+      </div>
+    </section>
 
-      row.addEventListener('click', () => { state.selectedItemIdx = idx; Array.from(listEl.children).forEach((r, i) => r.style.outline = (i === idx) ? '2px solid rgba(255,140,0,0.35)' : ''); });
+    <footer>Built with MediaRecorder + Canvas</footer>
+  </div>
+
+  <script>
+    // JavaScript to handle image and audio input, preview, and video generation
+
+    const state = {
+      items: [],
+      nextId: 1,
+      audio: null,
+      canvas: document.createElement('canvas'),
+      ctx: null,
+    };
+
+    const fileInput = document.getElementById('fileInput');
+    const audioInput = document.getElementById('audioInput');
+    const fpsInput = document.getElementById('fps');
+    const sizeSelect = document.getElementById('size');
+    const totalDurationEl = document.getElementById('totalDuration');
+    const playPreviewBtn = document.getElementById('playPreview');
+    const stopPreviewBtn = document.getElementById('stopPreview');
+    const previewCanvas = document.getElementById('effectPreviewCanvas');
+    const pctx = previewCanvas.getContext('2d');
+    const generateBtn = document.getElementById('generateBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const progressBar = document.getElementById('bar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressTime = document.getElementById('progressTime');
+    const outVideo = document.getElementById('outVideo');
+    const downloadLink = document.getElementById('downloadLink');
+
+    state.ctx = state.canvas.getContext('2d');
+
+    // Add images to the list
+    fileInput.addEventListener('change', async e => {
+      const files = Array.from(e.target.files || []);
+      for (const f of files) {
+        if (!f.type.startsWith('image/')) continue;
+        const url = URL.createObjectURL(f);
+        const img = new Image();
+        await new Promise(r => { img.onload = r; img.src = url; });
+        state.items.push({ id: state.nextId++, file: f, url, img, duration: 3 });
+      }
+      updateTotalDuration();
     });
-  }
 
-  // Add images
-  fileInput.addEventListener('change', async e => {
-    const files = Array.from(e.target.files || []);
-    for (const f of files) {
-      if (!f.type.startsWith('image/')) continue;
-      const url = URL.createObjectURL(f);
-      const img = new Image();
-      await new Promise(r => { img.onload = r; img.src = url; });
-      state.items.push({ id: state.nextId++, file: f, url, img, duration: 3, transition: 'fade' });
+    // Add audio
+    audioInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      state.audio = new Audio(url);
+      state.audio.loop = true; // Make the audio loop for testing
+    });
+
+    // Update total video duration based on images
+    function updateTotalDuration() {
+      let total = 0;
+      state.items.forEach(it => total += parseFloat(it.duration || 3));
+      totalDurationEl.textContent = Math.round(total) + 's';
     }
-    renderList();
-    updateTotalDuration();
-  });
 
-  // Add audio file
-  audioInput.addEventListener('change', async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    state.audio = new Audio(url);
-    state.audio.loop = true; // Allow looping audio
-  });
+    // Render the preview of frames on the canvas
+    function renderPreview() {
+      let idx = 0;
+      let startTime = Date.now();
+      const fps = parseFloat(fpsInput.value) || 30;
 
-  // Parse SRT captions (same as before)
-  srtInput.addEventListener('change', async e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const text = await file.text();
-    state.captions = parseSRT(text);
-    srtFileName.textContent = file.name;
-  });
+      function previewFrame() {
+        if (idx >= state.items.length) {
+          cancelAnimationFrame(previewRAF);
+          return;
+        }
 
-  // Generate video with audio
-  generateBtn.addEventListener('click', async () => {
-    if (state.items.length === 0) return alert('Add images first');
+        const image = state.items[idx].img;
+        const duration = state.items[idx].duration;
+        const timeElapsed = (Date.now() - startTime) / 1000;
 
-    cancelled = false;
-    statusText.textContent = 'Processing...';
+        // Draw the current frame on the canvas
+        state.ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
+        state.ctx.drawImage(image, 0, 0, state.canvas.width, state.canvas.height);
 
-    const fps = parseFloat(fpsInput.value) || 30;
-    const resolution = sizeSelect.value.split('x');
-    const width = parseInt(resolution[0]);
-    const height = parseInt(resolution[1]);
+        // If the current frame has finished displaying, move to the next
+        if (timeElapsed > (idx + 1) * duration) {
+          idx++;
+        }
 
-    canvas.width = width;
-    canvas.height = height;
+        previewRAF = requestAnimationFrame(previewFrame);
+      }
 
-    // Set up for creating the video
-    const stream = canvas.captureStream(fps);
-    const tracks = stream.getVideoTracks();
-    const mediaRecorder = new MediaRecorder(stream, {
-      mimeType: 'video/webm; codecs=vp8',
-      videoBitsPerSecond: 2500000,
-    });
+      previewFrame();
+    }
 
-    // Add audio track to stream
-    if (state.audio) {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const audioSourceNode = audioContext.createMediaElementSource(state.audio);
-      const dest = audioContext.createMediaStreamDestination();
-      audioSourceNode.connect(dest);
-      stream.addTrack(dest.stream.getAudioTracks()[0]);
+    playPreviewBtn.addEventListener('click', () => {
       state.audio.play();
-    }
+      renderPreview();
+    });
 
-    // Start recording video chunks
-    let chunks = [];
-    mediaRecorder.ondataavailable = event => {
-      if (!cancelled) chunks.push(event.data);
-    };
+    stopPreviewBtn.addEventListener('click', () => {
+      state.audio.pause();
+      cancelAnimationFrame(previewRAF);
+    });
 
-    mediaRecorder.onstop = async () => {
-      const videoBlob = new Blob(chunks, { type: 'video/webm' });
+    // Video generation logic
+    generateBtn.addEventListener('click', () => {
+      const totalFrames = state.items.length;
+      const fps = parseFloat(fpsInput.value);
+      const duration = parseFloat(fpsInput.value);
 
-      const url = URL.createObjectURL(videoBlob);
-      outVideo.src = url;
-      outVideo.style.display = 'block';
+      // MediaRecorder to record the canvas
+      const stream = previewCanvas.captureStream(fps);
+      mediaRecorder = new MediaRecorder(stream);
 
-      // Provide download link
-      downloadLink.href = url;
-      downloadLink.style.display = 'inline-block';
-      downloadLink.download = 'output_video.mp4'; 
-    };
+      mediaRecorder.ondataavailable = event => {
+        recordedChunks.push(event.data);
+      };
 
-    mediaRecorder.start();
-    
-    // Add the logic for rendering frames to canvas 
-    // (combining image transitions and captions)
-  });
-})();
-</script>
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+        const videoURL = URL.createObjectURL(blob);
+        outVideo.src = videoURL;
+        outVideo.style.display = 'block';
+
+        downloadLink.href = videoURL;
+        downloadLink.download = 'output.mp4';
+        downloadLink.style.display = 'inline-block';
+      };
+
+      mediaRecorder.start();
+
+      // Simulate rendering and audio sync
+      setTimeout(() => {
+        mediaRecorder.stop();
+      }, totalFrames * duration * 1000);
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      mediaRecorder.stop();
+      outVideo.style.display = 'none';
+      downloadLink.style.display = 'none';
+    });
+  </script>
 </body>
 </html>
