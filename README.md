@@ -14,6 +14,8 @@
 
 [Camera.html](https://hubcornor-cyber.github.io/Funky/Camera.html)
 
+[WishingHoli.html](https://hubcornor-cyber.github.io/Funky/WishingHoli.html)
+
 [Buy Now](https://hubcornor-cyber.github.io/Funky/Buy%20Now.html)
 
 [Admin](https://hubcornor-cyber.github.io/Funky/SecretAdmin.html)
