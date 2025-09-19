@@ -14,7 +14,11 @@
 
 [Camera.html](https://hubcornor-cyber.github.io/Funky/Camera.html)
 
-[HappyDay.html](https://hubcornor-cyber.github.io/Funky/HappyDay.html)  Wishing ScriptHindi
+[HappyDay.html](https://hubcornor-cyber.github.io/Funky/HappyDay.html)    Wishing ScriptHindi 0
+
+[HappyMeet.html](https://hubcornor-cyber.github.io/Funky/HappyMeet.html)  Wishing ScriptHindi I
+
+[HappyDayI.html](https://hubcornor-cyber.github.io/Funky/HappyDayI.html)  Wishing ScriptHindi II
 
 [Buy Now](https://hubcornor-cyber.github.io/Funky/Buy%20Now.html)
 
