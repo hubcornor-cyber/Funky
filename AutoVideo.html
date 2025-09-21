@@ -281,7 +281,6 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/whammy/0.0.1/whammy.min.js"></script>
   <script>
     // Constants
     const DEFAULT_SETTINGS = {
@@ -407,8 +406,6 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
         ctx.fillStyle = settings.textColor;
         ctx.fillText(line, detailX, lineY);
       });
-
-      return canvasEl.toDataURL('image/png');
     };
 
     const updateSliderValues = () => {
@@ -447,29 +444,18 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
       disableButtons(true);
       elements.results.innerHTML = '';
       const settings = getSettings();
-      const whammy = new Whammy.Video(FPS);
+      const canvas = elements.previewCanvas;
+      const stream = canvas.captureStream(FPS);
+      const recordedChunks = [];
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
 
-      for (let i = 0; i < csvLines.length; i++) {
-        elements.statusText.textContent = `Processing image ${i + 1} of ${csvLines.length}...`;
-        elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
-        const [src, title, detail] = csvLines[i].split(',');
-        try {
-          const img = await loadImage(src.trim());
-          const dataUrl = drawTextOverlay(img, title.trim(), detail.trim(), settings);
-          const frameCount = settings.duration * FPS;
-          for (let j = 0; j < frameCount; j++) {
-            whammy.add(dataUrl);
-          }
-        } catch (e) {
-          elements.statusText.textContent = `Image load failed: ${src}`;
-          disableButtons(false);
-          return;
-        }
-      }
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
 
-      try {
-        const output = whammy.compile();
-        const videoUrl = URL.createObjectURL(output);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const videoUrl = URL.createObjectURL(blob);
         const div = document.createElement('div');
         div.className = 'result-item';
         div.innerHTML = `
@@ -478,11 +464,33 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
         `;
         elements.results.appendChild(div);
         elements.statusText.textContent = 'Video generated!';
-      } catch (e) {
-        elements.statusText.textContent = `Video generation failed: ${e.message}`;
-      } finally {
         disableButtons(false);
+      };
+
+      mediaRecorder.onerror = () => {
+        elements.statusText.textContent = 'Video generation failed.';
+        disableButtons(false);
+      };
+
+      mediaRecorder.start();
+
+      for (let i = 0; i < csvLines.length; i++) {
+        elements.statusText.textContent = `Processing image ${i + 1} of ${csvLines.length}...`;
+        elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
+        const [src, title, detail] = csvLines[i].split(',');
+        try {
+          const img = await loadImage(src.trim());
+          drawTextOverlay(img, title.trim(), detail.trim(), settings);
+          await new Promise(resolve => setTimeout(resolve, settings.duration * 1000));
+        } catch (e) {
+          elements.statusText.textContent = `Image load failed: ${src}`;
+          mediaRecorder.stop();
+          disableButtons(false);
+          return;
+        }
       }
+
+      mediaRecorder.stop();
     };
 
     const resetSettings = () => {
