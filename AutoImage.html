@@ -179,12 +179,24 @@
       font-size: 14px;
       display: none;
     }
+    .control-columns {
+      display: flex;
+      gap: 20px;
+      margin-top: 6px;
+    }
+    .color-column, .align-column {
+      flex: 1;
+    }
     @media (max-width: 768px) {
       .top-row {
         flex-direction: column;
       }
       .preview-panel, .control-panel, .results-panel {
         width: 95%;
+      }
+      .control-columns {
+        flex-direction: column;
+        gap: 10px;
       }
     }
   </style>
@@ -216,45 +228,51 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
           <input type="range" id="detailSize" min="10" max="80" value="24">
           <span class="slider-value" id="detailSizeValue">24</span>
         </div>
-        <label>Text Color</label><input type="color" id="textColor" value="#ffffff">
-        <label>Detail Background Color 1</label><input type="color" id="detailBg1" value="#00000000">
-        <label>Detail Background Color 2</label><input type="color" id="detailBg2" value="#000000">
-        <label>Detail Background Opacity</label>
-        <div class="slider-container">
-          <input type="range" id="detailBgOpacity" min="0" max="100" value="80">
-          <span class="slider-value" id="detailBgOpacityValue">80</span>
+        <div class="control-columns">
+          <div class="color-column">
+            <label>Text Color</label><input type="color" id="textColor" value="#ffffff">
+            <label>Detail Background Color 1</label><input type="color" id="detailBg1" value="#00000000">
+            <label>Detail Background Color 2</label><input type="color" id="detailBg2" value="#000000">
+            <label>Detail Background Opacity</label>
+            <div class="slider-container">
+              <input type="range" id="detailBgOpacity" min="0" max="100" value="80">
+              <span class="slider-value" id="detailBgOpacityValue">80</span>
+            </div>
+            <label>Title Border Color</label><input type="color" id="titleBorderColor" value="#ffffff">
+            <label>Title Glow Color</label><input type="color" id="titleGlowColor" value="#ff0000">
+          </div>
+          <div class="align-column">
+            <label>Adjust Title Position</label>
+            <div class="slider-container">
+              <input type="range" id="titleSlider" min="0" max="200" value="0">
+              <span class="slider-value" id="titleSliderValue">0</span>
+            </div>
+            <label>Adjust Detail Position</label>
+            <div class="slider-container">
+              <input type="range" id="detailSlider" min="0" max="200" value="0">
+              <span class="slider-value" id="detailSliderValue">0</span>
+            </div>
+            <label>Title Alignment</label>
+            <select id="titleAlign">
+              <option value="center">Center</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+            <label>Detail Alignment</label>
+            <select id="detailAlign">
+              <option value="center">Center</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+            <label>Font Family</label>
+            <select id="fontFamily">
+              <option value="Segoe UI">Segoe UI</option>
+              <option value="Arial">Arial</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Open Sans">Open Sans</option>
+            </select>
+          </div>
         </div>
-        <label>Title Border Color</label><input type="color" id="titleBorderColor" value="#ffffff">
-        <label>Title Glow Color</label><input type="color" id="titleGlowColor" value="#ff0000">
-        <label>Adjust Title Position</label>
-        <div class="slider-container">
-          <input type="range" id="titleSlider" min="0" max="200" value="0">
-          <span class="slider-value" id="titleSliderValue">0</span>
-        </div>
-        <label>Adjust Detail Position</label>
-        <div class="slider-container">
-          <input type="range" id="detailSlider" min="0" max="200" value="0">
-          <span class="slider-value" id="detailSliderValue">0</span>
-        </div>
-        <label>Title Alignment</label>
-        <select id="titleAlign">
-          <option value="center">Center</option>
-          <option value="left">Left</option>
-          <option value="right">Right</option>
-        </select>
-        <label>Detail Alignment</label>
-        <select id="detailAlign">
-          <option value="center">Center</option>
-          <option value="left">Left</option>
-          <option value="right">Right</option>
-        </select>
-        <label>Font Family</label>
-        <select id="fontFamily">
-          <option value="Segoe UI">Segoe UI</option>
-          <option value="Arial">Arial</option>
-          <option value="Roboto">Roboto</option>
-          <option value="Open Sans">Open Sans</option>
-        </select>
 
         <button class="btn" id="singleBtn">Generate Single</button>
         <button class="btn" id="generateBtn">Generate All</button>
