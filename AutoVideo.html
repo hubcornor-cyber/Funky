@@ -1,204 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Image-to-Video Animation</title>
-    <script src="https://cdn.jsdelivr.net/npm/ccapture.js-npmfixed@1.1.0/build/CCapture.all.min.js"></script>
-    <style>
-        body { font-family: sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
-        .controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 20px; margin: 20px auto; max-width: 1200px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .control-group { display: flex; flex-direction: column; align-items: center; min-width: 200px; padding: 10px; }
-        label { font-weight: bold; margin-bottom: 5px; }
-        textarea { width: 100%; max-width: 300px; height: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; }
-        input[type="range"] { width: 150px; }
-        button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px; }
-        button.primary { background: #007bff; color: white; }
-        button.primary:hover { background: #0056b3; }
-        button.download { background: #28a745; color: white; }
-        button.download:hover { background: #218838; }
-        #canvasContainer { resize: both; overflow: hidden; width: 800px; height: 400px; margin: 20px auto; border: 1px solid #ccc; border-radius: 8px; background: #fff; }
-        canvas { display: block; width: 100%; height: 100%; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image → Video Converter (Client‑Side)</title>
+  <style>
+    :root{
+      --bg:#0f172a;--panel:#111827;--muted:#94a3b8;--text:#e5e7eb;--accent:#22c55e;--accent-2:#06b6d4;--danger:#ef4444;--warning:#f59e0b;--border:#1f2937;--shadow:0 10px 25px rgba(0,0,0,.35);--radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(120deg,var(--bg),#0b1227);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    header h1{font-size:clamp(22px,2.8vw,32px);margin:0}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .grid{display:grid;grid-template-columns:1fr;gap:18px}
+    @media(min-width:960px){.grid{grid-template-columns: 2.2fr 1fr}}
+    .controls{padding:18px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    label{font-size:13px;color:var(--muted)}
+    input[type="file"]{display:none}
+    .btn{appearance:none;border:1px solid var(--border);background:#0b1227;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.15s transform,.15s background; box-shadow: inset 0 0 0 1px rgba(255,255,255,.03)}
+    .btn:hover{transform:translateY(-1px);background:#0c132b}
+    .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none}
+    .btn.danger{background:transparent;border-color:#3b1111;color:#fecaca}
+    .btn.ghost{background:transparent}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed var(--border);border-radius:999px;color:var(--muted);font-size:13px}
+    .select,.number,.text{background:#0b1227;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;min-width:90px}
+    .number{width:110px}
+    .text{min-width:200px}
+    .list{padding:14px 14px 6px;max-height:420px;overflow:auto;border-top:1px solid var(--border)}
+    .item{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;background:#0b1227}
+    .thumb{width:64px;height:64px;border-radius:12px;overflow:hidden;background:#0a0f1f;display:grid;place-items:center;border:1px solid var(--border)}
+    .thumb img{max-width:100%;max-height:100%;object-fit:cover}
+    .meta{display:flex;flex-direction:column;gap:6px}
+    .meta .name{font-weight:600;font-size:14px;word-break:break-all}
+    .meta .sub{font-size:12px;color:var(--muted)}
+    .actions{display:flex;gap:8px}
+    .footer{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:14px;border-top:1px solid var(--border)}
+    .progress{height:10px;background:#0b1120;border:1px solid var(--border);border-radius:999px;overflow:hidden}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+    .errors{padding:12px 14px;color:#fecaca;background:#2b0d0d;border:1px solid #3b1111;border-radius:12px;margin-top:10px;display:none}
+    .hint{font-size:12px;color:var(--muted)}
+    video{width:100%;border-bottom-left-radius:var(--radius);border-bottom-right-radius:var(--radius)}
+    .preview{padding:14px}
+  </style>
 </head>
 <body>
-    <h1>Image-to-Video Animator</h1>
-    <div class="controls">
-        <div class="control-group">
-            <label for="urlInput">Image URLs (CSV format):</label>
-            <textarea id="urlInput" placeholder="https://via.placeholder.com/800x400/FF6B6B?text=Img1, https://via.placeholder.com/800x400/4ECDC4?text=Img2"></textarea>
-            <button class="primary" onclick="loadImages()">Load Images</button>
-        </div>
-        <div class="control-group">
-            <label for="durationSlider">Frame Duration (ms):</label>
-            <input type="range" id="durationSlider" min="100" max="5000" step="100" value="2500">
-            <span id="durationValue">2500 ms</span>
-        </div>
-        <div class="control-group">
-            <label for="aspectSelect">Aspect Ratio Preset:</label>
-            <select id="aspectSelect">
-                <option value="custom">Custom (Free Resize)</option>
-                <option value="16:9">16:9 (YouTube Video)</option>
-                <option value="9:16">9:16 (YouTube Shorts)</option>
-                <option value="1:1">1:1 (Square)</option>
+  <div class="container">
+    <header>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7a2 2 0 0 1 2-2h2l1-2h6l1 2h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="#22c55e" stroke-width="1.2"/><path d="M12 9.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z" stroke="#06b6d4" stroke-width="1.2"/></svg>
+      <h1>Image → Video Converter</h1>
+      <span class="pill"><strong>Client‑side</strong> • No server needed</span>
+    </header>
+    <div class="grid">
+      <section class="card">
+        <div class="controls">
+          <div class="row" style="justify-content:space-between">
+            <div class="row">
+              <label for="fileInput">Images</label>
+              <label class="btn" for="fileInput">+ Add Images</label>
+              <input id="fileInput" type="file" accept="image/*" multiple />
+              <span class="hint">Tip: drag in multiple photos • order can be changed</span>
+            </div>
+            <div class="row">
+              <label for="fps">FPS</label>
+              <input id="fps" class="number" type="number" min="1" max="60" value="30" />
+              <label for="size">Resolution</label>
+              <select id="size" class="select">
+                <option value="1920x1080">YouTube (1920×1080)</option>
+                <option value="1080x1920">TikTok / Reels / Shorts (1080×1920)</option>
+                <option value="1080x1080">Instagram Post / Facebook Ad (1080×1080)</option>
+                <option value="1280x720">Facebook / Twitter (1280×720)</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <label for="audioInput">Soundtrack</label>
+            <label class="btn" for="audioInput">+ Add Audio</label>
+            <input id="audioInput" type="file" accept="audio/*" />
+            <span class="hint">Optional — will be auto‑trimmed to slideshow length</span>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <label>Transition</label>
+            <select id="transType" class="select">
+              <option value="none">None</option>
+              <option value="fade">Fade</option>
             </select>
-            <button class="primary" onclick="applyAspect()">Apply Preset</button>
+            <label>Duration (sec)</label>
+            <input id="transDur" class="number" type="number" min="0.1" step="0.1" value="0.5" />
+          </div>
+          <div class="row" style="margin-top:12px">
+            <label>Intro Text</label>
+            <input id="introText" class="text" type="text" placeholder="Enter intro title" />
+            <label>Duration (sec)</label>
+            <input id="introDur" class="number" type="number" min="0" step="0.1" value="3" />
+          </div>
+          <div class="row" style="margin-top:12px">
+            <label>Outro Text</label>
+            <input id="outroText" class="text" type="text" placeholder="Enter outro text" />
+            <label>Duration (sec)</label>
+            <input id="outroDur" class="number" type="number" min="0" step="0.1" value="3" />
+          </div>
         </div>
-        <div class="control-group">
-            <button class="primary" onclick="startAnimation()">Start Animation</button>
-            <button class="primary" onclick="stopAnimation()">Stop Animation</button>
+        <div class="list" id="list"></div>
+        <div class="footer">
+          <div class="row" style="gap:14px">
+            <button id="generateBtn" class="btn primary">▶ Generate Video</button>
+            <a id="downloadLink" class="btn ghost" download="slideshow.webm" style="display:none">⬇ Download Video</a>
+          </div>
+          <div class="progress" style="flex:1;min-width:200px"><div class="bar" id="bar"></div></div>
         </div>
-        <div class="control-group">
-            <button class="download" onclick="download('gif')">Download GIF</button>
-            <button class="download" onclick="download('webm')">Download MP4 (as WebM)</button>
-        </div>
+        <div id="errors" class="errors"></div>
+      </section>
+      <section class="card">
+        <div class="preview"><label>Preview</label></div>
+        <video id="outVideo" controls playsinline></video>
+      </section>
     </div>
-    <div id="canvasContainer">
-        <canvas id="videoCanvas"></canvas>
-    </div>
+  </div>
+  <canvas id="canvas" style="display:none"></canvas>
+  <script>
+    const state = { items:[], nextId:1, chunks:[], recorder:null, audioFile:null };
+    const el = id=>document.getElementById(id);
+    const list=el('list'), errors=el('errors'), bar=el('bar'), fileInput=el('fileInput'), fpsInput=el('fps'), sizeInput=el('size'), generateBtn=el('generateBtn'), downloadLink=el('downloadLink'), outVideo=el('outVideo'), canvas=el('canvas');
+    const ctx = canvas.getContext('2d');
 
-    <script>
-        const canvasContainer = document.getElementById('canvasContainer');
-        const canvas = document.getElementById('videoCanvas');
-        const ctx = canvas.getContext('2d');
-        const urlInput = document.getElementById('urlInput');
-        const durationSlider = document.getElementById('durationSlider');
-        const durationValue = document.getElementById('durationValue');
-        const aspectSelect = document.getElementById('aspectSelect');
+    function showError(m){errors.style.display='block';errors.textContent=m}
+    function clearError(){errors.style.display='none';errors.textContent=''}
+    function setProgress(p){bar.style.width=Math.max(0,Math.min(100,p))+'%'}
 
-        let images = [];
-        let frame = 0;
-        let animationId = null;
-        let frameDuration = 2500; // Default
-        let capturer = null;
-        const recordFPS = 30; // Fixed FPS for recording
+    function renderList(){list.innerHTML='';state.items.forEach((it,idx)=>{const row=document.createElement('div');row.className='item';row.innerHTML=`<div class="thumb"><img src="${it.url}"></div><div class="meta"><div class="name">${it.file.name}</div><div class="sub">${it.img.naturalWidth}×${it.img.naturalHeight}</div><div class="row"><label>Duration (sec)</label><input type="number" class="number" value="${it.duration}" min="0.1" step="0.1"></div></div><div class="actions"><button class="btn ghost">▲</button><button class="btn ghost">▼</button><button class="btn danger">Remove</button></div>`;list.appendChild(row);const input=row.querySelector('input');input.addEventListener('input',()=>{const v=parseFloat(input.value);it.duration=isFinite(v)&&v>0?v:0});row.querySelectorAll('button')[0].onclick=()=>{if(idx>0)[state.items[idx-1],state.items[idx]]=[state.items[idx],state.items[idx-1]],renderList()};row.querySelectorAll('button')[1].onclick=()=>{if(idx<state.items.length-1)[state.items[idx+1],state.items[idx]]=[state.items[idx],state.items[idx+1]],renderList()};row.querySelectorAll('button')[2].onclick=()=>{URL.revokeObjectURL(it.url);state.items.splice(idx,1);renderList()}})}
 
-        // Update slider display and frameDuration
-        durationSlider.addEventListener('input', () => {
-            durationValue.textContent = `${durationSlider.value} ms`;
-            frameDuration = parseInt(durationSlider.value);
-        });
+    fileInput.onchange=async e=>{clearError();for(const f of e.target.files){if(!/^image\//.test(f.type)){showError(`Invalid image: ${f.name}`);continue}const url=URL.createObjectURL(f);const img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url});state.items.push({id:state.nextId++,file:f,url,img,duration:3})}renderList()};
+    el('audioInput').onchange=e=>{const f=e.target.files[0];if(f && /^audio\//.test(f.type)){state.audioFile=f}else{state.audioFile=null}};
 
-        // Load images from CSV input with crossOrigin
-        function loadImages() {
-            const urls = urlInput.value.split(',').map(u => u.trim()).filter(u => u);
-            images = [];
-            let loadedCount = 0;
-            urls.forEach((path) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous'; // Attempt to avoid canvas tainting
-                img.src = path;
-                img.onload = () => {
-                    images.push(img);
-                    loadedCount++;
-                    if (loadedCount === urls.length) {
-                        alert('All images loaded! Start the animation.');
-                    }
-                };
-                img.onerror = () => {
-                    console.error(`Failed to load image: ${path}`);
-                    alert(`Failed to load: ${path}. Check URL or CORS permissions.`);
-                };
-            });
+    function computeCoverRect(sw,sh,dw,dh){const sr=sw/sh,dr=dw/dh;let w,h,x,y;if(sr>dr){h=dh;w=h*sr;x=(dw-w)/2;y=0}else{w=dw;h=w/sr;x=0;y=(dh-h)/2}return{x,y,w,h}};
+
+    async function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+    function drawBackground() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawImage(item, alpha = 1) {
+      ctx.globalAlpha = alpha;
+      const rect = computeCoverRect(item.img.naturalWidth, item.img.naturalHeight, canvas.width, canvas.height);
+      ctx.drawImage(item.img, rect.x, rect.y, rect.w, rect.h);
+      ctx.globalAlpha = 1;
+    }
+
+    function drawText(text) {
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 60px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    }
+
+    async function generate(){clearError();setProgress(0);downloadLink.style.display='none';outVideo.removeAttribute('src');outVideo.load();if(!state.items.length){showError('Add images first');return}
+      const [W,H]=sizeInput.value.split('x').map(Number),fps=Math.max(1,Math.min(60,parseInt(fpsInput.value)||30));
+      const transType = el('transType').value;
+      const transDur = transType === 'fade' ? (parseFloat(el('transDur').value) || 0.5) : 0;
+      const introText = el('introText').value.trim();
+      const introDur = introText ? (parseFloat(el('introDur').value) || 3) : 0;
+      const outroText = el('outroText').value.trim();
+      const outroDur = outroText ? (parseFloat(el('outroDur').value) || 3) : 0;
+      let totalDur = introDur + state.items.reduce((a, it) => a + it.duration, 0) + outroDur;
+      if (transType === 'fade' && state.items.length > 1) {
+        for (let i = 0; i < state.items.length - 1; i++) {
+          if (state.items[i].duration < transDur) {
+            showError('Some image durations are shorter than transition duration. Increase image durations or reduce transition duration.');
+            return;
+          }
         }
+        totalDur -= (state.items.length - 1) * transDur;
+      }
+      canvas.width = W; canvas.height = H;
+      const mime='video/webm;codecs=vp9';const stream=canvas.captureStream(fps);
 
-        // Draw current frame (scale to fit canvas)
-        function drawFrame(increment = true) {
-            if (images.length === 0) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const img = images[frame % images.length];
-            const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
-            const w = img.width * ratio;
-            const h = img.height * ratio;
-            ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
-            if (increment) frame++;
+      let audio = null;
+      if(state.audioFile){
+        audio = new Audio(URL.createObjectURL(state.audioFile));
+        audio.crossOrigin='anonymous';
+        const ctxA = new AudioContext();
+        const src = ctxA.createMediaElementSource(audio);
+        const dst = ctxA.createMediaStreamDestination();
+        src.connect(dst);
+        src.connect(ctxA.destination);
+        stream.addTrack(dst.stream.getAudioTracks()[0]);
+        audio.play();
+      }
+
+      const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:6_000_000});state.chunks=[];rec.ondataavailable=e=>{if(e.data.size)state.chunks.push(e.data)};const stopP=new Promise(r=>rec.onstop=r);rec.start();
+      let elapsed=0;
+
+      // Intro
+      if (introText) {
+        const introFrames = Math.round(introDur * fps);
+        for (let f = 0; f < introFrames; f++) {
+          drawBackground();
+          drawText(introText);
+          elapsed += 1 / fps;
+          setProgress((elapsed / totalDur) * 100);
+          await sleep(1000 / fps);
         }
+      }
 
-        // Animation loop
-        function animate() {
-            drawFrame();
-            animationId = setTimeout(() => requestAnimationFrame(animate), frameDuration);
+      // Images with transitions
+      for (let i = 0; i < state.items.length; i++) {
+        const it = state.items[i];
+        const nextIt = state.items[i + 1];
+        const holdDur = (transType === 'fade' && nextIt) ? it.duration - transDur : it.duration;
+        const holdFrames = Math.round(holdDur * fps);
+        for (let f = 0; f < holdFrames; f++) {
+          drawBackground();
+          drawImage(it);
+          elapsed += 1 / fps;
+          setProgress((elapsed / totalDur) * 100);
+          await sleep(1000 / fps);
         }
-
-        function startAnimation() {
-            if (animationId || images.length === 0) return;
-            animate();
+        if (transType === 'fade' && nextIt) {
+          const transFrames = Math.round(transDur * fps);
+          for (let f = 0; f < transFrames; f++) {
+            const alpha = f / transFrames;
+            drawBackground();
+            drawImage(it, 1 - alpha);
+            drawImage(nextIt, alpha);
+            elapsed += 1 / fps;
+            setProgress((elapsed / totalDur) * 100);
+            await sleep(1000 / fps);
+          }
         }
+      }
 
-        function stopAnimation() {
-            if (animationId) {
-                clearTimeout(animationId);
-                animationId = null;
-            }
+      // Outro
+      if (outroText) {
+        const outroFrames = Math.round(outroDur * fps);
+        for (let f = 0; f < outroFrames; f++) {
+          drawBackground();
+          drawText(outroText);
+          elapsed += 1 / fps;
+          setProgress((elapsed / totalDur) * 100);
+          await sleep(1000 / fps);
         }
+      }
 
-        // Download function for GIF or WebM (MP4 alternative)
-        function download(format) {
-            if (images.length === 0) return alert('Load images first!');
-            if (capturer) return alert('Recording in progress...');
+      rec.stop();await stopP;
+      if (audio) audio.pause();
+      const blob=new Blob(state.chunks,{type:mime});const url=URL.createObjectURL(blob);downloadLink.href=url;downloadLink.style.display='inline-flex';downloadLink.textContent=`⬇ Download Video (${(blob.size/1024/1024).toFixed(1)} MB)`;outVideo.src=url;outVideo.play().catch(()=>{});setProgress(100)}
 
-            stopAnimation(); // Stop preview animation before recording
-
-            capturer = new CCapture({
-                format: format,
-                framerate: recordFPS,
-                name: 'animation',
-                quality: 100,
-            });
-            capturer.start();
-
-            frame = 0;
-            recordFrame(format);
-        }
-
-        function recordFrame(format) {
-            drawFrame(false); // Draw without incrementing yet
-
-            const framesPerImage = Math.round((frameDuration / 1000) * recordFPS);
-            for (let i = 0; i < framesPerImage; i++) {
-                capturer.capture(canvas);
-            }
-
-            frame++; // Now increment for next image
-
-            if (frame < images.length) {
-                setTimeout(() => recordFrame(format), 0);
-            } else {
-                capturer.stop();
-                capturer.save();
-                capturer = null;
-                alert('Download complete! If nothing downloads, check console for errors (e.g., CORS issues with images).');
-            }
-        }
-
-        // Apply aspect ratio preset
-        function applyAspect() {
-            const value = aspectSelect.value;
-            if (value === 'custom') return;
-            const [wRatio, hRatio] = value.split(':').map(Number);
-            const baseHeight = 400; // Fixed base for presets
-            const newWidth = (wRatio / hRatio) * baseHeight;
-            const newHeight = baseHeight;
-            canvasContainer.style.width = `${newWidth}px`;
-            canvasContainer.style.height = `${newHeight}px`;
-            canvas.width = newWidth;
-            canvas.height = newHeight;
-            drawFrame(false); // Redraw without increment
-        }
-
-        // Make canvas match container size on resize
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                canvas.width = entry.contentRect.width;
-                canvas.height = entry.contentRect.height;
-                drawFrame(false); // Redraw without increment
-            }
-        });
-        resizeObserver.observe(canvasContainer);
-
-        // Initial setup
-        canvas.width = canvasContainer.clientWidth;
-        canvas.height = canvasContainer.clientHeight;
-    </script>
+    generateBtn.onclick=generate;
+  </script>
 </body>
-</html>
+</html> 
