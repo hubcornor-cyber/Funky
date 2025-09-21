@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Create Video from Images with Captions</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      color: #f1f5f9;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #f1f5f9;
+    }
+    body.light {
+      background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+      color: #2c3e50;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      gap: 20px;
+    }
+    .preview-panel, .control-panel {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .4);
+      flex: 1;
+      min-width: 280px;
+      max-width: 500px;
+      height: auto;
+    }
+    .control-panel {
+      display: flex;
+      flex-direction: row;
+      gap: 15px;
+    }
+    .control-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    body.light .preview-panel, body.light .control-panel, body.light .results-panel {
+      background: rgba(255, 255, 255, 0.85);
+      color: #2c3e50;
+    }
+    body.light h2 { color: #007bff; }
+    body.light label { color: #34495e; }
+    body.light input, body.light textarea, body.light select {
+      background: #ecf0f1;
+      color: #2c3e50;
+    }
+    body.light .slider-value, body.light .status-text { color: #7f8c8d; }
+    body.light .progress-container { background: #bdc3c7; }
+    body.light .btn {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+    body.light .btn:disabled { background: #95a5a6; }
+    body.light .result-item { background: rgba(255, 255, 255, .9); }
+    .results-panel {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      margin: 20px 0;
+      padding: 12px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .4);
+      width: 90%;
+      max-width: 1200px;
+    }
+    h2 { margin: 0 0 6px; font-size: 14px; color: #93c5fd; }
+    label {
+      display: block;
+      margin-top: 4px;
+      font-weight: 600;
+      font-size: 10px;
+      color: #e2e8f0;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 4px;
+      margin-top: 2px;
+      border: none;
+      border-radius: 5px;
+      background: #1e293b;
+      color: #f8fafc;
+      resize: none;
+      font-size: 10px;
+    }
+    input[type="color"] { padding: 1px; height: 24px; cursor: pointer; }
+    input[type="range"] { cursor: pointer; }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .slider-value { font-size: 9px; color: #cbd5e1; }
+    .btn {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 5px 8px;
+      border: none;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 10px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+    }
+    .btn:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .6);
+    }
+    .progress-container {
+      margin-top: 6px;
+      height: 12px;
+      background: #334155;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #60a5fa, #3b82f6);
+      transition: width .3s;
+    }
+    .status-text {
+      margin-top: 2px;
+      font-size: 10px;
+      color: #cbd5e1;
+    }
+    .results {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .result-item {
+      background: rgba(30, 41, 59, .9);
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .4);
+      transition: transform .2s;
+    }
+    .result-item:hover {
+      transform: translateY(-4px);
+    }
+    .result-item video {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    .preview {
+      text-align: center;
+    }
+    .preview canvas {
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .6);
+    }
+    #themeToggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 1000;
+    }
+    #goToTop {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      z-index: 1000;
+      padding: 8px 12px;
+      border-radius: 50%;
+      font-size: 12px;
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .top-row {
+        flex-direction: column;
+      }
+      .preview-panel, .control-panel, .results-panel {
+        width: 95%;
+      }
+      .control-panel {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body class="dark">
+  <button class="btn" id="themeToggle">Switch to Light</button>
+  <button class="btn" id="goToTop">↑ Top</button>
+  <div class="container" id="layout">
+    <div class="top-row">
+      <div class="preview-panel">
+        <h2>Preview</h2>
+        <div class="preview"><canvas id="previewCanvas"></canvas></div>
+      </div>
+
+      <div class="control-panel" id="controls">
+        <h2>Controls</h2>
+        <div class="control-column">
+          <label>CSV Input (image_url,title,detail_text)</label>
+          <textarea id="csvInput" rows="3">https://picsum.photos/600,Sample Title,This is detail text
+https://picsum.photos/620,Another Title,Second image description
+https://picsum.photos/640,Third Title,Third image details</textarea>
+          
+          <label>Title Size</label>
+          <div class="slider-container">
+            <input type="range" id="titleSize" min="10" max="80" value="36">
+            <span class="slider-value" id="titleSizeValue">36</span>
+          </div>
+          <label>Detail Size</label>
+          <div class="slider-container">
+            <input type="range" id="detailSize" min="10" max="60" value="24">
+            <span class="slider-value" id="detailSizeValue">24</span>
+          </div>
+          <label>Detail Background Opacity</label>
+          <div class="slider-container">
+            <input type="range" id="detailBgOpacity" min="0" max="100" value="80">
+            <span class="slider-value" id="detailBgOpacityValue">80</span>
+          </div>
+          <label>Duration per Image (seconds)</label>
+          <div class="slider-container">
+            <input type="range" id="duration" min="1" max="10" value="3">
+            <span class="slider-value" id="durationValue">3</span>
+          </div>
+        </div>
+        <div class="control-column">
+          <label>Text Color</label>
+          <input type="color" id="textColor" value="#ffffff">
+          <label>Detail Background Color</label>
+          <input type="color" id="detailBg" value="#000000">
+          <label>Title Alignment</label>
+          <select id="titleAlign">
+            <option value="center">Center</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+          <label>Detail Alignment</label>
+          <select id="detailAlign">
+            <option value="center">Center</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+          <label>Font Family</label>
+          <select id="fontFamily">
+            <option value="Segoe UI">Segoe UI</option>
+            <option value="Arial">Arial</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Open Sans">Open Sans</option>
+          </select>
+        </div>
+        <div class="control-column">
+          <button class="btn" id="generateVideoBtn">Generate Video</button>
+          <button class="btn" id="resetBtn">Reset Settings</button>
+          <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+          <div class="status-text" id="statusText">Idle</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-panel">
+      <h2>Results</h2>
+      <div id="results" class="results"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/whammy/0.0.1/whammy.min.js"></script>
+  <script>
+    // Constants
+    const DEFAULT_SETTINGS = {
+      titleSize: 36,
+      detailSize: 24,
+      textColor: '#ffffff',
+      detailBg: '#000000',
+      detailBgOpacity: 80,
+      titleAlign: 'center',
+      detailAlign: 'center',
+      fontFamily: 'Segoe UI',
+      duration: 3
+    };
+    const MAX_WIDTH = 600;
+    const DEBOUNCE_DELAY = 300;
+    const FPS = 30;
+
+    // DOM Elements
+    const elements = {
+      layout: document.getElementById('layout'),
+      previewCanvas: document.getElementById('previewCanvas'),
+      results: document.getElementById('results'),
+      progressBar: document.getElementById('progressBar'),
+      statusText: document.getElementById('statusText'),
+      csvInput: document.getElementById('csvInput'),
+      inputs: ['titleSize', 'detailSize', 'textColor', 'detailBg', 'detailBgOpacity', 'titleAlign', 'detailAlign', 'fontFamily', 'duration', 'csvInput'].map(id => document.getElementById(id)),
+      buttons: {
+        generateVideo: document.getElementById('generateVideoBtn'),
+        reset: document.getElementById('resetBtn')
+      }
+    };
+    const ctx = elements.previewCanvas.getContext('2d');
+    const themeToggle = document.getElementById('themeToggle');
+    const goToTop = document.getElementById('goToTop');
+
+    // Image Cache
+    const imageCache = new Map();
+
+    // Utility Functions
+    const debounce = (func, delay) => {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), delay);
+      };
+    };
+
+    const validateCsvLine = (line) => {
+      const parts = line.split(',');
+      return parts.length === 3 && parts.every(part => part.trim());
+    };
+
+    const loadImage = async (src) => {
+      if (imageCache.has(src)) return imageCache.get(src);
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          imageCache.set(src, img);
+          resolve(img);
+        };
+        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+        img.src = src;
+      });
+    };
+
+    const drawRoundedRect = (x, y, w, h, r) => {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    };
+
+    const getSettings = () => ({
+      titleSize: +document.getElementById('titleSize').value,
+      detailSize: +document.getElementById('detailSize').value,
+      textColor: document.getElementById('textColor').value,
+      detailBg: document.getElementById('detailBg').value,
+      detailBgOpacity: +document.getElementById('detailBgOpacity').value,
+      titleAlign: document.getElementById('titleAlign').value,
+      detailAlign: document.getElementById('detailAlign').value,
+      fontFamily: document.getElementById('fontFamily').value,
+      duration: +document.getElementById('duration').value
+    });
+
+    const drawTextOverlay = (img, title, detail, settings, canvasEl = elements.previewCanvas) => {
+      const ctx = canvasEl.getContext('2d');
+      const scale = Math.min(MAX_WIDTH / img.width, 1);
+      canvasEl.width = img.width * scale;
+      canvasEl.height = img.height * scale;
+      ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
+
+      // Title
+      ctx.font = `${settings.titleSize}px ${settings.fontFamily}`;
+      ctx.textAlign = settings.titleAlign;
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = settings.textColor;
+      const titleX = settings.titleAlign === 'left' ? 20 : settings.titleAlign === 'right' ? canvasEl.width - 20 : canvasEl.width / 2;
+      ctx.fillText(title, titleX, 20);
+
+      // Detail
+      const lines = detail.split('\n');
+      const lineHeight = settings.detailSize + 5;
+      lines.forEach((line, i) => {
+        ctx.font = `${settings.detailSize}px ${settings.fontFamily}`;
+        ctx.textAlign = settings.detailAlign;
+        const textWidth = ctx.measureText(line).width;
+        const padding = 6;
+        const lineY = canvasEl.height - (lines.length - i) * lineHeight - 20;
+        const detailX = settings.detailAlign === 'left' ? 20 : settings.detailAlign === 'right' ? canvasEl.width - 20 : canvasEl.width / 2;
+        ctx.fillStyle = settings.detailBg;
+        ctx.globalAlpha = settings.detailBgOpacity / 100;
+        drawRoundedRect(detailX - textWidth / 2 - padding, lineY - padding, textWidth + padding * 2, settings.detailSize + padding * 2, 8);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = settings.textColor;
+        ctx.fillText(line, detailX, lineY);
+      });
+
+      return canvasEl.toDataURL('image/png');
+    };
+
+    const updateSliderValues = () => {
+      ['titleSize', 'detailSize', 'detailBgOpacity', 'duration'].forEach(id => {
+        const value = document.getElementById(id).value;
+        document.getElementById(`${id}Value`).textContent = value;
+      });
+    };
+
+    const updatePreview = debounce(async () => {
+      const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
+      if (!csvLines.length) {
+        elements.statusText.textContent = 'No valid CSV input provided.';
+        return;
+      }
+      const [src, title, detail] = csvLines[0].split(',');
+      try {
+        const img = await loadImage(src.trim());
+        drawTextOverlay(img, title.trim(), detail.trim(), getSettings());
+        elements.statusText.textContent = 'Preview updated.';
+      } catch (e) {
+        elements.statusText.textContent = `Preview failed: ${e.message}`;
+      }
+    }, DEBOUNCE_DELAY);
+
+    const disableButtons = (disabled) => {
+      Object.values(elements.buttons).forEach(btn => btn.disabled = disabled);
+    };
+
+    const generateVideo = async () => {
+      const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
+      if (!csvLines.length) {
+        elements.statusText.textContent = 'Please add valid CSV input first.';
+        return;
+      }
+      disableButtons(true);
+      elements.results.innerHTML = '';
+      const settings = getSettings();
+      const whammy = new Whammy.Video(FPS);
+
+      for (let i = 0; i < csvLines.length; i++) {
+        elements.statusText.textContent = `Processing image ${i + 1} of ${csvLines.length}...`;
+        elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
+        const [src, title, detail] = csvLines[i].split(',');
+        try {
+          const img = await loadImage(src.trim());
+          const dataUrl = drawTextOverlay(img, title.trim(), detail.trim(), settings);
+          const frameCount = settings.duration * FPS;
+          for (let j = 0; j < frameCount; j++) {
+            whammy.add(dataUrl);
+          }
+        } catch (e) {
+          elements.statusText.textContent = `Image load failed: ${src}`;
+          disableButtons(false);
+          return;
+        }
+      }
+
+      try {
+        const output = whammy.compile();
+        const videoUrl = URL.createObjectURL(output);
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `
+          <video controls src="${videoUrl}"></video><br>
+          <a class="btn" href="${videoUrl}" download="output.webm">Download Video</a>
+        `;
+        elements.results.appendChild(div);
+        elements.statusText.textContent = 'Video generated!';
+      } catch (e) {
+        elements.statusText.textContent = `Video generation failed: ${e.message}`;
+      } finally {
+        disableButtons(false);
+      }
+    };
+
+    const resetSettings = () => {
+      document.getElementById('titleSize').value = DEFAULT_SETTINGS.titleSize;
+      document.getElementById('detailSize').value = DEFAULT_SETTINGS.detailSize;
+      document.getElementById('textColor').value = DEFAULT_SETTINGS.textColor;
+      document.getElementById('detailBg').value = DEFAULT_SETTINGS.detailBg;
+      document.getElementById('detailBgOpacity').value = DEFAULT_SETTINGS.detailBgOpacity;
+      document.getElementById('titleAlign').value = DEFAULT_SETTINGS.titleAlign;
+      document.getElementById('detailAlign').value = DEFAULT_SETTINGS.detailAlign;
+      document.getElementById('fontFamily').value = DEFAULT_SETTINGS.fontFamily;
+      document.getElementById('duration').value = DEFAULT_SETTINGS.duration;
+      updateSliderValues();
+      updatePreview();
+      elements.statusText.textContent = 'Settings reset to default.';
+    };
+
+    // Event Listeners
+    elements.buttons.generateVideo.addEventListener('click', generateVideo);
+    elements.buttons.reset.addEventListener('click', resetSettings);
+
+    elements.inputs.forEach(input => input.addEventListener('input', () => {
+      updateSliderValues();
+      updatePreview();
+    }));
+
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      document.body.classList.toggle('light');
+      themeToggle.textContent = document.body.classList.contains('dark') ? 'Switch to Light' : 'Switch to Dark';
+    });
+
+    window.addEventListener('scroll', () => {
+      goToTop.style.display = (window.scrollY > 100) ? 'block' : 'none';
+    });
+
+    goToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Initialize
+    updateSliderValues();
+    updatePreview();
+  </script>
+</body>
+</html>
