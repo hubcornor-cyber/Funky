@@ -8,8 +8,16 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
+      color: #f1f5f9;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
       background: linear-gradient(135deg, #1e293b, #0f172a);
       color: #f1f5f9;
+    }
+    body.light {
+      background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+      color: #2c3e50;
     }
     .container {
       display: flex;
@@ -17,7 +25,42 @@
       align-items: center;
       padding: 20px;
     }
-    .preview-panel, .control-panel, .results-panel {
+    .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      gap: 20px;
+    }
+    .preview-panel, .control-panel {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .4);
+      flex: 1;
+      min-width: 300px;
+      max-width: 600px;
+      height: auto;
+    }
+    body.light .preview-panel, body.light .control-panel, body.light .results-panel {
+      background: rgba(255, 255, 255, 0.85);
+      color: #2c3e50;
+    }
+    body.light h2 { color: #007bff; }
+    body.light label { color: #34495e; }
+    body.light input, body.light textarea, body.light select {
+      background: #ecf0f1;
+      color: #2c3e50;
+    }
+    body.light .slider-value, body.light .status-text { color: #7f8c8d; }
+    body.light .progress-container { background: #bdc3c7; }
+    body.light .btn {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+    body.light .btn:disabled { background: #95a5a6; }
+    body.light .result-item { background: rgba(255, 255, 255, .9); }
+    .results-panel {
       background: rgba(30, 41, 59, 0.85);
       backdrop-filter: blur(12px);
       border-radius: 16px;
@@ -26,46 +69,45 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, .4);
       width: 90%;
       max-width: 1200px;
-      height: auto;
     }
-    h2 { margin: 0 0 12px; font-size: 18px; color: #93c5fd; }
+    h2 { margin: 0 0 8px; font-size: 16px; color: #93c5fd; }
     label {
       display: block;
-      margin-top: 8px;
+      margin-top: 6px;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 11px;
       color: #e2e8f0;
     }
     input, textarea, select {
       width: 100%;
-      padding: 6px;
-      margin-top: 4px;
+      padding: 5px;
+      margin-top: 3px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       background: #1e293b;
       color: #f8fafc;
       resize: none;
-      font-size: 12px;
+      font-size: 11px;
     }
-    input[type="color"] { padding: 2px; height: 32px; cursor: pointer; }
+    input[type="color"] { padding: 1px; height: 28px; cursor: pointer; }
     input[type="range"] { cursor: pointer; }
     .slider-container {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
-    .slider-value { font-size: 11px; color: #cbd5e1; }
+    .slider-value { font-size: 10px; color: #cbd5e1; }
     .btn {
       display: inline-block;
-      margin-top: 10px;
-      padding: 8px 12px;
+      margin-top: 8px;
+      padding: 6px 10px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       color: #fff;
       cursor: pointer;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 11px;
       transition: transform .2s, box-shadow .2s;
     }
     .btn:disabled {
@@ -77,10 +119,10 @@
       box-shadow: 0 4px 12px rgba(37, 99, 235, .6);
     }
     .progress-container {
-      margin-top: 10px;
-      height: 16px;
+      margin-top: 8px;
+      height: 14px;
       background: #334155;
-      border-radius: 8px;
+      border-radius: 6px;
       overflow: hidden;
     }
     .progress-bar {
@@ -90,8 +132,8 @@
       transition: width .3s;
     }
     .status-text {
-      margin-top: 4px;
-      font-size: 12px;
+      margin-top: 3px;
+      font-size: 11px;
       color: #cbd5e1;
     }
     .results {
@@ -121,85 +163,108 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, .6);
     }
+    #themeToggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    #goToTop {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      padding: 10px 15px;
+      border-radius: 50%;
+      font-size: 14px;
+      display: none;
+    }
     @media (max-width: 768px) {
+      .top-row {
+        flex-direction: column;
+      }
       .preview-panel, .control-panel, .results-panel {
         width: 95%;
       }
     }
   </style>
 </head>
-<body>
+<body class="dark">
+  <button class="btn" id="themeToggle">Switch to Light</button>
+  <button class="btn" id="goToTop">↑ Top</button>
   <div class="container" id="layout">
-    <div class="preview-panel">
-      <h2>Preview</h2>
-      <div class="preview"><canvas id="previewCanvas"></canvas></div>
-    </div>
+    <div class="top-row">
+      <div class="preview-panel">
+        <h2>Preview</h2>
+        <div class="preview"><canvas id="previewCanvas"></canvas></div>
+      </div>
 
-    <div class="control-panel" id="controls">
-      <h2>Controls</h2>
-      <label>CSV Input (image_url,title,detail_text)</label>
-      <textarea id="csvInput" rows="5">https://picsum.photos/600,Sample Title,This is detail text
+      <div class="control-panel" id="controls">
+        <h2>Controls</h2>
+        <label>CSV Input (image_url,title,detail_text)</label>
+        <textarea id="csvInput" rows="4">https://picsum.photos/600,Sample Title,This is detail text
 https://picsum.photos/620,Another Title,Second image description
 https://picsum.photos/640,Third Title,Third image details</textarea>
-      
-      <label>Title Size</label>
-      <div class="slider-container">
-        <input type="range" id="titleSize" min="10" max="100" value="36">
-        <span class="slider-value" id="titleSizeValue">36</span>
-      </div>
-      <label>Detail Size</label>
-      <div class="slider-container">
-        <input type="range" id="detailSize" min="10" max="80" value="24">
-        <span class="slider-value" id="detailSizeValue">24</span>
-      </div>
-      <label>Text Color</label><input type="color" id="textColor" value="#ffffff">
-      <label>Detail Background Color 1</label><input type="color" id="detailBg1" value="#00000000">
-      <label>Detail Background Color 2</label><input type="color" id="detailBg2" value="#000000">
-      <label>Detail Background Opacity</label>
-      <div class="slider-container">
-        <input type="range" id="detailBgOpacity" min="0" max="100" value="80">
-        <span class="slider-value" id="detailBgOpacityValue">80</span>
-      </div>
-      <label>Title Border Color</label><input type="color" id="titleBorderColor" value="#ffffff">
-      <label>Title Glow Color</label><input type="color" id="titleGlowColor" value="#ff0000">
-      <label>Adjust Title Position</label>
-      <div class="slider-container">
-        <input type="range" id="titleSlider" min="0" max="200" value="0">
-        <span class="slider-value" id="titleSliderValue">0</span>
-      </div>
-      <label>Adjust Detail Position</label>
-      <div class="slider-container">
-        <input type="range" id="detailSlider" min="0" max="200" value="0">
-        <span class="slider-value" id="detailSliderValue">0</span>
-      </div>
-      <label>Title Alignment</label>
-      <select id="titleAlign">
-        <option value="center">Center</option>
-        <option value="left">Left</option>
-        <option value="right">Right</option>
-      </select>
-      <label>Detail Alignment</label>
-      <select id="detailAlign">
-        <option value="center">Center</option>
-        <option value="left">Left</option>
-        <option value="right">Right</option>
-      </select>
-      <label>Font Family</label>
-      <select id="fontFamily">
-        <option value="Segoe UI">Segoe UI</option>
-        <option value="Arial">Arial</option>
-        <option value="Roboto">Roboto</option>
-        <option value="Open Sans">Open Sans</option>
-      </select>
+        
+        <label>Title Size</label>
+        <div class="slider-container">
+          <input type="range" id="titleSize" min="10" max="100" value="36">
+          <span class="slider-value" id="titleSizeValue">36</span>
+        </div>
+        <label>Detail Size</label>
+        <div class="slider-container">
+          <input type="range" id="detailSize" min="10" max="80" value="24">
+          <span class="slider-value" id="detailSizeValue">24</span>
+        </div>
+        <label>Text Color</label><input type="color" id="textColor" value="#ffffff">
+        <label>Detail Background Color 1</label><input type="color" id="detailBg1" value="#00000000">
+        <label>Detail Background Color 2</label><input type="color" id="detailBg2" value="#000000">
+        <label>Detail Background Opacity</label>
+        <div class="slider-container">
+          <input type="range" id="detailBgOpacity" min="0" max="100" value="80">
+          <span class="slider-value" id="detailBgOpacityValue">80</span>
+        </div>
+        <label>Title Border Color</label><input type="color" id="titleBorderColor" value="#ffffff">
+        <label>Title Glow Color</label><input type="color" id="titleGlowColor" value="#ff0000">
+        <label>Adjust Title Position</label>
+        <div class="slider-container">
+          <input type="range" id="titleSlider" min="0" max="200" value="0">
+          <span class="slider-value" id="titleSliderValue">0</span>
+        </div>
+        <label>Adjust Detail Position</label>
+        <div class="slider-container">
+          <input type="range" id="detailSlider" min="0" max="200" value="0">
+          <span class="slider-value" id="detailSliderValue">0</span>
+        </div>
+        <label>Title Alignment</label>
+        <select id="titleAlign">
+          <option value="center">Center</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+        <label>Detail Alignment</label>
+        <select id="detailAlign">
+          <option value="center">Center</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+        <label>Font Family</label>
+        <select id="fontFamily">
+          <option value="Segoe UI">Segoe UI</option>
+          <option value="Arial">Arial</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Open Sans">Open Sans</option>
+        </select>
 
-      <button class="btn" id="singleBtn">Generate Single</button>
-      <button class="btn" id="generateBtn">Generate All</button>
-      <button class="btn" id="clearBtn">Clear Results</button>
-      <button class="btn" id="resetBtn">Reset Settings</button>
-      <button class="btn" id="exportZipBtn">Export as ZIP</button>
+        <button class="btn" id="singleBtn">Generate Single</button>
+        <button class="btn" id="generateBtn">Generate All</button>
+        <button class="btn" id="clearBtn">Clear Results</button>
+        <button class="btn" id="resetBtn">Reset Settings</button>
+        <button class="btn" id="exportZipBtn">Export as ZIP</button>
 
-      <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
-      <div class="status-text" id="statusText">Idle</div>
+        <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="status-text" id="statusText">Idle</div>
+      </div>
     </div>
 
     <div class="results-panel">
@@ -248,6 +313,8 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
       }
     };
     const ctx = elements.previewCanvas.getContext('2d');
+    const themeToggle = document.getElementById('themeToggle');
+    const goToTop = document.getElementById('goToTop');
 
     // Image Cache
     const imageCache = new Map();
@@ -521,6 +588,20 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
       updateSliderValues();
       updatePreview();
     }));
+
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      document.body.classList.toggle('light');
+      themeToggle.textContent = document.body.classList.contains('dark') ? 'Switch to Light' : 'Switch to Dark';
+    });
+
+    window.addEventListener('scroll', () => {
+      goToTop.style.display = (window.scrollY > 100) ? 'block' : 'none';
+    });
+
+    goToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     // Initialize
     updateSliderValues();
