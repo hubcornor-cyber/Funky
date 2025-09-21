@@ -279,7 +279,8 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
           </div>
         </div>
 
-        <button class="btn" id="generateVideoBtn">Generate Video</button>
+        <button class="btn" id="loadImagesBtn">Load Images</button>
+        <button class="btn" id="generateVideoBtn" disabled>Generate Video</button>
         <button class="btn" id="resetBtn">Reset Settings</button>
 
         <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
@@ -315,7 +316,7 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
     const DEBOUNCE_DELAY = 300;
     const FPS = 30;
     const VIDEO_WIDTH = 600;
-    const VIDEO_HEIGHT = 400; // Adjust as needed for aspect ratio
+    const VIDEO_HEIGHT = 400;
 
     // DOM Elements
     const elements = {
@@ -327,6 +328,7 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
       csvInput: document.getElementById('csvInput'),
       inputs: ['titleSize', 'detailSize', 'textColor', 'detailBg1', 'detailBg2', 'detailBgOpacity', 'titleBorderColor', 'titleGlowColor', 'titleSlider', 'detailSlider', 'titleAlign', 'detailAlign', 'fontFamily', 'duration', 'csvInput'].map(id => document.getElementById(id)),
       buttons: {
+        loadImages: document.getElementById('loadImagesBtn'),
         generateVideo: document.getElementById('generateVideoBtn'),
         reset: document.getElementById('resetBtn')
       }
@@ -337,6 +339,7 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
 
     // Image Cache
     const imageCache = new Map();
+    let imagesLoaded = false;
 
     // Utility Functions
     const debounce = (func, delay) => {
@@ -346,8 +349,6 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
         timeout = setTimeout(() => func(...args), delay);
       };
     };
-
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     const validateCsvLine = (line) => {
       const parts = line.split(',');
@@ -400,10 +401,7 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
     });
 
     const drawOverlay = (ctx, img, title, detail, settings, width, height) => {
-      // Clear canvas
       ctx.clearRect(0, 0, width, height);
-
-      // Draw image with aspect ratio preserved
       const aspectImg = img.width / img.height;
       const aspectVideo = width / height;
       let drawW, drawH, drawX, drawY;
@@ -422,7 +420,6 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
       ctx.fillRect(0, 0, width, height);
       ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
-      // Title
       ctx.font = `${settings.titleSize}px ${settings.fontFamily}`;
       ctx.textAlign = settings.titleAlign;
       ctx.textBaseline = 'top';
@@ -437,7 +434,6 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
       ctx.fillStyle = settings.textColor;
       ctx.fillText(title, titleX, 20 + titleOffset);
 
-      // Detail
       const lines = detail.split('\n');
       const lineHeight = settings.detailSize + 6;
       lines.forEach((line, i) => {
@@ -488,10 +484,47 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
     }, DEBOUNCE_DELAY);
 
     const disableButtons = (disabled) => {
-      Object.values(elements.buttons).forEach(btn => btn.disabled = disabled);
+      elements.buttons.generateVideo.disabled = disabled || !imagesLoaded;
+      elements.buttons.reset.disabled = disabled;
+      elements.buttons.loadImages.disabled = disabled;
+    };
+
+    const loadImages = async () => {
+      const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
+      if (!csvLines.length) {
+        elements.statusText.textContent = 'Please add valid CSV input first.';
+        return;
+      }
+      disableButtons(true);
+      elements.statusText.textContent = 'Loading images...';
+      elements.progressBar.style.width = '0%';
+      imageCache.clear();
+      imagesLoaded = false;
+
+      for (let i = 0; i < csvLines.length; i++) {
+        const [src] = csvLines[i].split(',');
+        elements.statusText.textContent = `Loading image ${i + 1} of ${csvLines.length}...`;
+        elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
+        try {
+          await loadImage(src.trim());
+        } catch (e) {
+          elements.statusText.textContent = `Failed to load image: ${src}`;
+          disableButtons(false);
+          return;
+        }
+      }
+      imagesLoaded = true;
+      elements.buttons.generateVideo.disabled = false;
+      elements.statusText.textContent = 'Images loaded successfully!';
+      disableButtons(false);
+      updatePreview();
     };
 
     const generateVideo = async () => {
+      if (!imagesLoaded) {
+        elements.statusText.textContent = 'Please load images first.';
+        return;
+      }
       const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
       if (!csvLines.length) {
         elements.statusText.textContent = 'Please add valid CSV input first.';
@@ -507,8 +540,8 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
       const tempCtx = tempCanvas.getContext('2d');
 
       const stream = tempCanvas.captureStream(FPS);
-      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-      const chunks = [];
+      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
+      let chunks = [];
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'video/webm' });
@@ -526,23 +559,35 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
 
       recorder.start();
 
-      for (let i = 0; i < csvLines.length; i++) {
-        elements.statusText.textContent = `Processing image ${i + 1} of ${csvLines.length}...`;
-        elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
-        const [src, title, detail] = csvLines[i].split(',');
-        try {
-          const img = await loadImage(src.trim());
-          drawOverlay(tempCtx, img, title.trim(), detail.trim(), settings, VIDEO_WIDTH, VIDEO_HEIGHT);
-          await sleep(settings.duration * 1000);
-        } catch (e) {
-          elements.statusText.textContent = `Image load failed: ${src}`;
-          recorder.stop();
-          disableButtons(false);
-          return;
-        }
-      }
+      let currentTime = 0;
+      const totalDuration = csvLines.length * settings.duration;
+      let currentIndex = 0;
 
-      recorder.stop();
+      const progressInterval = setInterval(() => {
+        currentTime += 0.1;
+        elements.progressBar.style.width = `${(currentTime / totalDuration) * 100}%`;
+      }, 100);
+
+      const drawCurrent = () => {
+        const [src, title, detail] = csvLines[currentIndex].split(',');
+        const img = imageCache.get(src.trim());
+        drawOverlay(tempCtx, img, title.trim(), detail.trim(), settings, VIDEO_WIDTH, VIDEO_HEIGHT);
+        elements.statusText.textContent = `Processing image ${currentIndex + 1} of ${csvLines.length}...`;
+      };
+
+      const advance = () => {
+        currentIndex++;
+        if (currentIndex < csvLines.length) {
+          drawCurrent();
+          setTimeout(advance, settings.duration * 1000);
+        } else {
+          recorder.stop();
+          clearInterval(progressInterval);
+        }
+      };
+
+      drawCurrent();
+      setTimeout(advance, settings.duration * 1000);
     };
 
     const resetSettings = () => {
@@ -563,9 +608,13 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
       updateSliderValues();
       updatePreview();
       elements.statusText.textContent = 'Settings reset to default.';
+      imagesLoaded = false;
+      elements.buttons.generateVideo.disabled = true;
+      imageCache.clear();
     };
 
     // Event Listeners
+    elements.buttons.loadImages.addEventListener('click', loadImages);
     elements.buttons.generateVideo.addEventListener('click', generateVideo);
     elements.buttons.reset.addEventListener('click', resetSettings);
 
@@ -591,6 +640,7 @@ https://picsum.photos/640,Third Title,Third image details</textarea>
     // Initialize
     updateSliderValues();
     updatePreview();
+    elements.buttons.generateVideo.disabled = true;
   </script>
 </body>
 </html>
