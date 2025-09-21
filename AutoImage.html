@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Stylish Image Text Overlay</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #f1f5f9;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 0 1fr;
+      transition: all .4s ease;
+    }
+    .expanded { grid-template-columns: 320px 1fr; }
+    .panel {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      margin: 10px;
+      padding: 16px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .4);
+      overflow-y: auto;
+      height: calc(100vh - 20px);
+    }
+    h2 { margin: 0 0 12px; font-size: 18px; color: #93c5fd; }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #e2e8f0;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border: none;
+      border-radius: 8px;
+      background: #1e293b;
+      color: #f8fafc;
+      resize: none;
+    }
+    input[type="color"] { padding: 2px; height: 40px; cursor: pointer; }
+    input[type="range"] { cursor: pointer; }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .slider-value { font-size: 12px; color: #cbd5e1; }
+    .btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+    }
+    .btn:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, .6);
+    }
+    .progress-container {
+      margin-top: 12px;
+      height: 18px;
+      background: #334155;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #60a5fa, #3b82f6);
+      transition: width .3s;
+    }
+    .status-text {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+    .results {
+      margin-top: 20px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .result-item {
+      background: rgba(30, 41, 59, .9);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .4);
+      transition: transform .2s;
+    }
+    .result-item:hover {
+      transform: translateY(-4px);
+    }
+    .result-item img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    .preview {
+      text-align: center;
+    }
+    .preview canvas {
+      max-width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .6);
+    }
+    .toggle-btn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1000;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .4);
+      transition: transform .2s;
+    }
+    .toggle-btn:hover {
+      transform: scale(1.05);
+    }
+    @media (max-width: 768px) {
+      .expanded { grid-template-columns: 1fr; }
+      .panel:first-child { display: none; }
+      .expanded .panel:first-child { display: block; }
+      .toggle-btn { z-index: 2000; }
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle-btn" id="toggleBtn">Show Controls</button>
+  <div class="container" id="layout">
+    <div class="panel" id="controls">
+      <h2>Controls</h2>
+      <label>CSV Input (image_url,title,detail_text)</label>
+      <textarea id="csvInput" rows="6">https://picsum.photos/600,Sample Title,This is detail text
+https://picsum.photos/620,Another Title,Second image description
+https://picsum.photos/640,Third Title,Third image details</textarea>
+      
+      <label>Title Size</label>
+      <div class="slider-container">
+        <input type="range" id="titleSize" min="10" max="100" value="36">
+        <span class="slider-value" id="titleSizeValue">36</span>
+      </div>
+      <label>Detail Size</label>
+      <div class="slider-container">
+        <input type="range" id="detailSize" min="10" max="80" value="24">
+        <span class="slider-value" id="detailSizeValue">24</span>
+      </div>
+      <label>Text Color</label><input type="color" id="textColor" value="#ffffff">
+      <label>Detail Background Color 1</label><input type="color" id="detailBg1" value="#00000000">
+      <label>Detail Background Color 2</label><input type="color" id="detailBg2" value="#000000">
+      <label>Detail Background Opacity</label>
+      <div class="slider-container">
+        <input type="range" id="detailBgOpacity" min="0" max="100" value="80">
+        <span class="slider-value" id="detailBgOpacityValue">80</span>
+      </div>
+      <label>Title Border Color</label><input type="color" id="titleBorderColor" value="#ffffff">
+      <label>Title Glow Color</label><input type="color" id="titleGlowColor" value="#ff0000">
+      <label>Adjust Title Position</label>
+      <div class="slider-container">
+        <input type="range" id="titleSlider" min="0" max="200" value="0">
+        <span class="slider-value" id="titleSliderValue">0</span>
+      </div>
+      <label>Adjust Detail Position</label>
+      <div class="slider-container">
+        <input type="range" id="detailSlider" min="0" max="200" value="0">
+        <span class="slider-value" id="detailSliderValue">0</span>
+      </div>
+      <label>Title Alignment</label>
+      <select id="titleAlign">
+        <option value="center">Center</option>
+        <option value="left">Left</option>
+        <option value="right">Right</option>
+      </select>
+      <label>Detail Alignment</label>
+      <select id="detailAlign">
+        <option value="center">Center</option>
+        <option value="left">Left</option>
+        <option value="right">Right</option>
+      </select>
+      <label>Font Family</label>
+      <select id="fontFamily">
+        <option value="Segoe UI">Segoe UI</option>
+        <option value="Arial">Arial</option>
+        <option value="Roboto">Roboto</option>
+        <option value="Open Sans">Open Sans</option>
+      </select>
+
+      <button class="btn" id="singleBtn">Generate Single</button>
+      <button class="btn" id="generateBtn">Generate All</button>
+      <button class="btn" id="clearBtn">Clear Results</button>
+      <button class="btn" id="resetBtn">Reset Settings</button>
+      <button class="btn" id="exportZipBtn">Export as ZIP</button>
+
+      <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="status-text" id="statusText">Idle</div>
+    </div>
+
+    <div class="panel">
+      <h2>Preview</h2>
+      <div class="preview"><canvas id="previewCanvas"></canvas></div>
+      <h2>Results</h2>
+      <div id="results" class="results"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script>
+    // Constants
+    const DEFAULT_SETTINGS = {
+      titleSize: 36,
+      detailSize: 24,
+      textColor: '#ffffff',
+      detailBg1: '#00000000',
+      detailBg2: '#000000',
+      detailBgOpacity: 80,
+      titleBorderColor: '#ffffff',
+      titleGlowColor: '#ff0000',
+      titleSlider: 0,
+      detailSlider: 0,
+      titleAlign: 'center',
+      detailAlign: 'center',
+      fontFamily: 'Segoe UI'
+    };
+    const MAX_WIDTH = 600;
+    const DEBOUNCE_DELAY = 300;
+
+    // DOM Elements
+    const elements = {
+      layout: document.getElementById('layout'),
+      toggleBtn: document.getElementById('toggleBtn'),
+      previewCanvas: document.getElementById('previewCanvas'),
+      results: document.getElementById('results'),
+      progressBar: document.getElementById('progressBar'),
+      statusText: document.getElementById('statusText'),
+      csvInput: document.getElementById('csvInput'),
+      inputs: ['titleSize', 'detailSize', 'textColor', 'detailBg1', 'detailBg2', 'detailBgOpacity', 'titleBorderColor', 'titleGlowColor', 'titleSlider', 'detailSlider', 'titleAlign', 'detailAlign', 'fontFamily', 'csvInput'].map(id => document.getElementById(id)),
+      buttons: {
+        single: document.getElementById('singleBtn'),
+        generate: document.getElementById('generateBtn'),
+        clear: document.getElementById('clearBtn'),
+        reset: document.getElementById('resetBtn'),
+        exportZip: document.getElementById('exportZipBtn')
+      }
+    };
+    const ctx = elements.previewCanvas.getContext('2d');
+
+    // Image Cache
+    const imageCache = new Map();
+
+    // Utility Functions
+    const debounce = (func, delay) => {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), delay);
+      };
+    };
+
+    const validateCsvLine = (line) => {
+      const parts = line.split(',');
+      return parts.length === 3 && parts.every(part => part.trim());
+    };
+
+    const loadImage = async (src) => {
+      if (imageCache.has(src)) return imageCache.get(src);
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          imageCache.set(src, img);
+          resolve(img);
+        };
+        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+        img.src = src;
+      });
+    };
+
+    const drawRoundedRect = (x, y, w, h, r) => {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    };
+
+    const getSettings = () => ({
+      titleSize: +document.getElementById('titleSize').value,
+      detailSize: +document.getElementById('detailSize').value,
+      textColor: document.getElementById('textColor').value,
+      detailBg1: document.getElementById('detailBg1').value,
+      detailBg2: document.getElementById('detailBg2').value,
+      detailBgOpacity: +document.getElementById('detailBgOpacity').value,
+      titleBorderColor: document.getElementById('titleBorderColor').value,
+      titleGlowColor: document.getElementById('titleGlowColor').value,
+      titleAlign: document.getElementById('titleAlign').value,
+      detailAlign: document.getElementById('detailAlign').value,
+      fontFamily: document.getElementById('fontFamily').value
+    });
+
+    const drawTextOverlay = (img, title, detail, settings, titleOffset, detailOffset, canvasEl = elements.previewCanvas) => {
+      const ctx = canvasEl.getContext('2d');
+      const scale = Math.min(MAX_WIDTH / img.width, 1);
+      canvasEl.width = img.width * scale;
+      canvasEl.height = img.height * scale;
+      ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
+
+      // Title
+      ctx.font = `${settings.titleSize}px ${settings.fontFamily}`;
+      ctx.textAlign = settings.titleAlign;
+      ctx.textBaseline = 'top';
+      ctx.strokeStyle = settings.titleBorderColor;
+      ctx.lineWidth = 2;
+      ctx.shadowColor = settings.titleGlowColor;
+      ctx.shadowBlur = 15;
+      const titleX = settings.titleAlign === 'left' ? 20 : settings.titleAlign === 'right' ? canvasEl.width - 20 : canvasEl.width / 2;
+      ctx.strokeText(title, titleX, 20 + titleOffset);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = settings.textColor;
+      ctx.fillText(title, titleX, 20 + titleOffset);
+
+      // Detail
+      const lines = detail.split('\n');
+      const lineHeight = settings.detailSize + 6;
+      lines.forEach((line, i) => {
+        ctx.font = `${settings.detailSize}px ${settings.fontFamily}`;
+        ctx.textAlign = settings.detailAlign;
+        const textWidth = ctx.measureText(line).width;
+        const padding = 8;
+        const lineY = canvasEl.height - (lines.length - i) * lineHeight - 20 - detailOffset;
+        const detailX = settings.detailAlign === 'left' ? 20 : settings.detailAlign === 'right' ? canvasEl.width - 20 : canvasEl.width / 2;
+        const gradient = ctx.createLinearGradient(0, lineY, 0, lineY + settings.detailSize + padding * 2);
+        gradient.addColorStop(0, settings.detailBg1);
+        gradient.addColorStop(1, settings.detailBg2);
+        ctx.fillStyle = gradient;
+        ctx.globalAlpha = settings.detailBgOpacity / 100;
+        drawRoundedRect(detailX - textWidth / 2 - padding, lineY - padding, textWidth + padding * 2, settings.detailSize + padding * 2, 10);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = settings.textColor;
+        ctx.fillText(line, detailX, lineY);
+      });
+
+      return canvasEl.toDataURL('image/png');
+    };
+
+    const updateSliderValues = () => {
+      ['titleSize', 'detailSize', 'detailBgOpacity', 'titleSlider', 'detailSlider'].forEach(id => {
+        const value = document.getElementById(id).value;
+        document.getElementById(`${id}Value`).textContent = value;
+      });
+    };
+
+    const updatePreview = debounce(async () => {
+      const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
+      if (!csvLines.length) {
+        elements.statusText.textContent = 'No valid CSV input provided.';
+        return;
+      }
+      const [src, title, detail] = csvLines[0].split(',');
+      try {
+        const img = await loadImage(src.trim());
+        drawTextOverlay(
+          img,
+          title.trim(),
+          detail.trim(),
+          getSettings(),
+          +document.getElementById('titleSlider').value,
+          +document.getElementById('detailSlider').value
+        );
+        elements.statusText.textContent = 'Preview updated.';
+      } catch (e) {
+        elements.statusText.textContent = `Preview failed: ${e.message}`;
+      }
+    }, DEBOUNCE_DELAY);
+
+    const disableButtons = (disabled) => {
+      Object.values(elements.buttons).forEach(btn => btn.disabled = disabled);
+    };
+
+    const generateSingle = async () => {
+      const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
+      if (!csvLines.length) {
+        elements.statusText.textContent = 'Please add valid CSV input first.';
+        return;
+      }
+      disableButtons(true);
+      const [src, title, detail] = csvLines[0].split(',');
+      try {
+        const img = await loadImage(src.trim());
+        const dataUrl = drawTextOverlay(
+          img,
+          title.trim(),
+          detail.trim(),
+          getSettings(),
+          +document.getElementById('titleSlider').value,
+          +document.getElementById('detailSlider').value
+        );
+        elements.results.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `<img src="${dataUrl}"><br><a class="btn" href="${dataUrl}" download="overlay.png">Download</a>`;
+        elements.results.appendChild(div);
+        elements.statusText.textContent = 'Single image generated!';
+      } catch (e) {
+        elements.statusText.textContent = `Image load failed: ${src}`;
+      } finally {
+        disableButtons(false);
+      }
+    };
+
+    const generateAll = async () => {
+      const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
+      if (!csvLines.length) {
+        elements.statusText.textContent = 'Please add valid CSV input first.';
+        return;
+      }
+      disableButtons(true);
+      elements.results.innerHTML = '';
+      for (let i = 0; i < csvLines.length; i++) {
+        elements.statusText.textContent = `Generating ${i + 1} of ${csvLines.length}...`;
+        elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
+        const [src, title, detail] = csvLines[i].split(',');
+        try {
+          const img = await loadImage(src.trim());
+          const dataUrl = drawTextOverlay(
+            img,
+            title.trim(),
+            detail.trim(),
+            getSettings(),
+            +document.getElementById('titleSlider').value,
+            +document.getElementById('detailSlider').value
+          );
+          const div = document.createElement('div');
+          div.className = 'result-item';
+          div.innerHTML = `<img src="${dataUrl}"><br><a class="btn" href="${dataUrl}" download="overlay_${i + 1}.png">Download</a>`;
+          elements.results.appendChild(div);
+        } catch (e) {
+          elements.statusText.textContent = `Image load failed: ${src}`;
+        }
+      }
+      elements.statusText.textContent = 'All images generated!';
+      disableButtons(false);
+    };
+
+    const exportAsZip = async () => {
+      const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
+      if (!csvLines.length) {
+        elements.statusText.textContent = 'Please add valid CSV input first.';
+        return;
+      }
+      disableButtons(true);
+      const zip = new JSZip();
+      for (let i = 0; i < csvLines.length; i++) {
+        elements.statusText.textContent = `Preparing ${i + 1} of ${csvLines.length} for ZIP...`;
+        elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
+        const [src, title, detail] = csvLines[i].split(',');
+        try {
+          const img = await loadImage(src.trim());
+          const dataUrl = drawTextOverlay(
+            img,
+            title.trim(),
+            detail.trim(),
+            getSettings(),
+            +document.getElementById('titleSlider').value,
+            +document.getElementById('detailSlider').value
+          );
+          const base64Data = dataUrl.split(',')[1];
+          zip.file(`overlay_${i + 1}.png`, base64Data, { base64: true });
+        } catch (e) {
+          elements.statusText.textContent = `Image load failed: ${src}`;
+        }
+      }
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, 'overlays.zip');
+      elements.statusText.textContent = 'ZIP file downloaded!';
+      disableButtons(false);
+    };
+
+    const resetSettings = () => {
+      document.getElementById('titleSize').value = DEFAULT_SETTINGS.titleSize;
+      document.getElementById('detailSize').value = DEFAULT_SETTINGS.detailSize;
+      document.getElementById('textColor').value = DEFAULT_SETTINGS.textColor;
+      document.getElementById('detailBg1').value = DEFAULT_SETTINGS.detailBg1;
+      document.getElementById('detailBg2').value = DEFAULT_SETTINGS.detailBg2;
+      document.getElementById('detailBgOpacity').value = DEFAULT_SETTINGS.detailBgOpacity;
+      document.getElementById('titleBorderColor').value = DEFAULT_SETTINGS.titleBorderColor;
+      document.getElementById('titleGlowColor').value = DEFAULT_SETTINGS.titleGlowColor;
+      document.getElementById('titleSlider').value = DEFAULT_SETTINGS.titleSlider;
+      document.getElementById('detailSlider').value = DEFAULT_SETTINGS.detailSlider;
+      document.getElementById('titleAlign').value = DEFAULT_SETTINGS.titleAlign;
+      document.getElementById('detailAlign').value = DEFAULT_SETTINGS.detailAlign;
+      document.getElementById('fontFamily').value = DEFAULT_SETTINGS.fontFamily;
+      updateSliderValues();
+      updatePreview();
+      elements.statusText.textContent = 'Settings reset to default.';
+    };
+
+    // Event Listeners
+    elements.toggleBtn.addEventListener('click', () => {
+      elements.layout.classList.toggle('expanded');
+      elements.toggleBtn.textContent = elements.layout.classList.contains('expanded') ? 'Hide Controls' : 'Show Controls';
+    });
+
+    elements.buttons.single.addEventListener('click', generateSingle);
+    elements.buttons.generate.addEventListener('click', generateAll);
+    elements.buttons.clear.addEventListener('click', () => {
+      elements.results.innerHTML = '';
+      imageCache.clear();
+      elements.statusText.textContent = 'Results cleared.';
+    });
+    elements.buttons.reset.addEventListener('click', resetSettings);
+    elements.buttons.exportZip.addEventListener('click', exportAsZip);
+
+    elements.inputs.forEach(input => input.addEventListener('input', () => {
+      updateSliderValues();
+      updatePreview();
+    }));
+
+    // Initialize
+    updateSliderValues();
+    updatePreview();
+  </script>
+</body>
+</html>
