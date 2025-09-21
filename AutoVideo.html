@@ -6,52 +6,110 @@
   <title>Image → Video Converter (Client‑Side)</title>
   <style>
     :root{
-      --bg:#0f172a;--panel:#111827;--muted:#94a3b8;--text:#e5e7eb;--accent:#22c55e;--accent-2:#06b6d4;--danger:#ef4444;--warning:#f59e0b;--border:#1f2937;--shadow:0 10px 25px rgba(0,0,0,.35);--radius:16px;
+      --bg-dark: #0f172a;
+      --panel-dark: #111827;
+      --muted-dark: #94a3b8;
+      --text-dark: #e5e7eb;
+      --accent-dark: #22c55e;
+      --accent-2-dark: #06b6d4;
+      --danger-dark: #ef4444;
+      --warning-dark: #f59e0b;
+      --border-dark: #1f2937;
+      --shadow-dark: 0 10px 25px rgba(0,0,0,.35);
+      --bg-light: #f8fafc;
+      --panel-light: #ffffff;
+      --muted-light: #64748b;
+      --text-light: #1f2937;
+      --accent-light: #16a34a;
+      --accent-2-light: #0e7490;
+      --danger-light: #dc2626;
+      --warning-light: #d97706;
+      --border-light: #e2e8f0;
+      --shadow-light: 0 10px 25px rgba(0,0,0,.1);
+      --radius: 16px;
+      --bg: var(--bg-dark);
+      --panel: var(--panel-dark);
+      --muted: var(--muted-dark);
+      --text: var(--text-dark);
+      --accent: var(--accent-dark);
+      --accent-2: var(--accent-2-dark);
+      --danger: var(--danger-dark);
+      --warning: var(--warning-dark);
+      --border: var(--border-dark);
+      --shadow: var(--shadow-dark);
+    }
+    [data-theme="light"] {
+      --bg: var(--bg-light);
+      --panel: var(--panel-light);
+      --muted: var(--muted-light);
+      --text: var(--text-light);
+      --accent: var(--accent-light);
+      --accent-2: var(--accent-2-light);
+      --danger: var(--danger-light);
+      --warning: var(--warning-light);
+      --border: var(--border-light);
+      --shadow: var(--shadow-light);
     }
     *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(120deg,var(--bg),#0b1227);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+    body{margin:0;background:linear-gradient(120deg,var(--bg), var(--bg));color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;transition: background 0.3s ease, color 0.3s ease;}
     .container{max-width:1100px;margin:0 auto;padding:24px}
-    header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
-    header h1{font-size:clamp(22px,2.8vw,32px);margin:0}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .grid{display:grid;grid-template-columns:1fr;gap:18px}
+    header{display:flex;align-items:center;gap:14px;margin-bottom:18px;transition: all 0.3s ease;}
+    header h1{font-size:clamp(22px,2.8vw,32px);margin:0; animation: fadeIn 1s ease-in-out;}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;}
+    .grid{display:grid;grid-template-columns:1fr;gap:18px;animation: slideUp 0.5s ease;}
     @media(min-width:960px){.grid{grid-template-columns: 2.2fr 1fr}}
-    .controls{padding:18px}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    label{font-size:13px;color:var(--muted)}
+    .controls{padding:18px;transition: padding 0.3s ease;}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;transition: all 0.3s ease;}
+    label{font-size:13px;color:var(--muted);transition: color 0.3s ease;}
     input[type="file"]{display:none}
-    .btn{appearance:none;border:1px solid var(--border);background:#0b1227;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.15s transform,.15s background; box-shadow: inset 0 0 0 1px rgba(255,255,255,.03)}
-    .btn:hover{transform:translateY(-1px);background:#0c132b}
-    .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none}
-    .btn.danger{background:transparent;border-color:#3b1111;color:#fecaca}
-    .btn.ghost{background:transparent}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed var(--border);border-radius:999px;color:var(--muted);font-size:13px}
-    .select,.number,.text{background:#0b1227;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;min-width:90px}
+    .btn{appearance:none;border:1px solid var(--border);background:#0b1227;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.15s transform,.15s background, .3s color, .3s border; box-shadow: inset 0 0 0 1px rgba(255,255,255,.03)}
+    [data-theme="light"] .btn{background:#f1f5f9;}
+    .btn:hover{transform:translateY(-1px);background:#0c132b; animation: pulse 0.5s ease;}
+    [data-theme="light"] .btn:hover{background:#e2e8f0;}
+    .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;transition: background 0.3s ease;}
+    .btn.danger{background:transparent;border-color:#3b1111;color:#fecaca;transition: border 0.3s ease, color 0.3s ease;}
+    [data-theme="light"] .btn.danger{border-color:#fecaca;color:#3b1111;}
+    .btn.ghost{background:transparent;transition: background 0.3s ease;}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px dashed var(--border);border-radius:999px;color:var(--muted);font-size:13px;transition: border 0.3s ease, color 0.3s ease; animation: bounce 1s infinite alternate;}
+    .select,.number,.text{background:#0b1227;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;min-width:90px;transition: background 0.3s ease, border 0.3s ease, color 0.3s ease;}
+    [data-theme="light"] .select, [data-theme="light"] .number, [data-theme="light"] .text{background:#f1f5f9;}
     .number{width:110px}
     .text{min-width:200px}
-    .list{padding:14px 14px 6px;max-height:420px;overflow:auto;border-top:1px solid var(--border)}
-    .item{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;background:#0b1227}
-    .thumb{width:64px;height:64px;border-radius:12px;overflow:hidden;background:#0a0f1f;display:grid;place-items:center;border:1px solid var(--border)}
-    .thumb img{max-width:100%;max-height:100%;object-fit:cover}
-    .meta{display:flex;flex-direction:column;gap:6px}
+    .list{padding:14px 14px 6px;max-height:420px;overflow:auto;border-top:1px solid var(--border);transition: border 0.3s ease;}
+    .item{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;background:#0b1227;transition: background 0.3s ease, border 0.3s ease; animation: fadeIn 0.5s ease;}
+    [data-theme="light"] .item{background:#f1f5f9;}
+    .thumb{width:64px;height:64px;border-radius:12px;overflow:hidden;background:#0a0f1f;display:grid;place-items:center;border:1px solid var(--border);transition: background 0.3s ease, border 0.3s ease;}
+    [data-theme="light"] .thumb{background:#e2e8f0;}
+    .thumb img{max-width:100%;max-height:100%;object-fit:cover;transition: transform 0.3s ease;}
+    .thumb img:hover{transform: scale(1.1);}
+    .meta{display:flex;flex-direction:column;gap:6px;transition: all 0.3s ease;}
     .meta .name{font-weight:600;font-size:14px;word-break:break-all}
-    .meta .sub{font-size:12px;color:var(--muted)}
-    .actions{display:flex;gap:8px}
-    .footer{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:14px;border-top:1px solid var(--border)}
-    .progress{height:10px;background:#0b1120;border:1px solid var(--border);border-radius:999px;overflow:hidden}
-    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
-    .errors{padding:12px 14px;color:#fecaca;background:#2b0d0d;border:1px solid #3b1111;border-radius:12px;margin-top:10px;display:none}
-    .hint{font-size:12px;color:var(--muted)}
-    video{width:100%;border-bottom-left-radius:var(--radius);border-bottom-right-radius:var(--radius)}
-    .preview{padding:14px}
+    .meta .sub{font-size:12px;color:var(--muted);transition: color 0.3s ease;}
+    .actions{display:flex;gap:8px;transition: all 0.3s ease;}
+    .footer{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:14px;border-top:1px solid var(--border);transition: border 0.3s ease, padding 0.3s ease;}
+    .progress{height:10px;background:#0b1120;border:1px solid var(--border);border-radius:999px;overflow:hidden;transition: background 0.3s ease, border 0.3s ease;}
+    [data-theme="light"] .progress{background:#f1f5f9;}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition: width 0.3s ease, background 0.3s ease;}
+    .errors{padding:12px 14px;color:#fecaca;background:#2b0d0d;border:1px solid #3b1111;border-radius:12px;margin-top:10px;display:none;transition: background 0.3s ease, border 0.3s ease, color 0.3s ease;}
+    [data-theme="light"] .errors{color:#2b0d0d;background:#fecaca;border-color:#fecaca;}
+    .hint{font-size:12px;color:var(--muted);transition: color 0.3s ease;}
+    video{width:100%;border-bottom-left-radius:var(--radius);border-bottom-right-radius:var(--radius);transition: border-radius 0.3s ease;}
+    .preview{padding:14px;transition: padding 0.3s ease;}
+    #themeToggle{position:absolute;top:20px;right:20px;background:transparent;border:none;cursor:pointer;font-size:20px;transition: transform 0.3s ease;}
+    #themeToggle:hover{transform:rotate(180deg);}
+    @keyframes fadeIn {from {opacity: 0;} to {opacity: 1;}}
+    @keyframes slideUp {from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;}}
+    @keyframes bounce {from {transform: translateY(0);} to {transform: translateY(-5px);}}
+    @keyframes pulse {0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);}}
   </style>
 </head>
-<body>
+<body data-theme="dark">
+  <button id="themeToggle">🌙</button>
   <div class="container">
     <header>
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7a2 2 0 0 1 2-2h2l1-2h6l1 2h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="#22c55e" stroke-width="1.2"/><path d="M12 9.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z" stroke="#06b6d4" stroke-width="1.2"/></svg>
       <h1>Image → Video Converter</h1>
-      <span class="pill"><strong>Client‑side</strong> • No server needed</span>
+      <span class="pill"><strong>Client‑side</strong> • No server needed • Creative Edition</span>
     </header>
     <div class="grid">
       <section class="card">
@@ -61,7 +119,7 @@
               <label for="fileInput">Images</label>
               <label class="btn" for="fileInput">+ Add Images</label>
               <input id="fileInput" type="file" accept="image/*" multiple />
-              <span class="hint">Tip: drag in multiple photos • order can be changed</span>
+              <span class="hint">Tip: drag in multiple photos • order can be changed • get creative!</span>
             </div>
             <div class="row">
               <label for="fps">FPS</label>
@@ -79,26 +137,28 @@
             <label for="audioInput">Soundtrack</label>
             <label class="btn" for="audioInput">+ Add Audio</label>
             <input id="audioInput" type="file" accept="audio/*" />
-            <span class="hint">Optional — will be auto‑trimmed to slideshow length</span>
+            <span class="hint">Optional — will be auto‑trimmed to slideshow length • add beats for vibe</span>
           </div>
           <div class="row" style="margin-top:12px">
             <label>Transition</label>
             <select id="transType" class="select">
               <option value="none">None</option>
               <option value="fade">Fade</option>
+              <option value="slide">Slide</option>
+              <option value="zoom">Zoom</option>
             </select>
             <label>Duration (sec)</label>
             <input id="transDur" class="number" type="number" min="0.1" step="0.1" value="0.5" />
           </div>
           <div class="row" style="margin-top:12px">
             <label>Intro Text</label>
-            <input id="introText" class="text" type="text" placeholder="Enter intro title" />
+            <input id="introText" class="text" type="text" placeholder="Enter intro title, e.g., 'My Adventure Begins'" />
             <label>Duration (sec)</label>
             <input id="introDur" class="number" type="number" min="0" step="0.1" value="3" />
           </div>
           <div class="row" style="margin-top:12px">
             <label>Outro Text</label>
-            <input id="outroText" class="text" type="text" placeholder="Enter outro text" />
+            <input id="outroText" class="text" type="text" placeholder="Enter outro text, e.g., 'The End - Thanks for Watching!'" />
             <label>Duration (sec)</label>
             <input id="outroDur" class="number" type="number" min="0" step="0.1" value="3" />
           </div>
@@ -125,6 +185,13 @@
     const el = id=>document.getElementById(id);
     const list=el('list'), errors=el('errors'), bar=el('bar'), fileInput=el('fileInput'), fpsInput=el('fps'), sizeInput=el('size'), generateBtn=el('generateBtn'), downloadLink=el('downloadLink'), outVideo=el('outVideo'), canvas=el('canvas');
     const ctx = canvas.getContext('2d');
+    const themeToggle = el('themeToggle');
+
+    themeToggle.onclick = () => {
+      const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+    };
 
     function showError(m){errors.style.display='block';errors.textContent=m}
     function clearError(){errors.style.display='none';errors.textContent=''}
@@ -144,10 +211,10 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    function drawImage(item, alpha = 1) {
+    function drawImage(item, alpha = 1, scale = 1, xOffset = 0, yOffset = 0) {
       ctx.globalAlpha = alpha;
-      const rect = computeCoverRect(item.img.naturalWidth, item.img.naturalHeight, canvas.width, canvas.height);
-      ctx.drawImage(item.img, rect.x, rect.y, rect.w, rect.h);
+      const rect = computeCoverRect(item.img.naturalWidth * scale, item.img.naturalHeight * scale, canvas.width, canvas.height);
+      ctx.drawImage(item.img, rect.x + xOffset, rect.y + yOffset, rect.w, rect.h);
       ctx.globalAlpha = 1;
     }
 
@@ -156,19 +223,22 @@
       ctx.font = 'bold 60px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 10;
       ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      ctx.shadowBlur = 0;
     }
 
     async function generate(){clearError();setProgress(0);downloadLink.style.display='none';outVideo.removeAttribute('src');outVideo.load();if(!state.items.length){showError('Add images first');return}
       const [W,H]=sizeInput.value.split('x').map(Number),fps=Math.max(1,Math.min(60,parseInt(fpsInput.value)||30));
       const transType = el('transType').value;
-      const transDur = transType === 'fade' ? (parseFloat(el('transDur').value) || 0.5) : 0;
+      const transDur = transType !== 'none' ? (parseFloat(el('transDur').value) || 0.5) : 0;
       const introText = el('introText').value.trim();
       const introDur = introText ? (parseFloat(el('introDur').value) || 3) : 0;
       const outroText = el('outroText').value.trim();
       const outroDur = outroText ? (parseFloat(el('outroDur').value) || 3) : 0;
       let totalDur = introDur + state.items.reduce((a, it) => a + it.duration, 0) + outroDur;
-      if (transType === 'fade' && state.items.length > 1) {
+      if (transType !== 'none' && state.items.length > 1) {
         for (let i = 0; i < state.items.length - 1; i++) {
           if (state.items[i].duration < transDur) {
             showError('Some image durations are shorter than transition duration. Increase image durations or reduce transition duration.');
@@ -196,23 +266,25 @@
       const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:6_000_000});state.chunks=[];rec.ondataavailable=e=>{if(e.data.size)state.chunks.push(e.data)};const stopP=new Promise(r=>rec.onstop=r);rec.start();
       let elapsed=0;
 
-      // Intro
+      // Intro with fade in
       if (introText) {
         const introFrames = Math.round(introDur * fps);
         for (let f = 0; f < introFrames; f++) {
           drawBackground();
+          ctx.globalAlpha = Math.min(1, f / (introFrames / 2));
           drawText(introText);
+          ctx.globalAlpha = 1;
           elapsed += 1 / fps;
           setProgress((elapsed / totalDur) * 100);
           await sleep(1000 / fps);
         }
       }
 
-      // Images with transitions
+      // Images with enhanced transitions
       for (let i = 0; i < state.items.length; i++) {
         const it = state.items[i];
         const nextIt = state.items[i + 1];
-        const holdDur = (transType === 'fade' && nextIt) ? it.duration - transDur : it.duration;
+        const holdDur = (transType !== 'none' && nextIt) ? it.duration - transDur : it.duration;
         const holdFrames = Math.round(holdDur * fps);
         for (let f = 0; f < holdFrames; f++) {
           drawBackground();
@@ -221,13 +293,21 @@
           setProgress((elapsed / totalDur) * 100);
           await sleep(1000 / fps);
         }
-        if (transType === 'fade' && nextIt) {
+        if (transType !== 'none' && nextIt) {
           const transFrames = Math.round(transDur * fps);
           for (let f = 0; f < transFrames; f++) {
-            const alpha = f / transFrames;
+            const prog = f / transFrames;
             drawBackground();
-            drawImage(it, 1 - alpha);
-            drawImage(nextIt, alpha);
+            if (transType === 'fade') {
+              drawImage(it, 1 - prog);
+              drawImage(nextIt, prog);
+            } else if (transType === 'slide') {
+              drawImage(it, 1, 1, -prog * W, 0);
+              drawImage(nextIt, 1, 1, (1 - prog) * W, 0);
+            } else if (transType === 'zoom') {
+              drawImage(it, 1 - prog, 1 + prog, 0, 0);
+              drawImage(nextIt, prog, 1 - prog + 1, 0, 0);
+            }
             elapsed += 1 / fps;
             setProgress((elapsed / totalDur) * 100);
             await sleep(1000 / fps);
@@ -235,12 +315,14 @@
         }
       }
 
-      // Outro
+      // Outro with fade out
       if (outroText) {
         const outroFrames = Math.round(outroDur * fps);
         for (let f = 0; f < outroFrames; f++) {
           drawBackground();
+          ctx.globalAlpha = Math.min(1, 1 - (f / (outroFrames / 2)));
           drawText(outroText);
+          ctx.globalAlpha = 1;
           elapsed += 1 / fps;
           setProgress((elapsed / totalDur) * 100);
           await sleep(1000 / fps);
@@ -254,4 +336,4 @@
     generateBtn.onclick=generate;
   </script>
 </body>
-</html> 
+</html>
