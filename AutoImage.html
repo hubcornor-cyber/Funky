@@ -68,6 +68,8 @@
         .minimized + .csv-toggle::after { content: "↓"; }
         .maximized + .csv-toggle::after { content: "↑"; }
         .btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+        .csv-example { background: #1e293b; border-radius: 4px; padding: 8px; margin: 4px 0; font-size: 10px; color: #94a3b8; }
+        body.light .csv-example { background: #f1f5f9; color: #64748b; }
         
         @media (max-width: 768px) { 
             .top-row { flex-direction: column; } 
@@ -90,8 +92,12 @@
                 <h2>Text Overlay Generator</h2>
                 
                 <div class="csv-section">
-                    <label>CSV Input (image_url,title,detail_text)</label>
-                    <textarea id="csvInput" rows="4">https://image.lexica.art/full_jpg/80e57495-6d21-4156-80c7-11742bf8c064,Sample Title,This is detail texthttps://image.lexica.art/full_jpg/275cb6fb-33ca-4418-8611-bfc5da6a703a,Sample Title,This is detail texthttps://image.lexica.art/full_jpg/85ef1582-25b8-4801-8560-a1b6b5e01c40,Sample Title,This is detail texthttps://image.lexica.art/full_jpg/4bdafa6d-e9c4-4811-8e2a-13764083dbc0,Sample Title,This is detail texthttps://image.lexica.art/full_jpg/35e16d73-d01e-4733-9922-750c133fd56a,Sample Title,This is detail text</textarea>
+                    <label>CSV Input (image_url,title,detail_text) <span style="color: #94a3b8; font-size: 10px;">✓ Supports empty fields</span></label>
+                    <div class="csv-example">image_url,,detail_text (empty title)<br>image_url,title, (empty detail)<br>image_url,, (both empty)</div>
+                    <textarea id="csvInput" rows="4">https://cdn.pixabay.com/photo/2020/01/31/07/53/man-4807395_640.jpg,Awesome 
+https://cdn.pixabay.com/photo/2020/01/31/07/53/man-4807395_640.jpg,Great Title,  
+https://cdn.pixabay.com/photo/2020/01/31/07/53/man-4807395_640.jpg,,This is the 
+https://cdn.pixabay.com/photo/2020/01/31/07/53/man-4807395_640.jpg,, </textarea>
                     <button class="csv-toggle" onclick="toggleCsv()">↑</button>
                 </div>
                 
@@ -225,7 +231,7 @@
                         </div>
                     </div>
                     <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
-                    <div class="status-text" id="statusText">Ready to generate!</div>
+                    <div class="status-text" id="statusText">Ready to generate! ✓ Empty fields supported</div>
                 </div>
 
             </div>
@@ -339,9 +345,29 @@
             };
         };
 
+        // UPDATED: More flexible CSV validation that allows empty fields
         const validateCsvLine = (line) => {
-            const parts = line.split(',');
-            return parts.length === 3 && parts.every(part => part.trim());
+            // Split by comma and handle empty fields
+            const parts = line.split(',').map(part => part.trim());
+            
+            // Must have at least an image URL, but title and detail can be empty
+            if (parts.length === 0 || !parts[0]) {
+                return false; // No image URL
+            }
+            
+            // If there are 1-3 parts, it's valid (fill missing with empty strings)
+            return parts.length <= 3;
+        };
+
+        // NEW: Parse CSV line with proper empty field handling
+        const parseCsvLine = (line) => {
+            const parts = line.split(',').map(part => part.trim());
+            // Ensure exactly 3 parts, filling with empty strings if needed
+            while (parts.length < 3) {
+                parts.push('');
+            }
+            // Truncate if more than 3
+            return parts.slice(0, 3);
         };
 
         const loadImage = async (src) => {
@@ -397,6 +423,7 @@
             outputSize: document.getElementById('outputSize').value
         });
 
+        // UPDATED: Enhanced drawing function that handles empty text gracefully
         const drawTextOverlay = (img, title, detail, settings, titleOffset, detailOffset, canvasEl, drawingScale = 1) => {
             const ctx = canvasEl.getContext('2d');
 
@@ -406,12 +433,10 @@
             let sx = 0, sy = 0, sw = img.width, sh = img.height;
             
             if (imgRatio > targetRatio) {
-                // Image is wider, crop sides
                 sw = img.height * targetRatio;
                 sx = (img.width - sw) / 2;
                 sh = img.height;
             } else if (imgRatio < targetRatio) {
-                // Image is taller, crop top/bottom
                 sh = img.width / targetRatio;
                 sy = (img.height - sh) / 2;
                 sw = img.width;
@@ -429,102 +454,112 @@
             const titleFont = settings.customFont ? `"${settings.customFont}"` : settings.titleFontFamily;
             const detailFont = settings.customFont ? `"${settings.customFont}"` : settings.detailFontFamily;
 
-            // TITLE DRAWING - EXACT SAME AS EXPORT
-            ctx.font = `bold ${settings.titleSize * drawingScale}px ${titleFont}`;
-            ctx.textAlign = settings.titleAlign;
-            ctx.textBaseline = 'top';
-            
-            const titleMetrics = ctx.measureText(title);
-            const titleWidth = titleMetrics.width;
-            const titleHeight = settings.titleSize * drawingScale;
-            const titleX = settings.titleAlign === 'left' ? margin : 
-                          settings.titleAlign === 'right' ? canvasEl.width - margin : 
-                          canvasEl.width / 2;
-            const titleY = margin + titleOffset * drawingScale;
-
-            // Title Background - EXACT SAME AS EXPORT
-            const titleBgGradient = ctx.createLinearGradient(
-                titleX - titleWidth / 2 - padding, titleY - padding,
-                titleX + titleWidth / 2 + padding, titleY + titleHeight + padding
-            );
-            titleBgGradient.addColorStop(0, settings.titleBg1);
-            titleBgGradient.addColorStop(1, settings.titleBg2);
-            
-            ctx.save();
-            ctx.globalAlpha = settings.titleBgOpacity / 100;
-            ctx.fillStyle = titleBgGradient;
-            drawRoundedRect(
-                titleX - titleWidth / 2 - padding, 
-                titleY - padding, 
-                titleWidth + padding * 2, 
-                titleHeight + padding * 2, 
-                cornerRadius, 
-                ctx
-            );
-            ctx.fill();
-            ctx.restore();
-
-            // Title Border and Glow - EXACT SAME AS EXPORT
-            ctx.strokeStyle = settings.titleBorderColor;
-            ctx.lineWidth = borderWidth;
-            ctx.shadowColor = settings.titleGlowColor;
-            ctx.shadowBlur = settings.titleShadowBlur * drawingScale;
-            
-            ctx.strokeText(title, titleX, titleY);
-            
-            // Title Fill - EXACT SAME AS EXPORT
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = settings.titleColor;
-            ctx.fillText(title, titleX, titleY);
-
-            // DETAIL DRAWING - EXACT SAME AS EXPORT
-            const lines = detail.split('\n');
-            const lineHeight = settings.detailSize * drawingScale * 1.2;
-            
-            lines.forEach((line, i) => {
-                ctx.font = `${settings.detailSize * drawingScale}px ${detailFont}`;
-                ctx.textAlign = settings.detailAlign;
-                const textWidth = ctx.measureText(line).width;
-                const detailX = settings.detailAlign === 'left' ? margin : 
-                               settings.detailAlign === 'right' ? canvasEl.width - margin : 
-                               canvasEl.width / 2;
-                const lineY = canvasEl.height - (lines.length - i) * lineHeight - margin - detailOffset * drawingScale;
+            // TITLE DRAWING - Skip if empty
+            if (title && title.trim()) {
+                ctx.font = `bold ${settings.titleSize * drawingScale}px ${titleFont}`;
+                ctx.textAlign = settings.titleAlign;
+                ctx.textBaseline = 'top';
                 
-                // Detail Background - EXACT SAME AS EXPORT
-                const detailBgGradient = ctx.createLinearGradient(
-                    detailX - textWidth / 2 - padding, lineY - padding,
-                    detailX + textWidth / 2 + padding, lineY + settings.detailSize * drawingScale + padding
-                );
-                detailBgGradient.addColorStop(0, settings.detailBg1);
-                detailBgGradient.addColorStop(1, settings.detailBg2);
-                
-                ctx.save();
-                ctx.globalAlpha = settings.detailBgOpacity / 100;
-                ctx.fillStyle = detailBgGradient;
-                drawRoundedRect(
-                    detailX - textWidth / 2 - padding, 
-                    lineY - padding, 
-                    textWidth + padding * 2, 
-                    settings.detailSize * drawingScale + padding * 2, 
-                    cornerRadius * 0.7, 
-                    ctx
-                );
-                ctx.fill();
-                ctx.restore();
+                const titleMetrics = ctx.measureText(title);
+                const titleWidth = titleMetrics.width;
+                const titleHeight = settings.titleSize * drawingScale;
+                const titleX = settings.titleAlign === 'left' ? margin : 
+                              settings.titleAlign === 'right' ? canvasEl.width - margin : 
+                              canvasEl.width / 2;
+                const titleY = margin + titleOffset * drawingScale;
 
-                // Detail Border and Glow - EXACT SAME AS EXPORT
-                ctx.strokeStyle = settings.detailBorderColor;
-                ctx.lineWidth = borderWidth * 0.7;
-                ctx.shadowColor = settings.detailGlowColor;
-                ctx.shadowBlur = settings.detailShadowBlur * drawingScale;
+                // Title Background
+                if (settings.titleBgOpacity > 0) {
+                    const titleBgGradient = ctx.createLinearGradient(
+                        titleX - titleWidth / 2 - padding, titleY - padding,
+                        titleX + titleWidth / 2 + padding, titleY + titleHeight + padding
+                    );
+                    titleBgGradient.addColorStop(0, settings.titleBg1);
+                    titleBgGradient.addColorStop(1, settings.titleBg2);
+                    
+                    ctx.save();
+                    ctx.globalAlpha = settings.titleBgOpacity / 100;
+                    ctx.fillStyle = titleBgGradient;
+                    drawRoundedRect(
+                        titleX - titleWidth / 2 - padding, 
+                        titleY - padding, 
+                        titleWidth + padding * 2, 
+                        titleHeight + padding * 2, 
+                        cornerRadius, 
+                        ctx
+                    );
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Title Border and Glow
+                ctx.strokeStyle = settings.titleBorderColor;
+                ctx.lineWidth = borderWidth;
+                ctx.shadowColor = settings.titleGlowColor;
+                ctx.shadowBlur = settings.titleShadowBlur * drawingScale;
                 
-                ctx.strokeText(line, detailX, lineY);
+                ctx.strokeText(title, titleX, titleY);
                 
-                // Detail Fill - EXACT SAME AS EXPORT
+                // Title Fill
                 ctx.shadowBlur = 0;
-                ctx.fillStyle = settings.detailColor;
-                ctx.fillText(line, detailX, lineY);
-            });
+                ctx.fillStyle = settings.titleColor;
+                ctx.fillText(title, titleX, titleY);
+            }
+
+            // DETAIL DRAWING - Skip if empty
+            if (detail && detail.trim()) {
+                const lines = detail.split('\n').filter(line => line.trim()); // Remove empty lines
+                if (lines.length > 0) {
+                    const lineHeight = settings.detailSize * drawingScale * 1.2;
+                    
+                    lines.forEach((line, i) => {
+                        ctx.font = `${settings.detailSize * drawingScale}px ${detailFont}`;
+                        ctx.textAlign = settings.detailAlign;
+                        const textWidth = ctx.measureText(line).width;
+                        const detailX = settings.detailAlign === 'left' ? margin : 
+                                       settings.detailAlign === 'right' ? canvasEl.width - margin : 
+                                       canvasEl.width / 2;
+                        const lineY = canvasEl.height - (lines.length - i) * lineHeight - margin - detailOffset * drawingScale;
+                        
+                        // Detail Background
+                        if (settings.detailBgOpacity > 0) {
+                            const detailBgGradient = ctx.createLinearGradient(
+                                detailX - textWidth / 2 - padding, lineY - padding,
+                                detailX + textWidth / 2 + padding, lineY + settings.detailSize * drawingScale + padding
+                            );
+                            detailBgGradient.addColorStop(0, settings.detailBg1);
+                            detailBgGradient.addColorStop(1, settings.detailBg2);
+                            
+                            ctx.save();
+                            ctx.globalAlpha = settings.detailBgOpacity / 100;
+                            ctx.fillStyle = detailBgGradient;
+                            drawRoundedRect(
+                                detailX - textWidth / 2 - padding, 
+                                lineY - padding, 
+                                textWidth + padding * 2, 
+                                settings.detailSize * drawingScale + padding * 2, 
+                                cornerRadius * 0.7, 
+                                ctx
+                            );
+                            ctx.fill();
+                            ctx.restore();
+                        }
+
+                        // Detail Border and Glow
+                        ctx.strokeStyle = settings.detailBorderColor;
+                        ctx.lineWidth = borderWidth * 0.7;
+                        ctx.shadowColor = settings.detailGlowColor;
+                        ctx.shadowBlur = settings.detailShadowBlur * drawingScale;
+                        
+                        ctx.strokeText(line, detailX, lineY);
+                        
+                        // Detail Fill
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = settings.detailColor;
+                        ctx.fillText(line, detailX, lineY);
+                    });
+                }
+            }
 
             return canvasEl.toDataURL('image/png');
         };
@@ -536,16 +571,29 @@
             });
         };
 
+        // UPDATED: Preview function with better empty field handling
         const updatePreview = debounce(async () => {
             const settings = getSettings();
             const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
             if (!csvLines.length) {
-                elements.statusText.textContent = 'No valid CSV input provided.';
+                elements.statusText.textContent = 'Please add at least one valid image URL.';
                 return;
             }
-            const [src, title, detail] = csvLines[0].split(',');
+            
+            // Use first valid line for preview
+            const firstLine = csvLines[0];
+            const [src, title, detail] = parseCsvLine(firstLine);
+            
+            // Show status for empty fields
+            const previewStatus = [];
+            if (!title.trim()) previewStatus.push('no title');
+            if (!detail.trim()) previewStatus.push('no detail');
+            const statusText = previewStatus.length > 0 
+                ? `Preview: ${previewStatus.join(' & ')}` 
+                : 'Live preview updated.';
+            
             try {
-                const img = await loadImage(src.trim());
+                const img = await loadImage(src);
                 let targetW, targetH;
                 if (settings.outputSize === 'original') {
                     targetW = img.width;
@@ -558,7 +606,6 @@
                     targetH = 1080;
                 }
                 
-                // Calculate preview scale to fit MAX_PREVIEW_SIZE
                 const scaleX = MAX_PREVIEW_SIZE / targetW;
                 const scaleY = MAX_PREVIEW_SIZE / targetH;
                 const previewScale = Math.min(scaleX, scaleY, 1);
@@ -568,18 +615,17 @@
                 elements.previewCanvas.width = previewW;
                 elements.previewCanvas.height = previewH;
                 
-                // Use the SAME drawing function with preview scale
                 drawTextOverlay(
                     img,
-                    title.trim(),
-                    detail.trim(),
+                    title, // Can be empty string
+                    detail, // Can be empty string
                     settings,
                     +document.getElementById('titleSlider').value,
                     +document.getElementById('detailSlider').value,
                     elements.previewCanvas,
-                    previewScale // Apply scaling to maintain proportions
+                    previewScale
                 );
-                elements.statusText.textContent = 'Live preview updated.';
+                elements.statusText.textContent = statusText;
             } catch (e) {
                 elements.statusText.textContent = `Preview failed: ${e.message}`;
             }
@@ -589,18 +635,20 @@
             Object.values(elements.buttons).forEach(btn => btn.disabled = disabled);
         };
 
+        // UPDATED: Single generation with empty field support
         const generateSingle = async () => {
             const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
             if (!csvLines.length) {
-                elements.statusText.textContent = 'Please add valid CSV input first.';
+                elements.statusText.textContent = 'Please add at least one valid image URL.';
                 return;
             }
             disableButtons(true);
             const settings = getSettings();
-            const [src, title, detail] = csvLines[0].split(',');
+            const [src, title, detail] = parseCsvLine(csvLines[0]);
+            
             try {
-                elements.statusText.textContent = 'Generating single image...';
-                const img = await loadImage(src.trim());
+                elements.statusText.textContent = `Generating: ${!title.trim() ? 'no title' : 'title'} & ${!detail.trim() ? 'no detail' : 'detail'}...`;
+                const img = await loadImage(src);
                 let targetW, targetH;
                 if (settings.outputSize === 'original') {
                     targetW = img.width;
@@ -613,33 +661,39 @@
                     targetH = 1080;
                 }
                 
-                // Create full-size canvas - SAME as preview logic but full size
                 const fullCanvas = document.createElement('canvas');
                 fullCanvas.width = targetW;
                 fullCanvas.height = targetH;
                 
-                // Use EXACT SAME drawing function with scale=1 for full quality
                 const dataUrl = drawTextOverlay(
                     img,
-                    title.trim(),
-                    detail.trim(),
+                    title, // Can be empty
+                    detail, // Can be empty
                     settings,
                     +document.getElementById('titleSlider').value,
                     +document.getElementById('detailSlider').value,
                     fullCanvas,
-                    1 // Full scale for export
+                    1
                 );
                 
                 elements.results.innerHTML = '';
                 const div = document.createElement('div');
                 div.className = 'result-item';
+                
+                // Show what content was generated
+                const contentInfo = [];
+                if (title.trim()) contentInfo.push('Title');
+                if (detail.trim()) contentInfo.push('Detail');
+                const contentText = contentInfo.length > 0 ? contentInfo.join(' + ') : 'Image only';
+                
                 div.innerHTML = `
+                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">${contentText}</div>
                     <img src="${dataUrl}">
                     <br>
                     <a class="btn" href="${dataUrl}" download="overlay.png">Download PNG</a>
                 `;
                 elements.results.appendChild(div);
-                elements.statusText.textContent = 'Single image generated! Preview matches export.';
+                elements.statusText.textContent = `Generated: ${contentText} ✓ Preview matches export`;
             } catch (e) {
                 elements.statusText.textContent = `Image load failed: ${src}`;
             } finally {
@@ -647,10 +701,11 @@
             }
         };
 
+        // UPDATED: Batch generation with empty field support
         const generateAll = async () => {
             const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
             if (!csvLines.length) {
-                elements.statusText.textContent = 'Please add valid CSV input first.';
+                elements.statusText.textContent = 'Please add at least one valid image URL.';
                 return;
             }
             disableButtons(true);
@@ -658,12 +713,17 @@
             const settings = getSettings();
             
             for (let i = 0; i < csvLines.length; i++) {
-                elements.statusText.textContent = `Generating ${i + 1} of ${csvLines.length}...`;
+                const [src, title, detail] = parseCsvLine(csvLines[i]);
+                const contentInfo = [];
+                if (title.trim()) contentInfo.push('Title');
+                if (detail.trim()) contentInfo.push('Detail');
+                const contentText = contentInfo.length > 0 ? contentInfo.join(' + ') : 'Image only';
+                
+                elements.statusText.textContent = `Generating ${i + 1}/${csvLines.length}: ${contentText}`;
                 elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
                 
-                const [src, title, detail] = csvLines[i].split(',');
                 try {
-                    const img = await loadImage(src.trim());
+                    const img = await loadImage(src);
                     let targetW, targetH;
                     if (settings.outputSize === 'original') {
                         targetW = img.width;
@@ -680,11 +740,10 @@
                     fullCanvas.width = targetW;
                     fullCanvas.height = targetH;
                     
-                    // Use EXACT SAME drawing function
                     const dataUrl = drawTextOverlay(
                         img,
-                        title.trim(),
-                        detail.trim(),
+                        title,
+                        detail,
                         settings,
                         +document.getElementById('titleSlider').value,
                         +document.getElementById('detailSlider').value,
@@ -695,6 +754,7 @@
                     const div = document.createElement('div');
                     div.className = 'result-item';
                     div.innerHTML = `
+                        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">${contentText}</div>
                         <img src="${dataUrl}">
                         <br>
                         <a class="btn" href="${dataUrl}" download="overlay_${i + 1}.png">Download PNG</a>
@@ -702,16 +762,18 @@
                     elements.results.appendChild(div);
                 } catch (e) {
                     console.error(`Failed to generate image ${i + 1}:`, e);
+                    elements.statusText.textContent = `Failed: Image ${i + 1}`;
                 }
             }
-            elements.statusText.textContent = 'All images generated! Preview matches exports.';
+            elements.statusText.textContent = `Generated ${csvLines.length} images! ✓ All match preview`;
             disableButtons(false);
         };
 
+        // UPDATED: ZIP export with empty field support
         const exportAsZip = async () => {
             const csvLines = elements.csvInput.value.trim().split('\n').filter(l => l && validateCsvLine(l));
             if (!csvLines.length) {
-                elements.statusText.textContent = 'Please add valid CSV input first.';
+                elements.statusText.textContent = 'Please add at least one valid image URL.';
                 return;
             }
             disableButtons(true);
@@ -719,12 +781,17 @@
             const settings = getSettings();
             
             for (let i = 0; i < csvLines.length; i++) {
-                elements.statusText.textContent = `Preparing ${i + 1} of ${csvLines.length} for ZIP...`;
+                const [src, title, detail] = parseCsvLine(csvLines[i]);
+                const contentInfo = [];
+                if (title.trim()) contentInfo.push('title');
+                if (detail.trim()) contentInfo.push('detail');
+                const contentText = contentInfo.length > 0 ? contentInfo.join('_') : 'image_only';
+                
+                elements.statusText.textContent = `Zipping ${i + 1}/${csvLines.length}: ${contentText}...`;
                 elements.progressBar.style.width = `${((i + 1) / csvLines.length) * 100}%`;
                 
-                const [src, title, detail] = csvLines[i].split(',');
                 try {
-                    const img = await loadImage(src.trim());
+                    const img = await loadImage(src);
                     let targetW, targetH;
                     if (settings.outputSize === 'original') {
                         targetW = img.width;
@@ -741,11 +808,10 @@
                     fullCanvas.width = targetW;
                     fullCanvas.height = targetH;
                     
-                    // Use EXACT SAME drawing function
                     const dataUrl = drawTextOverlay(
                         img,
-                        title.trim(),
-                        detail.trim(),
+                        title,
+                        detail,
                         settings,
                         +document.getElementById('titleSlider').value,
                         +document.getElementById('detailSlider').value,
@@ -754,20 +820,20 @@
                     );
                     
                     const base64Data = dataUrl.split(',')[1];
-                    zip.file(`overlay_${i + 1}.png`, base64Data, { base64: true });
+                    const filename = `overlay_${i + 1}_${contentText}.png`;
+                    zip.file(filename, base64Data, { base64: true });
                 } catch (e) {
                     console.error(`Failed to add image ${i + 1} to ZIP:`, e);
                 }
             }
             
             const content = await zip.generateAsync({ type: 'blob' });
-            saveAs(content, 'text-overlays.zip');
-            elements.statusText.textContent = 'ZIP file downloaded! All images match preview.';
+            saveAs(content, `text-overlays_${new Date().getTime()}.zip`);
+            elements.statusText.textContent = `ZIP downloaded! ${csvLines.length} images ✓ All match preview`;
             disableButtons(false);
         };
 
         const resetSettings = () => {
-            // Reset all inputs to default
             Object.keys(DEFAULT_SETTINGS).forEach(key => {
                 const element = document.getElementById(key);
                 if (element) {
@@ -776,7 +842,7 @@
             });
             updateSliderValues();
             updatePreview();
-            elements.statusText.textContent = 'Settings reset to default.';
+            elements.statusText.textContent = 'Settings reset to default. ✓ Empty fields supported';
         };
 
         // Event Listeners
@@ -796,7 +862,6 @@
         elements.buttons.reset.addEventListener('click', resetSettings);
         elements.buttons.exportZip.addEventListener('click', exportAsZip);
 
-        // Add input listeners for live preview
         elements.inputs.forEach(input => {
             input.addEventListener('input', () => {
                 updateSliderValues();
@@ -804,14 +869,12 @@
             });
         });
 
-        // Theme toggle
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark');
             document.body.classList.toggle('light');
             themeToggle.textContent = document.body.classList.contains('dark') ? 'Switch to Light' : 'Switch to Dark';
         });
 
-        // Scroll to top
         window.addEventListener('scroll', () => {
             goToTop.style.display = (window.scrollY > 100) ? 'block' : 'none';
         });
