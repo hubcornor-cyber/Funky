@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL to Image CSV</title>
+<style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    input[type="text"], textarea { width: 100%; padding: 10px; margin: 10px 0; font-family: monospace; }
+    button { padding: 10px 20px; margin: 5px 0; }
+</style>
+</head>
+<body>
+
+<h2>Get Image URLs from a Webpage</h2>
+
+<label for="urlInput">Step 1: Enter Page URL:</label>
+<input type="text" id="urlInput" placeholder="https://example.com">
+
+<button id="fetchSourceBtn">Fetch HTML Source</button>
+
+<label for="sourceCode">Step 2: HTML Source:</label>
+<textarea id="sourceCode" rows="10" placeholder="HTML source will appear here..."></textarea>
+
+<button id="extractBtn">Extract Images to CSV</button>
+<button id="copyBtn">Copy CSV</button>
+
+<h3>Output CSV</h3>
+<textarea id="output" rows="10" readonly placeholder="Image URLs will appear here..."></textarea>
+
+<script>
+const urlInput = document.getElementById('urlInput');
+const sourceCode = document.getElementById('sourceCode');
+const output = document.getElementById('output');
+
+// Step 1: Fetch HTML source
+document.getElementById('fetchSourceBtn').addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    if(!url){
+        alert('Enter a valid URL!');
+        return;
+    }
+
+    output.value = '';
+    sourceCode.value = 'Fetching...';
+
+    try {
+        // Use CORS proxy because many websites block direct fetch from browser
+        const proxy = 'https://api.allorigins.win/get?url=';
+        const response = await fetch(proxy + encodeURIComponent(url));
+        const data = await response.json();
+        sourceCode.value = data.contents;
+    } catch(err){
+        sourceCode.value = '';
+        alert('Error fetching URL! Check console.');
+        console.error(err);
+    } 
+});
+ 
+// Step 2: Extract images from source
+document.getElementById('extractBtn').addEventListener('click', () => {
+    const html = sourceCode.value;
+    if(!html.trim()){
+        alert('No HTML source to parse!');
+        return;
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    const imgTags = doc.querySelectorAll('img');
+    const urls = Array.from(imgTags).map(img => img.getAttribute('src')).filter(src => src);
+
+    if(urls.length === 0){
+        output.value = 'No images found!';
+        return;
+    }
+
+    output.value = urls.join('\n');
+});
+
+// Copy CSV
+document.getElementById('copyBtn').addEventListener('click', () => {
+    output.select();
+    document.execCommand('copy');
+    alert('CSV copied to clipboard!');
+});
+</script>
+
+</body>
+</html>
