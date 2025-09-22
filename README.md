@@ -8,7 +8,7 @@
 
 [Automation Video](https://hubcornor-cyber.github.io/Funky/AutoVideo.html)   Create 100+ Images With One CLick
 
-[xtrProduct](https://hubcornor-cyber.github.io/Funky/xtrProduct.html)   Get 100+ Images With One CLick
+[AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html)   Get Fetch 100+ Images With One CLick
 
 [NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html)   Number Info Not WOrking 
 
