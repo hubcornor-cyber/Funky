@@ -1,0 +1,15 @@
+let images = document.getElementsByTagName('img');
+let imageUrls = [];
+
+for (let i = 0; i < images.length; i++) {
+    imageUrls.push(images[i].src);
+}
+
+// Create a downloadable CSV with the image URLs
+let csvContent = "data:text/csv;charset=utf-8," + "Image URLs\n" + imageUrls.join("\n");
+
+let encodedUri = encodeURI(csvContent);
+let link = document.createElement('a');
+link.setAttribute('href', encodedUri);
+link.setAttribute('download', 'image_urls.csv');
+link.click();
