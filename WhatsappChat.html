@@ -1,512 +1,572 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WhatsApp Modern Chat</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
-<style>
-/* General Styles */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awesome Auto Subtitle Effect</title>
+    <!-- Google Fonts CDN for font selection -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&family=Open+Sans&family=Lora&family=Poppins&display=swap">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease;
+            position: relative;
+        }
 
-body {overflow: hidden;
-  font-family: "Segoe UI", Roboto, sans-serif;
-  background: linear-gradient(135deg, #d7f3ff, #f2fbdc);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  overflow: hidden;
-}
+        video#background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw; /* Fallback for older browsers */
+            height: 100vh;
+            object-fit: cover; /* Fallback handled in JS if needed */
+            z-index: -1;
+        }
 
-.container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #ffffff;
-  box-shadow: 0 0 12px rgba(0,0,0,.2);
-  max-width: 500px;
-  min-width: 300px;
-  border-radius: 12px;
-  overflow: hidden;
-}
+        #controller {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            /* Fallback for browsers without backdrop-filter support */
+            background: rgba(255, 255, 255, 0.1) !important; /* Fallback for older browsers */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            z-index: 2;
+            max-height: 70vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
 
-/* Header */
-.header {
-  background: #075E54;
-  color: #fff;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+        #controller::-webkit-scrollbar {
+            display: none;
+        }
+        #controller {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+        #controller h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
 
-.header .back {
-  font-size: 20px;
-  cursor: pointer;
-}
+        #subtitles-input, #background-url, #text-position, #caption-style, #timing-input, #font-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 1em;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
 
-.header img {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-}
+        #subtitles-input {
+            height: 100px;
+        }
 
-.header .title {
-  font-weight: 600;
-}
+        #scenes {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
 
-.header .menu {
-  font-size: 20px;
-  cursor: pointer;
-}
+        #scenes::-webkit-scrollbar {
+            display: none;
+        }
+        #scenes {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
-/* Chat */
-.chat {
-  flex: 1;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
-}
+        .scene {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            width: 150px;
+            text-align: center;
+            position: relative;
+            flex: 0 0 auto;
+        }
 
-.message {
-  max-width: 75%;
-  padding: 8px 12px;
-  border-radius: 12px;
-  line-height: 1.4;
-  position: relative;
-  font-size: 14px;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  margin-bottom: 10px;
-}
+        .scene img, .scene video {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
 
-.outgoing {
-  align-self: flex-end;
-  background: #dcf8c6;
-  border-top-right-radius: 4px;
-}
+        .scene p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #ccc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-.incoming {
-  align-self: flex-start;
-  background: #f5f5f5;
-  border-top-left-radius: 4px;
-}
+        .scene button {
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
 
-.time {
-  display: block;
-  font-size: 11px;
-  text-align: right;
-  margin-top: 4px;
-  opacity: .6;
-}
+        /* Tooltip for scene preview on hover */
+        .scene .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: none;
+            max-width: 200px;
+            white-space: normal;
+        }
 
-.ticks {
-  font-size: 12px;
-  color: #34B7F1;
-  margin-left: 4px;
-}
+        .scene:hover .tooltip {
+            display: block;
+        }
 
-/* Typing Indicator */
-.typing-indicator {
-  align-self: flex-start;
-  background: #f5f5f5;
-  border-top-left-radius: 4px;
-  border-radius: 12px;
-  padding: 8px 12px;
-  display: flex;
-  gap: 4px;
-}
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
 
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #888;
-  animation: blink 1s infinite;
-}
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
 
-.dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
+        #subtitle-display {
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            max-width: 90%;
+            margin: 0 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: var(--selected-font, 'Arial');
+        }
 
-.dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
+        #subtitle-display.top {
+            position: fixed;
+            top: 50px;
+        }
 
-@keyframes blink {
-  0%, 80%, 100% {
-    opacity: .3;
-  }
+        #subtitle-display.center {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+        }
 
-  40% {
-    opacity: 1;
-  }
-}
+        #subtitle-display.bottom {
+            position: fixed;
+            bottom: 50px;
+        }
 
-/* Input Bar */
-.input-bar {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  border-top: 1px solid #ddd;
-  gap: 8px;
-}
+        #subtitle-display.visible {
+            opacity: 1;
+        }
 
-.input-bar .emoji {
-  font-size: 22px;
-  cursor: pointer;
-}
+        .word {
+            color: rgba(255, 255, 255, 0.5);
+            transition: color 0.3s ease, background 0.3s ease;
+        }
 
-.input-bar input {
-  flex: 1;
-  padding: 8px 12px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.3s ease;
-}
+        .word.highlight {
+            color: #ffeb3b;
+            text-shadow: 0 0 10px #ffeb3b;
+        }
 
-.input-bar input:focus {
-  border-color: #075e54;
-}
+        .word.gradient {
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            animation: gradientShift 2s linear infinite;
+        }
 
-.input-bar button {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 50%;
-  background: #075E54;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-}
+        .word.hover {
+            color: rgba(255, 255, 255, 0.5);
+        }
 
-.input-bar textarea {
-  flex: 1;
-  border: 1px solid #ccc;
-  resize: none;
-  overflow: hidden;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  outline: none;
-  line-height: 1.4;
-  max-height: 4.5em; /* ~3 lines */
-}
+        .word.hover.active {
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+        }
 
-/* Admin Page */
-#adminPage {
-  flex: 1;
-  display: none;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 20px;
-  text-align: center;
-  overflow-y: auto;
-}
+        .word.color-change {
+            animation: colorChange 1.5s linear infinite;
+        }
 
-#adminPage pre {
-  width: 90%;
-  max-height: 90%;
-  overflow-y: auto;
-  background: #f7f7f7;
-  border: 1px solid #ccc;
-  padding: 10px;
-  text-align: left;
-  white-space: pre-wrap;
-  margin-bottom: 8px;
-}
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 400% 50%; }
+        }
 
-.copy-btn {
-  background: #075E54;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
+        @keyframes colorChange {
+            0% { color: #ff6b6b; }
+            33% { color: #feca57; }
+            66% { color: #48dbfb; }
+            100% { color: #ff6b6b; }
+        }
 
-#adminPage textarea {
-  width: 90%;
-  height: 120px;
-  margin-bottom: 12px;
-}
+        #controller.hidden {
+            display: none;
+        }
 
-#adminPage button,
-#adminPage input[type=range] {
-  margin: 6px;
-}
+        /* Dynamic font size based on screen width */
+        @media screen and (max-width: 600px) {
+            #subtitle-display {
+                font-size: 1.2em;
+            }
+            #controller {
+                width: 95%;
+                padding: 15px;
+            }
+        }
 
-#delayValue {
-  font-weight: bold;
-  margin-left: 8px;
-}
+        @media screen and (min-width: 601px) and (max-width: 900px) {
+            #subtitle-display {
+                font-size: 1.8em;
+            }
+        }
 
-/* Mobile responsiveness */
-@media only screen and (max-width: 600px) {
-  .container {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    border-radius: 0;
-  }
-
-  .header .title {
-    font-size: 16px;
-  }
-
-  .message {
-    font-size: 14px;
-  }
-
-  .input-bar input,
-  .input-bar textarea {
-    font-size: 16px;
-  }
-
-  .input-bar button {
-    width: 30px;
-    height: 30px;
-  }
-
-  .typing-indicator {
-    padding: 6px 10px;
-  }
-}
-
-</style>
+        @media screen and (min-width: 901px) {
+            #subtitle-display {
+                font-size: 2.5em;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<div class="container">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <div class="back" id="backBtn">⇚</div>
-      <img src="https://banner2.cleanpng.com/cb2/ykn/pfc/adoi6oygb.webp" alt="User">
-      <div class="title" id="chatTitle">Chat</div>
+    <video id="background-video" autoplay loop muted></video>
+    <div id="controller">
+        <h1>Awesome Subtitle Show</h1>
+        <textarea id="subtitles-input" placeholder="Enter subtitles, one line per subtitle..."></textarea>
+        <input type="text" id="background-url" placeholder="Enter image or video (WebM/MP4) URL...">
+        <select id="text-position">
+            <option value="bottom">Bottom</option>
+            <option value="center">Center</option>
+            <option value="top">Top</option>
+        </select>
+        <select id="caption-style">
+            <option value="highlight">Highlight</option>
+            <option value="gradient">Gradient</option>
+            <option value="hover">Hover</option>
+            <option value="color-change">Color Change</option>
+        </select>
+        <input type="number" id="timing-input" placeholder="Subtitle timing (ms,  500-1200)" min="500" step="100">
+        <select id="font-select">
+            <option value="Arial">Arial</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Open Sans">Open Sans</option>
+            <option value="Lora">Lora</option>
+            <option value="Poppins">Poppins</option>
+        </select>
+        <button onclick="addScene()">Add Scene</button>
+        <button onclick="startShow()">Start Show</button>
+        <button onclick="exportScenes()">Export Scenes</button>
+        <input type="file" id="import-scenes" accept=".json" style="display: none;" onchange="importScenes(event)">
+        <button onclick="document.getElementById('import-scenes').click()">Import Scenes</button>
+        <div id="scenes"></div>
     </div>
-    <div class="menu">⋮</div>
-  </div>
 
-  <!-- Chat -->
-  <div class="chat" id="chat"></div>
+    <div id="subtitle-display" class="bottom"></div>
 
-  <!-- Input Bar -->
-  <div class="input-bar">
-    <div class="emoji">😊</div>
-    <textarea id="messageInput" placeholder="Type a message" rows="1"></textarea>
-    <button id="sendBtn"><i class='fas fa-paper-plane'></i></button>
-  </div>
+    <script>
+        let scenes = [];
+        let currentSceneIndex = -1;
+        const videoElement = document.getElementById('background-video');
 
-  <!-- Admin Panel (Optional) -->
-  <div id="adminPage">
-    <h3>Admin Panel</h3>
-    <pre id="demoScript">
-Create a realistic chat conversation about [TOPIC] between two people in CSV format.
+        // Load scenes from localStorage on page load with validation
+        window.onload = () => {
+            const savedScenes = localStorage.getItem('scenes');
+            if (savedScenes) {
+                try {
+                    const parsedScenes = JSON.parse(savedScenes);
+                    scenes = parsedScenes.filter(scene => 
+                        scene && 
+                        typeof scene.backgroundUrl === 'string' && 
+                        scene.backgroundUrl.trim() !== '' && 
+                        Array.isArray(scene.subtitles) && 
+                        scene.subtitles.length > 0
+                    );
+                    localStorage.setItem('scenes', JSON.stringify(scenes));
+                    renderScenes();
+                    scenes.forEach(scene => preloadBackground(scene.backgroundUrl));
+                } catch (e) {
+                    console.error('Error parsing scenes from localStorage:', e);
+                    localStorage.removeItem('scenes');
+                }
+            }
+            // Fallback for object-fit in older browsers
+            if (!('objectFit' in document.documentElement.style)) {
+                videoElement.style.width = '100vw';
+                videoElement.style.height = '100vh';
+            }
+        };
 
-Rules:
-1. Maximum 20 messages (roughly 10 outgoing, 10 incoming).
-2. Messages should be short, casual texting style, natural, sometimes with emojis.
-3. Use html code for bold<b></b>, italic<i></i>, or highlight for emotions where appropriate.
-4. Format must be CSV like this:
-"You","...","HH:MM AM/PM"
-"Friend/Other","<img src="Image1.png"  style="width:220px; border-radius:30px;"> <br>...","HH:MM AM/PM"
-...
-    </pre>
-    <button class="copy-btn" id="copyDemo">Copy Demo Script</button>
-    <textarea id="scriptInput" placeholder="Paste your CSV script here...  Person,Message,Time"></textarea>
-    <div>
-      <label>Message Delay: <span id="delayValue">500</span> ms</label><br>
-      <input type="range" id="delaySlider" min="200" max="2500" step="50" value="1000">
-    </div>
-    <button id="startScript">Start Script</button>
-    <button id="clearWindow">Clear Window</button>
-  </div>
-</div>
+        // Preload backgrounds
+        function preloadBackground(url) {
+            if (url.endsWith('.webm') || url.endsWith('.mp4')) {
+                const video = document.createElement('video');
+                video.src = url;
+            } else {
+                const img = new Image();
+                img.src = url;
+            }
+        }
 
-<script>
-// JavaScript (as per the initial refactor)
+        function addScene() {
+            const input = document.getElementById('subtitles-input').value.trim();
+            const backgroundUrl = document.getElementById('background-url').value.trim();
+            const textPosition = document.getElementById('text-position').value;
+            const captionStyle = document.getElementById('caption-style').value;
+            const timing = parseInt(document.getElementById('timing-input').value) || 1200;
+            const font = document.getElementById('font-select').value;
 
-const chat = document.getElementById('chat');
-const input = document.getElementById('messageInput');
-const sendBtn = document.getElementById('sendBtn');
-const chatTitle = document.getElementById('chatTitle');
-const backBtn = document.getElementById('backBtn');
-const adminPage = document.getElementById('adminPage');
-const scriptInput = document.getElementById('scriptInput');
-const startScript = document.getElementById('startScript');
-const clearWindow = document.getElementById('clearWindow');
-const delaySlider = document.getElementById('delaySlider');
-const delayValue = document.getElementById('delayValue');
-const copyDemo = document.getElementById('copyDemo');
-const demoScript = document.getElementById('demoScript');
+            if (!input || !backgroundUrl) {
+                alert('Please enter subtitles and a valid background image or video URL!');
+                return;
+            }
 
-let adminVisible = false;
-let delay = parseInt(delaySlider.value);
+            const subtitles = input.split('\n').filter(line => line.trim() !== '');
+            if (subtitles.length === 0) {
+                alert('Please enter at least one valid subtitle!');
+                return;
+            }
 
-delaySlider.addEventListener('input', () => {
-  delay = parseInt(delaySlider.value);
-  delayValue.textContent = delay;
-});
+            scenes.push({ subtitles, backgroundUrl, textPosition, captionStyle, timing, font });
+            localStorage.setItem('scenes', JSON.stringify(scenes));
+            document.getElementById('subtitles-input').value = '';
+            document.getElementById('background-url').value = '';
+            document.getElementById('text-position').value = 'bottom';
+            document.getElementById('caption-style').value = 'highlight';
+            document.getElementById('timing-input').value = '';
+            document.getElementById('font-select').value = 'Arial';
+            preloadBackground(backgroundUrl);
+            renderScenes();
+        }
 
-input.addEventListener('input', () => {
-  sendBtn.innerHTML = input.value.trim().length > 0 ? "<i class='fas fa-paper-plane'></i>" : "<i class='fas fa-microphone'></i>";
-});
+        function deleteScene(index) {
+            scenes.splice(index, 1);
+            localStorage.setItem('scenes', JSON.stringify(scenes));
+            renderScenes();
+        }
 
-function addMessage(person, text, time) {
-  const msg = document.createElement('div');
-  msg.className = 'message ' + (person.toLowerCase() === 'you' ? 'outgoing' : 'incoming');
-  msg.innerHTML = `${text}<span class="time">${time}${person.toLowerCase() === 'you' ? '<span class="ticks">✔✔</span>' : ''}</span>`;
-  chat.appendChild(msg);
-  chat.scrollTop = chat.scrollHeight;
-}
+        function renderScenes() {
+            const scenesDiv = document.getElementById('scenes');
+            scenesDiv.innerHTML = '';
+            scenes.forEach((scene, index) => {
+                const sceneDiv = document.createElement('div');
+                sceneDiv.className = 'scene';
+                const isVideo = typeof scene.backgroundUrl === 'string' && 
+                                (scene.backgroundUrl.endsWith('.webm') || scene.backgroundUrl.endsWith('.mp4'));
+                sceneDiv.innerHTML = `
+                    ${isVideo ? 
+                        `<video src="${scene.backgroundUrl}" autoplay loop muted></video>` : 
+                        `<img src="${scene.backgroundUrl}" alt="Scene Preview">`
+                    }
+                    <p>${scene.subtitles[0].substring(0, 20)}...</p>
+                    <p>Pos: ${scene.textPosition}</p>
+                    <p>Style: ${scene.captionStyle}</p>
+                    <p>Timing: ${scene.timing}ms</p>
+                    <p>Font: ${scene.font}</p>
+                    <div class="tooltip">${scene.subtitles.join('<br>')}</div>
+                    <button onclick="deleteScene(${index})">Delete</button>
+                `;
+                scenesDiv.appendChild(sceneDiv);
+            });
+        }
 
-function typeInInput(text, callback) {
-  input.value = '';
-  input.style.height = "auto";
-  let i = 0;
-  const interval = setInterval(() => {
-    input.value = text.substring(0, i);
-    input.style.height = "auto";
-    const maxHeight = parseInt(getComputedStyle(input).lineHeight) * 3;
-    input.style.height = Math.min(input.scrollHeight, maxHeight) + "px";
-    i++;
-    if (i > text.length) {
-      clearInterval(interval);
-      input.style.height = getComputedStyle(input).lineHeight;
-      if (callback) callback();
-    }
-  }, 150);
-}
+        function exportScenes() {
+            const data = JSON.stringify(scenes);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'scenes.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
 
-function showTypingIndicator() {
-  const row = document.createElement('div');
-  row.className = 'typing-indicator';
-  row.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-  chat.appendChild(row);
-  chat.scrollTop = chat.scrollHeight;
-  return row;
-}
+        function importScenes(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedScenes = JSON.parse(e.target.result);
+                    const validScenes = importedScenes.filter(scene => 
+                        scene && 
+                        typeof scene.backgroundUrl === 'string' && 
+                        scene.backgroundUrl.trim() !== '' && 
+                        Array.isArray(scene.subtitles) && 
+                        scene.subtitles.length > 0
+                    );
+                    scenes = validScenes;
+                    localStorage.setItem('scenes', JSON.stringify(scenes));
+                    scenes.forEach(scene => preloadBackground(scene.backgroundUrl));
+                    renderScenes();
+                    alert('Scenes imported successfully!');
+                } catch (e) {
+                    console.error('Error importing scenes:', e);
+                    alert('Failed to import scenes. Please ensure the file is a valid JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
 
-function parseCSV(text) {
-  const rows = [];
-  let current = [];
-  let insideQuotes = false;
-  let field = '';
-  for (let char of text) {
-    if (char === '"') {
-      insideQuotes = !insideQuotes;
-    } else if (char === ',' && !insideQuotes) {
-      current.push(field.trim());
-      field = '';
-    } else if (char === '\n' && !insideQuotes) {
-      current.push(field.trim());
-      rows.push(current);
-      current = [];
-      field = '';
-    } else {
-      field += char;
-    }
-  }
-  if (field.length > 0) current.push(field.trim());
-  if (current.length > 0) rows.push(current);
-  return rows;
-}
+        function startShow() {
+            if (scenes.length === 0) {
+                alert('Please add at least one scene!');
+                return;
+            }
 
-function playScript(scriptRows, index = 0) {
-  if (index >= scriptRows.length) return;
-  const row = scriptRows[index];
-  const person = row[0].replace(/^\"|\"$/g, '');
-  const message = row[1].replace(/^\"|\"$/g, '');
-  const time = row[2].replace(/^\"|\"$/g, '');
-  
-  if (person.toLowerCase() === 'you') {
-    typeInInput(message, () => {
-      sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
-      addMessage(person, message, time);
-      input.value = '';
-      setTimeout(() => {
-        playScript(scriptRows, index + 1);
-      }, delay);
-    });
-  } else {
-    chatTitle.textContent = person;
-    const typing = showTypingIndicator();
-    const typingTime = Math.max(1000, message.length * 170);
-    setTimeout(() => {
-      typing.remove();
-      addMessage(person, message, time);
-      setTimeout(() => playScript(scriptRows, index + 1), delay);
-    }, typingTime);
-  }
-}
+            document.getElementById('controller').classList.add('hidden');
+            currentSceneIndex = 0;
+            displayScene();
+        }
 
-backBtn.addEventListener('click', () => {
-  adminVisible = !adminVisible;
-  chat.style.display = adminVisible ? 'none' : 'flex';
-  document.querySelector('.input-bar').style.display = adminVisible ? 'none' : 'flex';
-  adminPage.style.display = adminVisible ? 'flex' : 'none';
-});
+        async function displayScene() {
+            if (currentSceneIndex >= scenes.length) {
+                document.getElementById('subtitle-display').innerHTML = '';
+                document.getElementById('subtitle-display').classList.remove('visible');
+                document.getElementById('controller').classList.remove('hidden');
+                videoElement.style.display = 'none';
+                document.body.style.backgroundImage = '';
+                alert('Show ended! You can restart or edit.');
+                return;
+            }
 
-startScript.addEventListener('click', () => {
-  chat.innerHTML = '';
-  const rows = parseCSV(scriptInput.value.trim());
-  const parsed = rows.slice(1); 
-  playScript(parsed, 0);
-  adminVisible = false;
-  chat.style.display = 'flex';
-  document.querySelector('.input-bar').style.display = 'flex';
-  adminPage.style.display = 'none';
-});
+            const scene = scenes[currentSceneIndex];
+            if (!scene || typeof scene.backgroundUrl !== 'string') {
+                console.error('Invalid scene at index', currentSceneIndex, scene);
+                currentSceneIndex++;
+                await displayScene();
+                return;
+            }
 
-clearWindow.addEventListener('click', () => chat.innerHTML = '');
+            console.log('Applying caption style:', scene.captionStyle); // Debug log
 
-sendBtn.addEventListener('click', () => {
-  const text = input.value.trim();
-  if (!text) return;
-  const now = new Date();
-  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  addMessage('You', text, time);
-  input.value = '';
-  sendBtn.textContent = "🎤";
-  setTimeout(() => {
-    sendBtn.innerHTML = "<i class='fas fa-paper-plane'></i>";
-  }, 500);
-});
+            const isVideo = scene.backgroundUrl.endsWith('.webm') || scene.backgroundUrl.endsWith('.mp4');
+            
+            if (isVideo) {
+                videoElement.src = scene.backgroundUrl;
+                videoElement.style.display = 'block';
+                document.body.style.backgroundImage = '';
+            } else {
+                videoElement.style.display = 'none';
+                document.body.style.backgroundImage = `url(${scene.backgroundUrl})`;
+            }
 
-setInterval(() => {
-  if (input.value.trim().length > 0) {
-    sendBtn.innerHTML = "<i class='fas fa-paper-plane'></i>";
-  } else {
-    sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
-  }
-}, 300);
+            const display = document.getElementById('subtitle-display');
+            display.className = scene.textPosition;
+            display.style.setProperty('--selected-font', scene.font);
 
-copyDemo.addEventListener('click', () => {
-  navigator.clipboard.writeText(demoScript.textContent.trim());
-  copyDemo.textContent = "Copied!";
-  setTimeout(() => copyDemo.textContent = "Copy Demo Script", 1500);
-});
-</script>
+            for (let line of scene.subtitles) {
+                await displayLine(line, scene.captionStyle);
+                await wait(scene.timing);
+            }
 
+            currentSceneIndex++;
+            await displayScene();
+        }
+
+        async function displayLine(line, captionStyle) {
+            const display = document.getElementById('subtitle-display');
+            display.classList.add('visible');
+
+            const words = line.split(' ');
+            const maxWords = window.innerWidth < 600 ? 5 : 7;
+            let currentChunk = [];
+            let chunks = [];
+            let charCount = 0;
+
+            for (let word of words) {
+                currentChunk.push(word);
+                charCount += word.length;
+
+                if (currentChunk.length >= maxWords || charCount > 40) {
+                    chunks.push(currentChunk.join(' '));
+                    currentChunk = [];
+                    charCount = 0;
+                }
+            }
+            if (currentChunk.length > 0) {
+                chunks.push(currentChunk.join(' '));
+            }
+
+            for (let chunk of chunks) {
+                const words = chunk.split(' ');
+                display.innerHTML = words.map(word => `<span class="word">${word}</span>`).join(' ');
+
+                const wordElements = display.querySelectorAll('.word');
+                // Clear all previous style classes
+                wordElements.forEach(el => {
+                    el.classList.remove('highlight', 'gradient', 'hover', 'color-change', 'active');
+                }); 
+
+                if (captionStyle === 'hover') {
+                    for (let i = 0; i < wordElements.length; i++) {
+                        // Clear active class from all words
+                        wordElements.forEach(el => el.classList.remove('active'));
+                        wordElements[i].classList.add('hover', 'active');
+                        await wait(300);
+                    } 
+                } else {
+                    for (let i = 0; i < wordElements.length; i++) {
+                        wordElements[i].classList.add(captionStyle);
+                        await wait(300);
+                    }
+                }
+                await wait(300);
+            }
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
 </body>
 </html>
