@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Awesome Auto Text Effect</title>
+    <title>Awesome Auto Subtitle Effect</title>
     <style>
         body {
             margin: 0;
@@ -14,7 +14,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: 95vh;
             background-color: #000;
             background-size: cover;
             background-position: center;
@@ -300,9 +300,9 @@
                 const wordElements = display.querySelectorAll('.word');
                 for (let i = 0; i < wordElements.length; i++) {
                     wordElements[i].classList.add('highlight');
-                    await wait(600);
+                    await wait(350);
                 }
-                await wait(600); // Pause between chunks
+                await wait(350); // Pause between chunks
             }
         }
 
