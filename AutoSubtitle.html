@@ -4,11 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Animated Story with Subtitle-Style Captions</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 <style>
   body {
     margin: 0;
-    background: #121212;
-    color: #fff;
+    background: #ffffff;
+    color: #000;
     font-family: 'Arial', sans-serif;
     overflow: hidden;
     display: flex;
@@ -23,25 +24,25 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    box-shadow: 0 0 20px #00bfff;
-    background: #222;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    background: #eeeeee;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
   .story-container:hover {
     transform: scale(1.02);
-    box-shadow: 0 0 30px #00bfff;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
   }
 
   .reels-size {
-    max-width: 1080px;
-    max-height: 1920px;
+    width: 100%;
+    height: 100%;
     aspect-ratio: 9 / 16;
   }
 
   .long-video-size {
-    max-width: 1920px;
-    max-height: 1080px;
+    width: 100%;
+    height: 100%;
     aspect-ratio: 16 / 9;
   }
 
@@ -53,7 +54,7 @@
 
   .slide {
     position: absolute;
-    width: 100%;
+    width: 100vh;
     height: 100%;
     opacity: 0;
     transition: opacity 1.5s ease;
@@ -62,12 +63,12 @@
   .slide.active {
     opacity: 1;
     z-index: 10;
-  }
+  } 
 
   img {
-    width: 100%;
+    width: 100vh;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     filter: brightness(0.75);
   }
 
@@ -130,7 +131,7 @@
     width: 14px;
     height: 14px;
     margin: 0 8px;
-    background: #444;
+    background: #cccccc;
     border-radius: 50%;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.3s ease;
@@ -156,16 +157,15 @@
     }
   }
 
-  /* Admin Panel Styles */
   .admin-panel {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #333;
+    background: #dddddd;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 0 15px #00bfff;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
     z-index: 20;
     width: 90%;
     max-width: 400px;
@@ -198,7 +198,7 @@
   .tab-buttons {
     display: flex;
     margin-bottom: 15px;
-    background: #222;
+    background: #eeeeee;
     border-radius: 8px;
     overflow: hidden;
   }
@@ -213,9 +213,9 @@
   .tab-button {
     flex: 1;
     padding: 12px;
-    background: #444;
+    background: #cccccc;
     border: none;
-    color: #fff;
+    color: #000;
     cursor: pointer;
     font-size: 1rem;
     transition: background 0.3s ease, transform 0.3s ease;
@@ -223,7 +223,7 @@
 
   .tab-button:hover {
     transform: scale(1.05);
-    background: #555;
+    background: #bbbbbb;
   }
 
   .tab-button.active {
@@ -252,14 +252,14 @@
     margin: 8px 0;
     border: none;
     border-radius: 6px;
-    background: #444;
-    color: #fff;
+    background: #cccccc;
+    color: #000;
     font-size: 1rem;
     transition: background 0.3s ease;
   }
 
   .admin-panel input:hover, .admin-panel textarea:hover, .admin-panel select:hover, .admin-panel input[type="range"]:hover {
-    background: #555;
+    background: #bbbbbb;
   }
 
   .admin-panel textarea {
@@ -269,7 +269,7 @@
 
   .admin-panel label {
     font-size: 0.9rem;
-    color: #ccc;
+    color: #333;
     margin-top: 10px;
     display: block;
   }
@@ -295,12 +295,15 @@
 
   .color-list {
     margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .color-item {
     display: flex;
     align-items: center;
-    margin: 8px 0;
+    margin: 8px 10px 8px 0;
   }
 
   .color-item input {
@@ -310,11 +313,20 @@
 
   .color-item button {
     padding: 8px;
-    background: #ff4444;
+    background: transparent;
+    color: #fff;
+    font-size: 1rem;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .color-item button:hover {
-    background: #cc0000;
+    filter: brightness(0.8);
     transform: scale(1.1);
   }
 
@@ -323,14 +335,14 @@
     overflow-y: auto;
     margin-top: 15px;
     padding: 5px;
-    background: #222;
+    background: #eeeeee;
     border-radius: 6px;
   }
 
   .scene-item {
     display: flex;
     align-items: center;
-    background: #444;
+    background: #cccccc;
     padding: 10px;
     margin: 5px 0;
     border-radius: 6px;
@@ -365,7 +377,7 @@
   }
 
   .preview-container {
-    background: #222;
+    background: #eeeeee;
     padding: 10px;
     border-radius: 6px;
     margin-top: 15px;
@@ -374,7 +386,7 @@
   .preview-container img {
     width: 100%;
     height: 200px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 6px;
   }
 
@@ -387,10 +399,9 @@
     text-align: center;
   }
 
-  .toggle-admin {
+  .toggle-admin, .toggle-theme {
     position: fixed;
     top: 10px;
-    left: 10px;
     padding: 10px 15px;
     background: #00bfff;
     border: none;
@@ -402,12 +413,20 @@
     transition: transform 0.3s ease, background 0.3s ease, opacity 0.3s ease;
   }
 
-  .toggle-admin:hover {
+  .toggle-admin {
+    left: 10px;
+  }
+
+  .toggle-theme {
+    right: 10px;
+  }
+
+  .toggle-admin:hover, .toggle-theme:hover {
     transform: scale(1.1);
     background: #0099cc;
   }
 
-  .toggle-admin.hidden {
+  .toggle-admin.hidden, .toggle-theme.hidden {
     opacity: 0;
     pointer-events: none;
   }
@@ -416,8 +435,8 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background: #000;
-    color: #fff;
+    background: #ffffff;
+    color: #000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -431,54 +450,76 @@
     opacity: 1;
   }
 
-  .popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  body.dark-theme {
+    background: #121212;
+    color: #fff;
+  }
+
+  body.dark-theme .story-container {
+    background: #222;
+    box-shadow: 0 0 20px #00bfff;
+  }
+
+  body.dark-theme .story-container:hover {
+    box-shadow: 0 0 30px #00bfff;
+  }
+
+  body.dark-theme .dot {
+    background: #444;
+  }
+
+  body.dark-theme .admin-panel {
     background: #333;
-    padding: 20px;
-    border-radius: 12px;
     box-shadow: 0 0 15px #00bfff;
-    z-index: 22;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
   }
 
-  .popup h2 {
-    margin: 0 0 15px;
-    font-size: 1.6rem;
-    color: #00bfff;
+  body.dark-theme .tab-buttons {
+    background: #222;
   }
 
-  .popup select {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 6px;
+  body.dark-theme .tab-button {
     background: #444;
     color: #fff;
-    font-size: 1rem;
   }
 
-  .popup button {
-    padding: 12px;
-    background: #00bfff;
-    border: none;
-    border-radius: 6px;
+  body.dark-theme .tab-button:hover {
+    background: #555;
+  }
+
+  body.dark-theme .admin-panel input,
+  body.dark-theme .admin-panel textarea,
+  body.dark-theme .admin-panel select,
+  body.dark-theme .admin-panel input[type="range"] {
+    background: #444;
     color: #fff;
-    font-weight: bold;
-    cursor: pointer;
-    width: 100%;
-    font-size: 1rem;
-    transition: background 0.3s ease, transform 0.3s ease;
   }
 
-  .popup button:hover {
-    background: #0099cc;
-    transform: scale(1.05);
+  body.dark-theme .admin-panel input:hover,
+  body.dark-theme .admin-panel textarea:hover,
+  body.dark-theme .admin-panel select:hover,
+  body.dark-theme .admin-panel input[type="range"]:hover {
+    background: #555;
+  }
+
+  body.dark-theme .admin-panel label {
+    color: #ccc;
+  }
+
+  body.dark-theme .scenes-list {
+    background: #222;
+  }
+
+  body.dark-theme .scene-item {
+    background: #444;
+  }
+
+  body.dark-theme .preview-container {
+    background: #222;
+  }
+
+  body.dark-theme .end-screen {
+    background: #000;
+    color: #fff;
   }
 </style>
 </head>
@@ -489,6 +530,7 @@
 </div>
 
 <button class="toggle-admin" id="toggleAdmin">Show Admin Panel</button>
+<button class="toggle-theme" id="toggleTheme">Toggle to Dark Theme</button>
 
 <div class="admin-panel" id="adminPanel">
   <h2>Slideshow Controller</h2>
@@ -501,12 +543,9 @@
     <div class="editor-inputs" id="editorInputs">
       <input type="text" id="imageUrl" placeholder="Image URL" />
       <textarea id="captionText" placeholder="Caption (multi-line supported)"></textarea>
-      <label for="captionPosition">Caption Position (px from bottom):</label>
-      <input type="range" id="captionPosition" min="0" max="200" value="0" />
       <select id="viewMode">
-        <option value="auto">View Mode: Auto</option>
-        <option value="reels">View Mode: Reels (1080x1920)</option>
-        <option value="long">View Mode: Long (1920x1080)</option>
+        <option value="reels">View Mode: Reels</option>
+        <option value="long">View Mode: Long</option>
       </select>
       <button id="saveScene">Save Scene</button>
     </div>
@@ -521,42 +560,35 @@
       <button id="addColor">Add Color</button>
     </div>
     <select id="sceneSelect"></select>
+    <div class="editor-controls">
+      <label for="editCaptionPosition">Caption Position (px from bottom):</label>
+      <input type="range" id="editCaptionPosition" min="0" max="200" value="0" />
+      <label for="editCaptionSize">Caption Size (rem):</label>
+      <input type="range" id="editCaptionSize" min="1" max="3" step="0.1" value="1.8" />
+      <label for="demoCaptionText">Demo Caption Text:</label>
+      <input type="text" id="demoCaptionText" placeholder="Enter demo caption text" value="This is a sample caption" />
+    </div>
     <div class="preview-container" id="previewContainer">
       <img id="previewImage" src="https://cdn.pixabay.com/photo/2023/04/14/21/42/wallpaper-7926141_640.jpg" alt="Preview" />
-      <div class="preview-caption" id="previewCaption" style="bottom: 0px;">Sample caption text</div>
+      <div class="preview-caption" id="previewCaption" style="bottom: 0px; font-size: 1.8rem;">This is a sample caption</div>
     </div>
   </div>
-</div>
-
-<div class="popup" id="sizePopup">
-  <h2>Select Video Frame Size</h2>
-  <select id="frameSize">
-    <option value="reels">Reels Size (1080x1920)</option>
-    <option value="long">Long Video Size (1920x1080)</option>
-  </select>
-  <button id="confirmSize">Confirm</button>
 </div>
 
 <script>
   const storyContainer = document.getElementById('storyContainer');
   const dotsContainer = document.getElementById('dotsContainer');
   const toggleAdmin = document.getElementById('toggleAdmin');
+  const toggleTheme = document.getElementById('toggleTheme');
   let slides = [];
   let dots = [];
   let currentIndex = 0;
   let scenes = [];
   let defaultColors = ['#00bfff', '#ff4081', '#ffeb3b', '#00e676', '#ff5722'];
 
-  // Show popup on page load
+  // Set default frame size to reels
   window.addEventListener('load', () => {
-    document.getElementById('sizePopup').style.display = 'block';
-  });
-
-  // Confirm frame size
-  document.getElementById('confirmSize').addEventListener('click', () => {
-    const frameSize = document.getElementById('frameSize').value;
-    storyContainer.classList.add(frameSize === 'reels' ? 'reels-size' : 'long-video-size');
-    document.getElementById('sizePopup').style.display = 'none';
+    storyContainer.classList.add('reels-size');
   });
 
   // Toggle admin panel
@@ -564,6 +596,12 @@
     const adminPanel = document.getElementById('adminPanel');
     adminPanel.classList.toggle('active');
     toggleAdmin.textContent = adminPanel.classList.contains('active') ? 'Hide Admin Panel' : 'Show Admin Panel';
+  });
+
+  // Toggle theme
+  toggleTheme.addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+    toggleTheme.textContent = document.body.classList.contains('dark-theme') ? 'Toggle to Light Theme' : 'Toggle to Dark Theme';
   });
 
   // Tab switching
@@ -590,7 +628,9 @@
       item.classList.add('color-item');
       item.innerHTML = `
         <input type="text" value="${color}" disabled />
-        <button class="remove-color" data-index="${idx}">Remove</button>
+        <button class="remove-color" data-index="${idx}" style="background: ${color};">
+          <i class="fas fa-trash"></i>
+        </button>
       `;
       colorsContainer.appendChild(item);
     });
@@ -620,10 +660,9 @@
     const imgUrl = document.getElementById('imageUrl').value.trim();
     const caption = document.getElementById('captionText').value.trim();
     const viewMode = document.getElementById('viewMode').value;
-    const captionPosition = document.getElementById('captionPosition').value;
 
     if (imgUrl && caption) {
-      scenes.push({ imgUrl, caption, viewMode, captionPosition });
+      scenes.push({ imgUrl, caption, viewMode, captionPosition: 0, fontSize: 1.8 });
       updateScenesList();
       updateSceneSelect();
       clearInputs();
@@ -631,18 +670,11 @@
     }
   });
 
-  // Live preview for caption position
-  document.getElementById('captionPosition').addEventListener('input', (e) => {
-    const previewCaption = document.getElementById('previewCaption');
-    previewCaption.style.bottom = `${e.target.value}px`;
-  });
-
   // Clear inputs
   function clearInputs() {
     document.getElementById('imageUrl').value = '';
     document.getElementById('captionText').value = '';
-    document.getElementById('viewMode').value = 'auto';
-    document.getElementById('captionPosition').value = '0';
+    document.getElementById('viewMode').value = 'reels';
     document.getElementById('editorInputs').classList.remove('active');
   }
 
@@ -689,10 +721,13 @@
     else {
       document.getElementById('previewContainer').innerHTML = `
         <img id="previewImage" src="https://cdn.pixabay.com/photo/2023/04/14/21/42/wallpaper-7926141_640.jpg" alt="Preview" />
-        <div class="preview-caption" id="previewCaption" style="bottom: 0px;">Sample caption text</div>
+        <div class="preview-caption" id="previewCaption" style="bottom: 0px; font-size: 1.8rem;">This is a sample caption</div>
       `;
+      document.getElementById('editCaptionPosition').value = 0;
+      document.getElementById('editCaptionSize').value = 1.8;
+      document.getElementById('demoCaptionText').value = 'This is a sample caption';
     }
-    loadColors();
+    loadColors(); 
   }
 
   // Show preview in UI tab
@@ -702,6 +737,10 @@
       document.getElementById('previewImage').src = scene.imgUrl;
       document.getElementById('previewCaption').textContent = scene.caption;
       document.getElementById('previewCaption').style.bottom = `${scene.captionPosition}px`;
+      document.getElementById('previewCaption').style.fontSize = `${scene.fontSize}rem`;
+      document.getElementById('editCaptionPosition').value = scene.captionPosition;
+      document.getElementById('editCaptionSize').value = scene.fontSize;
+      document.getElementById('demoCaptionText').value = scene.caption;
     }
   }
 
@@ -710,10 +749,42 @@
     showPreview(parseInt(e.target.value));
   });
 
+  // Caption position live preview and update
+  document.getElementById('editCaptionPosition').addEventListener('input', (e) => {
+    const index = parseInt(document.getElementById('sceneSelect').value);
+    if (scenes[index]) {
+      scenes[index].captionPosition = e.target.value;
+      document.getElementById('previewCaption').style.bottom = `${e.target.value}px`;
+    } else {
+      document.getElementById('previewCaption').style.bottom = `${e.target.value}px`;
+    }
+  });
+
+  // Caption size live preview and update
+  document.getElementById('editCaptionSize').addEventListener('input', (e) => {
+    const index = parseInt(document.getElementById('sceneSelect').value);
+    if (scenes[index]) {
+      scenes[index].fontSize = e.target.value;
+      document.getElementById('previewCaption').style.fontSize = `${e.target.value}rem`;
+    } else {
+      document.getElementById('previewCaption').style.fontSize = `${e.target.value}rem`;
+    }
+  });
+
+  // Demo caption text live preview
+  document.getElementById('demoCaptionText').addEventListener('input', (e) => {
+    const index = parseInt(document.getElementById('sceneSelect').value);
+    document.getElementById('previewCaption').textContent = e.target.value || 'This is a sample caption';
+    if (scenes[index]) {
+      scenes[index].caption = e.target.value || scenes[index].caption;
+    }
+  });
+
   // Start scenes
   document.getElementById('startScenes').addEventListener('click', () => {
     document.getElementById('adminPanel').classList.remove('active');
     toggleAdmin.classList.add('hidden');
+    toggleTheme.classList.add('hidden');
     setTimeout(() => {
       buildSlides();
       applyViewModes();
@@ -741,7 +812,7 @@
       slide.classList.add('slide');
       slide.innerHTML = `
         <img src="${scene.imgUrl}" alt="Scene ${i + 1}" />
-        <div class="caption" id="caption${i}" style="bottom: ${scene.captionPosition}px;">${scene.caption}</div>
+        <div class="caption" id="caption${i}" style="bottom: ${scene.captionPosition}px; font-size: ${scene.fontSize}rem;">${scene.caption}</div>
       `;
       storyContainer.appendChild(slide);
     });
@@ -779,6 +850,7 @@
     // Show admin button on end screen
     if (currentIndex === slides.length - 1) {
       toggleAdmin.classList.remove('hidden');
+      toggleTheme.classList.remove('hidden');
     }
   }
 
