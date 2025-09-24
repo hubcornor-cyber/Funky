@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Animated Story with Subtitle-Style Captions</title>
+<style>
+  body {
+    margin: 0;
+    background: #121212;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    position: relative;
+  }
+
+  .story-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    box-shadow: 0 0 20px #00bfff;
+    background: #222;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .story-container:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px #00bfff;
+  }
+
+  .reels-size {
+    max-width: 1080px;
+    max-height: 1920px;
+    aspect-ratio: 9 / 16;
+  }
+
+  .long-video-size {
+    max-width: 1920px;
+    max-height: 1080px;
+    aspect-ratio: 16 / 9;
+  }
+
+  @media (max-width: 600px) {
+    .caption {
+      font-size: 1.3rem;
+    }
+  }
+
+  .slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+  }
+
+  .slide.active {
+    opacity: 1;
+    z-index: 10;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.75);
+  }
+
+  .caption {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 50px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+
+  .caption .line {
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
+  }
+
+  .caption .line.active {
+    opacity: 1;
+  }
+
+  .caption span {
+    display: inline-block;
+    transition: transform 0.3s ease, color 0.3s ease;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+  }
+
+  .caption span.active {
+    transform: scale(1.2);
+    text-shadow: 2px 2px 4px #000;
+  }
+
+  .dots {
+    position: absolute;
+    bottom: 60px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .dot {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin: 0 8px;
+    background: #444;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  .dot:hover {
+    transform: scale(1.2);
+    background: #00bfff;
+  }
+
+  .dot.active {
+    background: #00bfff;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Admin Panel Styles */
+  .admin-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #333;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px #00bfff;
+    z-index: 20;
+    width: 90%;
+    max-width: 400px;
+    display: none;
+    transition: transform 0.3s ease;
+  }
+
+  .admin-panel:hover {
+    transform: translate(-50%, -50%) scale(1.02);
+  }
+
+  .admin-panel.active {
+    display: block;
+  }
+
+  @media (max-width: 600px) {
+    .admin-panel {
+      width: 95%;
+      padding: 15px;
+    }
+  }
+
+  .admin-panel h2 {
+    margin: 0 0 15px;
+    font-size: 1.6rem;
+    color: #00bfff;
+    text-align: center;
+  }
+
+  .tab-buttons {
+    display: flex;
+    margin-bottom: 15px;
+    background: #222;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 600px) {
+    .tab-buttons {
+      flex-direction: row;
+      gap: 5px;
+    }
+  }
+
+  .tab-button {
+    flex: 1;
+    padding: 12px;
+    background: #444;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  .tab-button:hover {
+    transform: scale(1.05);
+    background: #555;
+  }
+
+  .tab-button.active {
+    background: #00bfff;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .editor-inputs {
+    display: none;
+  }
+
+  .editor-inputs.active {
+    display: block;
+  }
+
+  .admin-panel input, .admin-panel textarea, .admin-panel select, .admin-panel input[type="range"] {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 6px;
+    background: #444;
+    color: #fff;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+  }
+
+  .admin-panel input:hover, .admin-panel textarea:hover, .admin-panel select:hover, .admin-panel input[type="range"]:hover {
+    background: #555;
+  }
+
+  .admin-panel textarea {
+    height: 120px;
+    resize: vertical;
+  }
+
+  .admin-panel label {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-top: 10px;
+    display: block;
+  }
+
+  .admin-panel button {
+    padding: 12px;
+    margin: 8px 0;
+    background: #00bfff;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  .admin-panel button:hover {
+    background: #0099cc;
+    transform: scale(1.05);
+  }
+
+  .color-list {
+    margin-top: 15px;
+  }
+
+  .color-item {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+  }
+
+  .color-item input {
+    flex: 1;
+    margin-right: 8px;
+  }
+
+  .color-item button {
+    padding: 8px;
+    background: #ff4444;
+  }
+
+  .color-item button:hover {
+    background: #cc0000;
+    transform: scale(1.1);
+  }
+
+  .scenes-list {
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 15px;
+    padding: 5px;
+    background: #222;
+    border-radius: 6px;
+  }
+
+  .scene-item {
+    display: flex;
+    align-items: center;
+    background: #444;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+    transition: transform 0.3s ease;
+  }
+
+  .scene-item:hover {
+    transform: scale(1.02);
+  }
+
+  .scene-item img {
+    width: 60px;
+    height: 34px;
+    object-fit: cover;
+    margin-right: 10px;
+    border-radius: 4px;
+  }
+
+  .scene-item span {
+    flex: 1;
+    font-size: 0.9rem;
+  }
+
+  .scene-item button {
+    padding: 8px;
+    background: #ff4444;
+  }
+
+  .scene-item button:hover {
+    background: #cc0000;
+    transform: scale(1.1);
+  }
+
+  .preview-container {
+    background: #222;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 15px;
+  }
+
+  .preview-container img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .preview-caption {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+    white-space: pre-wrap;
+    text-align: center;
+  }
+
+  .toggle-admin {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    padding: 10px 15px;
+    background: #00bfff;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 21;
+    transition: transform 0.3s ease, background 0.3s ease, opacity 0.3s ease;
+  }
+
+  .toggle-admin:hover {
+    transform: scale(1.1);
+    background: #0099cc;
+  }
+
+  .toggle-admin.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .end-screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+
+  .end-screen.active {
+    opacity: 1;
+  }
+
+  .popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #333;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px #00bfff;
+    z-index: 22;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+  }
+
+  .popup h2 {
+    margin: 0 0 15px;
+    font-size: 1.6rem;
+    color: #00bfff;
+  }
+
+  .popup select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 6px;
+    background: #444;
+    color: #fff;
+    font-size: 1rem;
+  }
+
+  .popup button {
+    padding: 12px;
+    background: #00bfff;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  .popup button:hover {
+    background: #0099cc;
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+
+<div class="story-container" id="storyContainer">
+  <div class="dots" id="dotsContainer"></div>
+</div>
+
+<button class="toggle-admin" id="toggleAdmin">Show Admin Panel</button>
+
+<div class="admin-panel" id="adminPanel">
+  <h2>Slideshow Controller</h2>
+  <div class="tab-buttons">
+    <button class="tab-button active" data-tab="editor">Editor</button>
+    <button class="tab-button" data-tab="ui">UI</button>
+  </div>
+  <div class="tab-content active" id="editorTab">
+    <button id="addScene">+ Add Scene</button>
+    <div class="editor-inputs" id="editorInputs">
+      <input type="text" id="imageUrl" placeholder="Image URL" />
+      <textarea id="captionText" placeholder="Caption (multi-line supported)"></textarea>
+      <label for="captionPosition">Caption Position (px from bottom):</label>
+      <input type="range" id="captionPosition" min="0" max="200" value="0" />
+      <select id="viewMode">
+        <option value="auto">View Mode: Auto</option>
+        <option value="reels">View Mode: Reels (1080x1920)</option>
+        <option value="long">View Mode: Long (1920x1080)</option>
+      </select>
+      <button id="saveScene">Save Scene</button>
+    </div>
+    <div class="scenes-list" id="scenesList"></div>
+    <button id="startScenes" style="display: none;">Start Scenes</button>
+  </div>
+  <div class="tab-content" id="uiTab">
+    <h3>Word Colors</h3>
+    <div class="color-list" id="colorList">
+      <div id="colorsContainer"></div>
+      <input type="text" id="newColor" placeholder="Add new color (e.g., #ff0000)" />
+      <button id="addColor">Add Color</button>
+    </div>
+    <select id="sceneSelect"></select>
+    <div class="preview-container" id="previewContainer">
+      <img id="previewImage" src="https://cdn.pixabay.com/photo/2023/04/14/21/42/wallpaper-7926141_640.jpg" alt="Preview" />
+      <div class="preview-caption" id="previewCaption" style="bottom: 0px;">Sample caption text</div>
+    </div>
+  </div>
+</div>
+
+<div class="popup" id="sizePopup">
+  <h2>Select Video Frame Size</h2>
+  <select id="frameSize">
+    <option value="reels">Reels Size (1080x1920)</option>
+    <option value="long">Long Video Size (1920x1080)</option>
+  </select>
+  <button id="confirmSize">Confirm</button>
+</div>
+
+<script>
+  const storyContainer = document.getElementById('storyContainer');
+  const dotsContainer = document.getElementById('dotsContainer');
+  const toggleAdmin = document.getElementById('toggleAdmin');
+  let slides = [];
+  let dots = [];
+  let currentIndex = 0;
+  let scenes = [];
+  let defaultColors = ['#00bfff', '#ff4081', '#ffeb3b', '#00e676', '#ff5722'];
+
+  // Show popup on page load
+  window.addEventListener('load', () => {
+    document.getElementById('sizePopup').style.display = 'block';
+  });
+
+  // Confirm frame size
+  document.getElementById('confirmSize').addEventListener('click', () => {
+    const frameSize = document.getElementById('frameSize').value;
+    storyContainer.classList.add(frameSize === 'reels' ? 'reels-size' : 'long-video-size');
+    document.getElementById('sizePopup').style.display = 'none';
+  });
+
+  // Toggle admin panel
+  document.getElementById('toggleAdmin').addEventListener('click', () => {
+    const adminPanel = document.getElementById('adminPanel');
+    adminPanel.classList.toggle('active');
+    toggleAdmin.textContent = adminPanel.classList.contains('active') ? 'Hide Admin Panel' : 'Show Admin Panel';
+  });
+
+  // Tab switching
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById(button.dataset.tab + 'Tab').classList.add('active');
+    });
+  });
+
+  // Add scene button
+  document.getElementById('addScene').addEventListener('click', () => {
+    document.getElementById('editorInputs').classList.add('active');
+  });
+
+  // Load colors into the list
+  function loadColors() {
+    const colorsContainer = document.getElementById('colorsContainer');
+    colorsContainer.innerHTML = '';
+    defaultColors.forEach((color, idx) => {
+      const item = document.createElement('div');
+      item.classList.add('color-item');
+      item.innerHTML = `
+        <input type="text" value="${color}" disabled />
+        <button class="remove-color" data-index="${idx}">Remove</button>
+      `;
+      colorsContainer.appendChild(item);
+    });
+
+    // Add remove button listeners
+    document.querySelectorAll('.remove-color').forEach(button => {
+      button.addEventListener('click', () => {
+        const index = parseInt(button.dataset.index);
+        defaultColors.splice(index, 1);
+        loadColors();
+      });
+    });
+  }
+
+  // Add color
+  document.getElementById('addColor').addEventListener('click', () => {
+    const newColor = document.getElementById('newColor').value.trim();
+    if (newColor) {
+      defaultColors.push(newColor);
+      document.getElementById('newColor').value = '';
+      loadColors();
+    }
+  });
+
+  // Save scene
+  document.getElementById('saveScene').addEventListener('click', () => {
+    const imgUrl = document.getElementById('imageUrl').value.trim();
+    const caption = document.getElementById('captionText').value.trim();
+    const viewMode = document.getElementById('viewMode').value;
+    const captionPosition = document.getElementById('captionPosition').value;
+
+    if (imgUrl && caption) {
+      scenes.push({ imgUrl, caption, viewMode, captionPosition });
+      updateScenesList();
+      updateSceneSelect();
+      clearInputs();
+      document.getElementById('startScenes').style.display = 'block';
+    }
+  });
+
+  // Live preview for caption position
+  document.getElementById('captionPosition').addEventListener('input', (e) => {
+    const previewCaption = document.getElementById('previewCaption');
+    previewCaption.style.bottom = `${e.target.value}px`;
+  });
+
+  // Clear inputs
+  function clearInputs() {
+    document.getElementById('imageUrl').value = '';
+    document.getElementById('captionText').value = '';
+    document.getElementById('viewMode').value = 'auto';
+    document.getElementById('captionPosition').value = '0';
+    document.getElementById('editorInputs').classList.remove('active');
+  }
+
+  // Update scenes list with delete buttons
+  function updateScenesList() {
+    const scenesList = document.getElementById('scenesList');
+    scenesList.innerHTML = '';
+    scenes.forEach((scene, i) => {
+      const item = document.createElement('div');
+      item.classList.add('scene-item');
+      item.innerHTML = `
+        <img src="${scene.imgUrl}" alt="Scene ${i + 1}" />
+        <span>Scene ${i + 1}: ${scene.caption.substring(0, 20)}...</span>
+        <button class="delete-scene" data-index="${i}">Delete</button>
+      `;
+      scenesList.appendChild(item);
+    });
+
+    // Add delete button listeners
+    document.querySelectorAll('.delete-scene').forEach(button => {
+      button.addEventListener('click', () => {
+        const index = parseInt(button.dataset.index);
+        scenes.splice(index, 1);
+        updateScenesList();
+        updateSceneSelect();
+        if (scenes.length === 0) {
+          document.getElementById('startScenes').style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // Update scene select for UI tab
+  function updateSceneSelect() {
+    const sceneSelect = document.getElementById('sceneSelect');
+    sceneSelect.innerHTML = '';
+    scenes.forEach((scene, i) => {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = `Scene ${i + 1}`;
+      sceneSelect.appendChild(option);
+    });
+    if (scenes.length > 0) showPreview(0);
+    else {
+      document.getElementById('previewContainer').innerHTML = `
+        <img id="previewImage" src="https://cdn.pixabay.com/photo/2023/04/14/21/42/wallpaper-7926141_640.jpg" alt="Preview" />
+        <div class="preview-caption" id="previewCaption" style="bottom: 0px;">Sample caption text</div>
+      `;
+    }
+    loadColors();
+  }
+
+  // Show preview in UI tab
+  function showPreview(index) {
+    const scene = scenes[index];
+    if (scene) {
+      document.getElementById('previewImage').src = scene.imgUrl;
+      document.getElementById('previewCaption').textContent = scene.caption;
+      document.getElementById('previewCaption').style.bottom = `${scene.captionPosition}px`;
+    }
+  }
+
+  // Scene select change
+  document.getElementById('sceneSelect').addEventListener('change', (e) => {
+    showPreview(parseInt(e.target.value));
+  });
+
+  // Start scenes
+  document.getElementById('startScenes').addEventListener('click', () => {
+    document.getElementById('adminPanel').classList.remove('active');
+    toggleAdmin.classList.add('hidden');
+    setTimeout(() => {
+      buildSlides();
+      applyViewModes();
+      startSlideshow();
+    }, 3000);
+  });
+
+  // Apply view modes
+  function applyViewModes() {
+    scenes.forEach((scene, i) => {
+      const slide = slides[i];
+      if (scene.viewMode === 'reels') {
+        slide.classList.add('reels-size');
+      } else if (scene.viewMode === 'long') {
+        slide.classList.add('long-video-size');
+      }
+    });
+  }
+
+  // Build slides from scenes
+  function buildSlides() {
+    storyContainer.innerHTML = '';
+    scenes.forEach((scene, i) => {
+      const slide = document.createElement('div');
+      slide.classList.add('slide');
+      slide.innerHTML = `
+        <img src="${scene.imgUrl}" alt="Scene ${i + 1}" />
+        <div class="caption" id="caption${i}" style="bottom: ${scene.captionPosition}px;">${scene.caption}</div>
+      `;
+      storyContainer.appendChild(slide);
+    });
+    // Add end screen
+    const endScreen = document.createElement('div');
+    endScreen.classList.add('slide', 'end-screen');
+    endScreen.innerHTML = 'The END';
+    storyContainer.appendChild(endScreen);
+    storyContainer.appendChild(dotsContainer);
+    slides = document.querySelectorAll('.slide');
+    createDots();
+  }
+
+  // Create navigation dots
+  function createDots() {
+    dotsContainer.innerHTML = '';
+    scenes.forEach((_, i) => {
+      const dot = document.createElement('span');
+      dot.classList.add('dot');
+      if (i === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToSlide(i));
+      dotsContainer.appendChild(dot);
+    });
+    dots = document.querySelectorAll('.dot');
+  }
+
+  // Go to specific slide
+  function goToSlide(index) {
+    slides[currentIndex].classList.remove('active');
+    if (dots[currentIndex]) dots[currentIndex].classList.remove('active');
+    currentIndex = index;
+    slides[currentIndex].classList.add('active');
+    if (dots[currentIndex]) dots[currentIndex].classList.add('active');
+    animateActiveCaption();
+    // Show admin button on end screen
+    if (currentIndex === slides.length - 1) {
+      toggleAdmin.classList.remove('hidden');
+    }
+  }
+
+  // Start slideshow
+  function startSlideshow() {
+    animateActiveCaption();
+  }
+
+  // Animate caption with subtitle-style display
+  function animateCaptionText(captionElement) {
+    const text = captionElement.textContent.trim();
+    captionElement.textContent = '';
+    const words = text.split(/\s+/).filter(word => word);
+    const lineElements = [];
+    const colors = defaultColors;
+    let colorIndex = 0;
+
+    // Determine words per line based on screen width
+    const screenWidth = window.innerWidth;
+    const wordsPerLine = screenWidth <= 600 ? 5 : screenWidth <= 800 ? 6 : 8;
+
+    // Group words into lines
+    for (let i = 0; i < words.length; i += wordsPerLine) {
+      const lineWords = words.slice(i, i + wordsPerLine);
+      const line = document.createElement('div');
+      line.classList.add('line');
+      line.style.opacity = 0;
+      captionElement.appendChild(line);
+      lineElements.push(line);
+
+      const wordSpans = [];
+      lineWords.forEach((word, idx) => {
+        const span = document.createElement('span');
+        span.textContent = word;
+        line.appendChild(span);
+        if (idx < lineWords.length - 1) line.appendChild(document.createTextNode(' '));
+        wordSpans.push(span);
+      });
+
+      line.dataset.wordSpans = JSON.stringify(wordSpans.map(span => span.outerHTML));
+    }
+
+    // Sequential line playback
+    function playLine(lineIdx) {
+      if (lineIdx >= lineElements.length) {
+        // All lines complete, go to next scene
+        let nextIndex = currentIndex + 1;
+        if (nextIndex < slides.length) {
+          goToSlide(nextIndex);
+        }
+        return;
+      }
+
+      // Clear previous line content
+      captionElement.innerHTML = '';
+      const currentLine = document.createElement('div');
+      currentLine.classList.add('line', 'active');
+      captionElement.appendChild(currentLine);
+      const wordSpans = JSON.parse(lineElements[lineIdx].dataset.wordSpans);
+      wordSpans.forEach((spanHtml, idx) => {
+        const span = document.createElement('span');
+        span.innerHTML = spanHtml.match(/>([^<]+)</)[1];
+        currentLine.appendChild(span);
+        if (idx < wordSpans.length - 1) currentLine.appendChild(document.createTextNode(' '));
+      });
+      const spans = currentLine.querySelectorAll('span');
+      let currentWord = 0;
+
+      function highlightNextWord() {
+        if (currentWord > 0) {
+          spans[currentWord - 1].classList.remove('active');
+          spans[currentWord - 1].style.color = '#fff';
+        }
+
+        if (currentWord >= spans.length) {
+          // Line complete, move to next line
+          playLine(lineIdx + 1);
+          return;
+        }
+
+        spans[currentWord].classList.add('active');
+        spans[currentWord].style.color = colors[colorIndex % colors.length];
+        colorIndex++;
+
+        currentWord++;
+        setTimeout(highlightNextWord, 600);
+      }
+
+      highlightNextWord();
+    }
+
+    playLine(0);
+  }
+
+  // Animate active caption
+  function animateActiveCaption() {
+    slides.forEach((slide, idx) => {
+      const caption = slide.querySelector('.caption');
+      if (slide.classList.contains('active') && caption) {
+        if (!caption.dataset.animated) {
+          slides.forEach((s) => {
+            const c = s.querySelector('.caption');
+            if (c) {
+              c.dataset.animated = '';
+              c.textContent = c.dataset.originalText || c.textContent;
+            }
+          });
+          caption.dataset.originalText = caption.textContent;
+          animateCaptionText(caption);
+          caption.dataset.animated = 'true';
+        }
+      } else if (caption) {
+        caption.dataset.animated = '';
+      }
+    });
+  }
+
+  // Initial setup
+  loadColors();
+</script>
+</body>
+</html>
