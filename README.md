@@ -8,6 +8,8 @@
 
 [Automation Video](https://hubcornor-cyber.github.io/Funky/AutoVideo.html)   Create 100+ Images With One CLick
 
+[AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitle.html)  Add Coloerful Animated Caption on Images With One CLick
+
 [AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html)   Get Fetch 100+ Images With One CLick
 
 [NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html)   Number Info Not WOrking 
