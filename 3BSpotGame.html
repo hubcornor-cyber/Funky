@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Puzzle Eye-Test Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 20px;
+        }
+        #control-panel {
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: inline-block;
+        }
+        #control-panel label {
+            display: block;
+            margin: 10px 0;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(6, 60px);
+            grid-gap: 8px;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 15px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4);
+            cursor: pointer;
+            animation: fadeIn 0.6s ease-in-out;
+            transition: transform 0.2s;
+        }
+        .cell:hover {
+            transform: scale(1.05);
+        }
+        .highlight {
+            animation: highlight 1s infinite;
+            background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8) rotate(-5deg); }
+            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes highlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        #status {
+            text-align: center;
+            font-size: 28px;
+            margin: 20px 0;
+            color: #333;
+        }
+        #timer {
+            font-size: 20px;
+            color: #333;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            background: linear-gradient(135deg, #66BB6A, #4CAF50);
+        }
+    </style>
+</head>
+<body>
+    <h1>Challenge: Spot the Secret Word! ✨🎯</h1>
+    <div id="control-panel">
+        <label>Common Value: <input id="common-value" type="text" value="A"></label>
+        <label>Unique Value: <input id="unique-value" type="text" value="B"></label>
+        <label>Background Color: <input id="bg-color" type="color" value="#f0f0f0"></label>
+        <label>Background Texture (URL): <input id="bg-texture" type="text" value="https://www.transparenttextures.com/patterns/black-paper.png"></label>
+        <label>Game Speed:
+            <select id="game-speed">
+                <option value="5000">Fast (5000ms)</option>
+                <option value="10000" selected>Medium (10000ms)</option>
+                <option value="20000">Slow (20000ms)</option>
+            </select>
+        </label>
+        <button id="start-button">Start Game</button>
+    </div>
+    <div id="timer"></div>
+    <div id="game-board"></div>
+    <div id="status"></div>
+    <script>
+        let timer = null;
+        let countdown = null;
+        let uniqueCell = null;
+
+        function getRandomColor() {
+            return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        }
+
+        function darkenColor(color, percent) {
+            let num = parseInt(color.replace("#", ""), 16),
+                amt = Math.round(2.55 * percent),
+                R = (num >> 16) - amt,
+                G = ((num >> 8) & 0x00FF) - amt,
+                B = (num & 0x0000FF) - amt;
+            return "#" + (0x1000000 + (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+                                 (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+                                 (B < 255 ? (B < 1 ? 0 : B) : 255)).toString(16).slice(1);
+        }
+
+        function isLight(color) {
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+            return luma > 128;
+        }
+
+        function updateTimer(timeLeft) {
+            document.getElementById('timer').textContent = `Time Left: ${Math.ceil(timeLeft / 1000)}s`;
+        }
+
+        function generatePuzzle() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            const common = document.getElementById('common-value').value;
+            const unique = document.getElementById('unique-value').value;
+            const bgcolor = document.getElementById('bg-color').value;
+            const texture = document.getElementById('bg-texture').value;
+            const speed = parseInt(document.getElementById('game-speed').value);
+            const isFast = speed === 5000;
+
+            document.body.style.backgroundColor = bgcolor;
+            document.body.style.backgroundImage = texture ? `url(${texture})` : 'none';
+            document.body.style.backgroundSize = 'cover';
+
+            const numCells = 36;
+            const cells = [];
+            for (let i = 0; i < numCells; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                const baseColor = getRandomColor();
+                cell.style.background = `linear-gradient(135deg, ${baseColor}, ${darkenColor(baseColor, 20)})`;
+                cell.style.color = isLight(baseColor) ? 'black' : 'white';
+                cell.textContent = common;
+                cell.addEventListener('click', () => handleClick(cell, unique, speed, isFast));
+                board.appendChild(cell);
+                cells.push(cell);
+            }
+
+            const uniqueIndex = Math.floor(Math.random() * numCells);
+            uniqueCell = cells[uniqueIndex];
+            uniqueCell.textContent = unique;
+
+            document.getElementById('status').textContent = '';
+            let timeLeft = speed;
+            updateTimer(timeLeft);
+            countdown = setInterval(() => {
+                timeLeft -= 100;
+                updateTimer(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    uniqueCell.classList.add('highlight');
+                    document.getElementById('status').textContent = 'Time\'s up!';
+                    setTimeout(() => reset(isFast), 2000);
+                }
+            }, 100);
+
+            timer = setTimeout(() => {
+                clearInterval(countdown);
+                uniqueCell.classList.add('highlight');
+                document.getElementById('status').textContent = 'Time\'s up!';
+                setTimeout(() => reset(isFast), 2000);
+            }, speed);
+        }
+
+        function handleClick(cell, unique, speed, isFast) {
+            if (cell.textContent === unique) {
+                clearTimeout(timer);
+                clearInterval(countdown);
+                document.getElementById('status').textContent = 'Found!';
+                setTimeout(() => reset(isFast), 2000);
+            } else {
+                document.getElementById('status').textContent = 'Wrong, try again.';
+            }
+        }
+
+        function reset(isFast) {
+            clearTimeout(timer);
+            clearInterval(countdown);
+            uniqueCell?.classList.remove('highlight');
+            if (isFast) {
+                document.getElementById('game-board').innerHTML = '';
+                document.getElementById('control-panel').style.display = 'block';
+                document.getElementById('status').textContent = '';
+                document.getElementById('timer').textContent = '';
+            } else {
+                generatePuzzle();
+            }
+        }
+
+        document.getElementById('start-button').addEventListener('click', () => {
+            document.getElementById('control-panel').style.display = 'none';
+            generatePuzzle();
+        });
+    </script>
+</body>
+</html>
