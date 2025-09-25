@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Dot Game</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #faeedc;
+            background-image: url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333;
+        }
+
+        #starter-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        #starter-panel h2 {
+            margin: 0 0 20px;
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        .player-setup {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .player-setup div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 45%;
+        }
+
+        .player-setup label {
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .player-setup input[type="text"] {
+            margin-bottom: 12px;
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .player-setup input[type="file"] {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .player-setup img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-top: 10px;
+            border: 2px solid #2c3e50;
+        }
+
+        #start-button {
+            padding: 12px 30px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #start-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        #game-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            width: 360px;
+            margin-bottom: 25px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .score-board div {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            position: relative;
+        }
+
+        .player-img::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            animation: glow-ring 1.5s ease-in-out infinite alternate;
+        }
+
+        .player1 .player-img::before {
+            border: 3px solid #3498db;
+            box-shadow: 0 0 10px #3498db, 0 0 20px #2980b9;
+        }
+
+        .player2 .player-img::before {
+            border: 3px solid #e74c3c;
+            box-shadow: 0 0 10px #e74c3c, 0 0 20px #c0392b;
+        }
+
+        .player1 {
+            color: #2980b9;
+        }
+
+        .player2 {
+            color: #c0392b;
+        }
+
+        @keyframes glow-ring {
+            from {
+                box-shadow: 0 0 5px rgba(52, 152, 219, 0.5), 0 0 10px rgba(41, 128, 185, 0.5);
+            }
+            to {
+                box-shadow: 0 0 15px rgba(52, 152, 219, 0.8), 0 0 25px rgba(41, 128, 185, 0.8);
+            }
+        }
+
+        .player2 .player-img::before {
+            animation-name: glow-ring-red;
+        }
+
+        @keyframes glow-ring-red {
+            from {
+                box-shadow: 0 0 5px rgba(231, 76, 60, 0.5), 0 0 10px rgba(192, 57, 43, 0.5);
+            }
+            to {
+                box-shadow: 0 0 15px rgba(231, 76, 60, 0.8), 0 0 25px rgba(192, 57, 43, 0.8);
+            }
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 12px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .bubble {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, rgba(52, 152, 219, 0.2), rgba(255, 255, 255, 0.1));
+            border: 1px dashed #fff;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: transparent;
+        }
+
+        .bubble:hover:not(.filled) {
+            background: radial-gradient(circle at 30% 30%, #9b59b6, #8e44ad);
+            border-color: #9b59b6;
+            box-shadow: 0 0 12px #9b59b6, 0 0 24px #8e44ad;
+            transform: scale(1.05);
+        }
+
+        .bubble.blue {
+            background: radial-gradient(circle at 30% 30%, #3498db, #2980b9);
+            border-color: #3498db;
+            box-shadow: 0 0 10px #3498db, 0 0 20px #2980b9;
+            animation: glow-blue 2s ease-in-out infinite alternate;
+            color: white;
+        }
+
+        .bubble.red {
+            background: radial-gradient(circle at 30% 30%, #e74c3c, #c0392b);
+            border-color: #e74c3c;
+            box-shadow: 0 0 10px #e74c3c, 0 0 20px #c0392b;
+            animation: glow-red 2s ease-in-out infinite alternate;
+            color: white;
+        }
+
+        .bubble.filled {
+            cursor: default;
+            transform: scale(1);
+        }
+
+        .bubble::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            filter: blur(5px);
+        }
+
+        .bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            right: 20%;
+            width: 15px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        @keyframes glow-blue {
+            from {
+                box-shadow: 0 0 10px #3498db, 0 0 20px #2980b9;
+            }
+            to {
+                box-shadow: 0 0 20px #3498db, 0 0 30px #2980b9;
+            }
+        }
+
+        @keyframes glow-red {
+            from {
+                box-shadow: 0 0 10px #e74c3c, 0 0 20px #c0392b;
+            }
+            to {
+                box-shadow: 0 0 20px #e74c3c, 0 0 30px #c0392b;
+            }
+        }
+
+        #status {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #3498db;
+            border: 2px solid #2980b9;
+            border-radius: 20px;
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #restart {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #restart:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            z-index: 1000;
+        }
+
+        .popup.show {
+            display: block;
+        }
+
+        .popup button {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .popup button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div id="starter-panel">
+        <h2>Game Setup</h2>
+        <div class="player-setup">
+            <div class="player1-setup">
+                <label for="player1-name">Player 1 Name:</label>
+                <input type="text" id="player1-name" value="Player 1">
+                <label for="player1-image">Player 1 Image:</label>
+                <input type="file" id="player1-image" accept="image/*">
+                <img id="player1-preview" src="https://media-mct1-1.cdn.whatsapp.net/v/t61.24694-24/506243074_770524595385685_3298761370757687045_n.jpg?ccb=11-4&oh=01_Q5Aa2gE8sXUTOXVhBF0-sqD4qgJrYrYDgIkauh_O8tvMniKIiQ&oe=68E2AE05&_nc_sid=5e03e0&_nc_cat=103" alt="Player 1 Preview">
+            </div>
+            <div class="player2-setup">
+                <label for="player2-name">Player 2 Name:</label>
+                <input type="text" id="player2-name" value="Player 2">
+                <label for="player2-image">Player 2 Image:</label>
+                <input type="file" id="player2-image" accept="image/*">
+                <img id="player2-preview" src="https://media-mct1-1.cdn.whatsapp.net/v/t61.24694-24/534424452_1463548571402074_268906767906688682_n.jpg?ccb=11-4&oh=01_Q5Aa2gF1skqv2_OZRBssFisjoQ3ypupoXGXUg3vsXdjEbxjd3g&oe=68E298C2&_nc_sid=5e03e0&_nc_cat=108" alt="Player 2 Preview">
+            </div>
+        </div>
+        <button id="start-button">Start Game</button>
+    </div>
+    <div id="game-area">
+        <div id="score-board" class="score-board">
+            <div class="player1">
+                <img class="player-img" src="https://media-mct1-1.cdn.whatsapp.net/v/t61.24694-24/506243074_770524595385685_3298761370757687045_n.jpg?ccb=11-4&oh=01_Q5Aa2gE8sXUTOXVhBF0-sqD4qgJrYrYDgIkauh_O8tvMniKIiQ&oe=68E2AE05&_nc_sid=5e03e0&_nc_cat=103" alt="Player 1">
+                <span id="player1-name-display">Player 1</span>: <span id="player1-score">0</span>
+            </div>
+            <div class="player2">
+                <img class="player-img" src="https://media-mct1-1.cdn.whatsapp.net/v/t61.24694-24/534424452_1463548571402074_268906767906688682_n.jpg?ccb=11-4&oh=01_Q5Aa2gF1skqv2_OZRBssFisjoQ3ypupoXGXUg3vsXdjEbxjd3g&oe=68E298C2&_nc_sid=5e03e0&_nc_cat=108" alt="Player 2">
+                <span id="player2-name-display">Player 2</span>: <span id="player2-score">0</span>
+            </div>
+        </div>
+        <div id="status">Player 1's Turn (Blue)</div>
+        <div class="grid-container">
+            <div class="bubble" data-index="0"></div>
+            <div class="bubble" data-index="1"></div>
+            <div class="bubble" data-index="2"></div>
+            <div class="bubble" data-index="3"></div>
+            <div class="bubble" data-index="4"></div>
+            <div class="bubble" data-index="5"></div>
+            <div class="bubble" data-index="6"></div>
+            <div class="bubble" data-index="7"></div>
+            <div class="bubble" data-index="8"></div>
+        </div>
+        <button id="restart">Restart Game</button>
+    </div>
+    <div id="popup" class="popup">
+        <div id="popup-message"></div>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+    <script>
+        const bubbles = document.querySelectorAll('.bubble');
+        const status = document.getElementById('status');
+        const restartButton = document.getElementById('restart');
+        const popup = document.getElementById('popup');
+        const popupMessage = document.getElementById('popup-message');
+        const player1Score = document.getElementById('player1-score');
+        const player2Score = document.getElementById('player2-score');
+        const starterPanel = document.getElementById('starter-panel');
+        const gameArea = document.getElementById('game-area');
+        const startButton = document.getElementById('start-button');
+        const player1NameInput = document.getElementById('player1-name');
+        const player2NameInput = document.getElementById('player2-name');
+        const player1ImageInput = document.getElementById('player1-image');
+        const player2ImageInput = document.getElementById('player2-image');
+        const player1Preview = document.getElementById('player1-preview');
+        const player2Preview = document.getElementById('player2-preview');
+        const player1NameDisplay = document.getElementById('player1-name-display');
+        const player2NameDisplay = document.getElementById('player2-name-display');
+        let currentPlayer = 1;
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let scores = { player1: 0, player2: 0 };
+        let player1Name = 'Player 1';
+        let player2Name = 'Player 2';
+
+        const winningCombinations = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6] // Diagonals
+        ];
+
+        player1ImageInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                player1Preview.src = URL.createObjectURL(e.target.files[0]);
+            }
+        });
+
+        player2ImageInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                player2Preview.src = URL.createObjectURL(e.target.files[0]);
+            }
+        });
+
+        startButton.addEventListener('click', () => {
+            player1Name = player1NameInput.value.trim() || 'Player 1';
+            player2Name = player2NameInput.value.trim() || 'Player 2';
+
+            // Update score board images and names
+            document.querySelector('.player1 .player-img').src = player1Preview.src;
+            document.querySelector('.player1 .player-img').alt = player1Name;
+            player1NameDisplay.textContent = player1Name;
+
+            document.querySelector('.player2 .player-img').src = player2Preview.src;
+            document.querySelector('.player2 .player-img').alt = player2Name;
+            player2NameDisplay.textContent = player2Name;
+
+            // Show game area and hide starter panel
+            starterPanel.style.display = 'none';
+            gameArea.style.display = 'flex';
+
+            status.textContent = `${player1Name}'s Turn (Blue)`;
+        });
+
+        function playSound() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(440, ctx.currentTime); // A4 note
+            gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 0.5);
+        }
+
+        function showPopup(message) {
+            popupMessage.textContent = message;
+            popup.classList.add('show');
+            playSound();
+        }
+
+        function updateScores(winner) {
+            if (winner === 'X') {
+                scores.player1++;
+                player1Score.textContent = scores.player1;
+            } else if (winner === 'O') {
+                scores.player2++;
+                player2Score.textContent = scores.player2;
+            }
+        }
+
+        function checkWinner() {
+            for (let combo of winningCombinations) {
+                const [a, b, c] = combo;
+                if (board[a] && board[a] === board[b] && board[b] === board[c]) {
+                    return board[a];
+                }
+            }
+            return board.includes('') ? null : 'Draw';
+        }
+
+        function handleClick(event) {
+            const index = event.target.dataset.index;
+            if (board[index] || !gameActive) return;
+
+            board[index] = currentPlayer === 1 ? 'X' : 'O';
+            event.target.textContent = board[index];
+            event.target.classList.add(currentPlayer === 1 ? 'blue' : 'red', 'filled');
+
+            const winner = checkWinner();
+            if (winner) {
+                gameActive = false;
+                if (winner === 'Draw') {
+                    status.textContent = "It's a Draw!";
+                    showPopup("It's a Draw!");
+                } else {
+                    const player = currentPlayer === 1 ? `${player1Name} (Blue)` : `${player2Name} (Red)`;
+                    status.textContent = `${player} Wins!`;
+                    showPopup(`${player} Wins!`);
+                    updateScores(winner);
+                }
+                return;
+            }
+
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            status.textContent = `${currentPlayer === 1 ? player1Name : player2Name}'s Turn (${currentPlayer === 1 ? 'Blue' : 'Red'})`;
+        }
+
+        function restartGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 1;
+            gameActive = true;
+            status.textContent = `${player1Name}'s Turn (Blue)`;
+            bubbles.forEach(bubble => {
+                bubble.textContent = '';
+                bubble.classList.remove('blue', 'red', 'filled');
+            });
+            popup.classList.remove('show');
+        }
+
+        bubbles.forEach(bubble => bubble.addEventListener('click', handleClick));
+        restartButton.addEventListener('click', restartGame);
+    </script>
+</body>
+</html>
