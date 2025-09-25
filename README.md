@@ -56,3 +56,5 @@ Chat + Script + Whatsapp = Screen Recorder Video
 [ChatPrompt](https://hubcornor-cyber.github.io/Funky/Prompt.txt)    Prompt For Chat
 Prompt + ChatGpt = ReadyMade CSV Script with Dialogue
 
+[3dotGame](https://hubcornor-cyber.github.io/Funky/3dotGame.html)    3dotGame
+
