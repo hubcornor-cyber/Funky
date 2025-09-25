@@ -6,7 +6,9 @@
 
 [Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImage.html)   Create 100+ Images With One CLick
 
-[Automation Video](https://hubcornor-cyber.github.io/Funky/AutoVideo.html)   Create 100+ Images With One CLick
+[Automation Video](https://hubcornor-cyber.github.io/Funky/AutoVideo.html)   Create Images Stories With One CLick
+
+[Automation AutoStoryImage](https://hubcornor-cyber.github.io/Funky/AutoStoryImage.html)   Create 100+ Images With One CLick
 
 [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitle.html)  Add Coloerful Animated Caption on Images With One CLick
 
