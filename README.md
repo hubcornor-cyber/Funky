@@ -56,5 +56,3 @@ Chat + Script + Whatsapp = Screen Recorder Video
 [ChatPrompt](https://hubcornor-cyber.github.io/Funky/Prompt.txt)    Prompt For Chat
 Prompt + ChatGpt = ReadyMade CSV Script with Dialogue
 
-[Vidmaker.html](https://hubcornor-cyber.github.io/Funky/Vidmaker.html)     Pic To VIdeo
-Images + Sound = Video   
