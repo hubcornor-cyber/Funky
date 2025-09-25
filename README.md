@@ -58,3 +58,4 @@ Prompt + ChatGpt = ReadyMade CSV Script with Dialogue
 
 [3dotGame](https://hubcornor-cyber.github.io/Funky/3dotGame.html)    3dotGame
 
+[38SpotGame](https://hubcornor-cyber.github.io/Funky/38SpotGame.html)    Spot38Game
