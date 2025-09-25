@@ -3,43 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Handcrafted Glossy Bubbles</title>
+    <title>Sid Creative | Word Spot Game</title>
     <style>
         body {
             background-color: #8f2257;
             background-image: url("https://www.transparenttextures.com/patterns/black-paper.png");
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 98vh;
+            min-height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
             position: relative;
+            transition: background-image 0.5s ease;
+        }
+
+        .control-panel {
+            position: absolute;
+            top: 60px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-panel input, .control-panel select {
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .control-panel button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .control-panel button:hover {
+            background-color: #45a049;
         }
 
         .header {
             position: absolute;
-            top: 50px;
+            top: 20px;
             color: #fff;
             font-size: 24px;
             font-weight: bold;
             text-align: center;
-          
             width: 100%;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff00de, 0 0 20px #ff00de; }
+            to { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff00de, 0 0 40px #ff00de; }
+        }
+
+        .timer {
+            position: absolute;
+            top: 60px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            z-index: 5;
+            display: none;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            width: 100%;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(5, 60px);
-            grid-template-rows: repeat(8, 60px);
+            grid-template-columns: repeat(5, 70px);
+            grid-template-rows: repeat(6, 70px);
             gap: 6px;
             border-radius: 10%;
             padding: 15px;
             background-color: rgba(250, 0, 0, 0.1);
-            box-shadow: 2px 2px 15px rgba(255, 120, 220, 0.41);
-            /* Reverse the grid order */
-            direction: rtl; /* with reomove and Temporary hack to reverse column flow */
+            box-shadow: 0 0 15px rgba(255, 120, 220, 0.41), 0 0 5px #ff00de, 0 0 10px #ff00de;
+            z-index: 1;
         }
 
         .bubble {
@@ -54,17 +113,35 @@
                 inset 0 2px 3px rgba(255, 255, 255, 0.5),
                 inset -4px -4px 8px rgba(0, 0, 0, 0.1),
                 7px 8px 15px rgba(25, 10, 22, 1);
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 12px;
             color: #fff;
             font-weight: bold;
+            cursor: pointer;
+            animation: bubbleGlow 1.5s ease-in-out infinite alternate;
         }
 
-        .bubble:hover {
+        @keyframes bubbleGlow {
+            from { box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 2px 3px rgba(255, 255, 255, 0.5), inset -4px -4px 8px rgba(0, 0, 0, 0.1), 7px 8px 15px rgba(25, 10, 22, 1); }
+            to { box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 2px 3px rgba(255, 255, 255, 0.5), inset -4px -4px 8px rgba(0, 0, 0, 0.1), 7px 8px 15px rgba(25, 10, 22, 1), 0 0 5px #ff00de, 0 0 10px #ff00de; }
+        }
+
+        .bubble:hover, .bubble.auto-hover {
             transform: scale(1.03) rotate(2deg);
+        }
+
+        .bubble.highlighted {
+            border: 3px solid #ffd700;
+            transform: scale(1.1);
+            animation: highlightGlow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes highlightGlow {
+            from { box-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700; }
+            to { box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700, 0 0 30px #ffd700; }
         }
 
         .bubble.green {
@@ -105,57 +182,136 @@
         }
 
         /* Slight variations for realism */
-        .top-left { width: 53px; height: 53px; }
-        .top-center { width: 48px; height: 48px; }
-        .mid-left { width: 46px; height: 46px; opacity: 0.9; }
-        .bot-right { width: 52px; height: 52px; }
-
-        /* Add numbers */
-        .number-83 { content: "83"; }
-        .number-38 { content: "38"; }
+        .var1 { width: 53px; height: 53px; }
+        .var2 { width: 48px; height: 48px; }
+        .var3 { width: 46px; height: 46px; opacity: 0.9; }
+        .var4 { width: 52px; height: 52px; }
     </style>
 </head>
 <body>
-    <div class="header">Challenge: <br>Spot the Elusive 38 Amidst<br> the Sea of 83!</div>
-    <div class="grid">
-        <div ></div> <div ></div> <div ></div> <div ></div> <div ></div> <div ></div>
-      <div ></div> <div ></div> <div ></div> <div ></div>
-      
-        <div class="bubble green top-left number-83">83</div>
-        <div class="bubble red top-center number-83">83</div>
-        <div class="bubble green number-83">83</div>
-        <div class="bubble blue number-83">83</div>
-        <div class="bubble yellow number-83">83</div>
-
-        <div class="bubble red number-83">83</div>
-        <div class="bubble purple number-83">83</div>
-        <div class="bubble green number-83">83</div>
-        <div class="bubble clear number-83">83</div>
-        <div class="bubble blue number-83">83</div>
-
-        <div class="bubble yellow number-83">83</div>
-        <div class="bubble red number-83">83</div>
-        <div class="bubble purple number-83">83</div>
-        <div class="bubble green number-83">83</div>
-        <div class="bubble clear number-83">83</div>
-
-        <div class="bubble blue number-83">83</div>
-        <div class="bubble yellow number-38">38</div> <!-- Moved 38 to bottom section -->
-        <div class="bubble red number-83">83</div>
-        <div class="bubble purple number-83">83</div>
-        <div class="bubble green number-83">83</div>
-
-        <div class="bubble clear number-83">83</div>
-        <div class="bubble blue number-83">83</div>
-        <div class="bubble yellow number-83">83</div>
-        <div class="bubble red number-83">83</div>
-        <div class="bubble purple number-83">83</div>
-
-        <div class="bubble green number-83">83</div>
-        <div class="bubble clear number-83">83</div>
-        <div class="bubble blue number-83">83</div>
-        <div class="bubble yellow number-83">83</div>
-        <div class="bubble red number-83">83</div>
+    <div class="header" onclick="showControlPanel()">Challenge: Spot the Secret Word! ✨🎯</div>
+    <div class="control-panel">
+        <label for="other-word">Other Word:</label>
+        <input id="other-word" type="text" value="83">
+        <label for="secret-word">Secret Word:</label>
+        <input id="secret-word" type="text" value="38">
+        <label for="bg-url">Background Image URL:</label>
+        <input id="bg-url" type="text" value="https://www.transparenttextures.com/patterns/black-paper.png">
+        <label for="bg-color">Background Color:</label>
+        <select id="bg-color">
+            <option value="#8f2257">Dark Pink</option>
+            <option value="#000000">Black</option>
+            <option value="#ffffff">White</option>
+            <option value="#00ff00">Green</option>
+        </select>
+        <button onclick="startGame()">Start 🌟</button>
     </div>
+    <div class="timer">Time left: 20s</div>
+    <div class="footer">Please enjoy the game! 😊👍</div>
+    <div class="grid">
+        <div class="bubble green var1">83</div>
+        <div class="bubble red var2">83</div>
+        <div class="bubble green">83</div>
+        <div class="bubble blue">83</div>
+        <div class="bubble yellow">83</div>
+
+        <div class="bubble red var3">83</div>
+        <div class="bubble clear">83</div>
+        <div class="bubble clear">83</div>
+        <div class="bubble purple">83</div>
+        <div class="bubble green">83</div>
+
+        <div class="bubble green var4">83</div>
+        <div class="bubble clear">83</div>
+        <div class="bubble red">83</div>
+        <div class="bubble blue">83</div>
+        <div class="bubble yellow">83</div>
+
+        <div class="bubble red">83</div>
+        <div class="bubble purple">83</div>
+        <div class="bubble green">83</div>
+        <div class="bubble clear">83</div>
+        <div class="bubble blue">83</div>
+
+        <div class="bubble yellow">83</div>
+        <div class="bubble red">83</div>
+        <div class="bubble purple">83</div>
+        <div class="bubble green">83</div>
+        <div class="bubble clear">83</div>
+
+        <div class="bubble blue">83</div>
+        <div class="bubble yellow">83</div>
+        <div class="bubble red">83</div>
+        <div class="bubble purple">83</div>
+        <div class="bubble green">83</div>
+    </div>
+
+    <script>
+        let timerInterval;
+        let autoHoverInterval;
+        let countdown = 20;
+        let timerStarted = false;
+        let secretBubble;
+
+        function startGame() {
+            const otherWord = document.getElementById('other-word').value;
+            const secretWord = document.getElementById('secret-word').value;
+            const bgUrl = document.getElementById('bg-url').value;
+            const bgColor = document.getElementById('bg-color').value;
+
+            document.body.style.backgroundImage = `url("${bgUrl}")`;
+            document.body.style.backgroundColor = bgColor;
+            const bubbles = document.querySelectorAll('.bubble');
+            bubbles.forEach(bubble => bubble.textContent = otherWord);
+
+            const randomIndex = Math.floor(Math.random() * bubbles.length);
+            secretBubble = bubbles[randomIndex];
+            secretBubble.textContent = secretWord;
+
+            document.querySelector('.control-panel').style.display = 'none';
+            document.querySelector('.timer').style.display = 'block';
+            document.querySelector('.timer').textContent = 'Click anywhere to start timer 🎮';
+
+            document.addEventListener('click', startTimer, { once: true });
+            document.querySelector('.header').textContent = `Challenge: Spot the Elusive ${secretWord}! ✨🎯`;
+        }
+
+        function showControlPanel() {
+            document.querySelector('.control-panel').style.display = 'flex';
+        }
+
+        function startTimer() {
+            if (timerStarted) return;
+            timerStarted = true;
+            document.querySelector('.timer').textContent = `Time left: ${countdown}s ⏰`;
+
+            timerInterval = setInterval(() => {
+                countdown--;
+                document.querySelector('.timer').textContent = `Time left: ${countdown}s ⏰`;
+                if (countdown <= 0) {
+                    clearInterval(timerInterval);
+                    highlightSecret();
+                }
+            }, 1000);
+  
+            startAutoHover(); 
+        }
+
+        function startAutoHover() {
+            const bubbles = document.querySelectorAll('.bubble');
+            let index = 0;
+            autoHoverInterval = setInterval(() => {
+                bubbles.forEach(b => b.classList.remove('auto-hover'));
+                bubbles[index].classList.add('auto-hover');
+                index = (index + 1) % bubbles.length;
+            }, 750);
+        }
+
+        function highlightSecret() {
+            clearInterval(autoHoverInterval);
+            secretBubble.classList.add('highlighted');
+            document.querySelector('.timer').textContent = 'Time up! Secret highlighted! 🏆';
+        }
+    </script>
 </body>
 </html>
