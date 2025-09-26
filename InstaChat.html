@@ -53,7 +53,7 @@
   overflow-y: auto;
   background: #f0f0f0;
 }
-.chat::-webkit-scrollbar { width: 6px; }
+.chat::-webkit-scrollbar { width: 0; }
 .chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius:3px; }
 
 .message {
@@ -135,7 +135,6 @@
     <button id="clearWindow">Clear Chat</button>
   </div>
 </div>
-
 <script>
 // Elements
 const chat = document.getElementById('chat');
@@ -160,14 +159,16 @@ delaySlider.addEventListener('input', () => {
 
 // Toggle input button icon
 input.addEventListener('input', () => {
-  sendBtn.innerHTML = input.value.trim() ? "<i class='fas fa-paper-plane'></i>" : "<i class='fas fa-microphone'></i>";
+  sendBtn.innerHTML = input.value.trim()
+    ? "<i class='fas fa-paper-plane'></i>"
+    : "<i class='fas fa-microphone'></i>";
 });
 
-// Add message
+// Add message function
 function addMessage(person, text, time){
   const msg = document.createElement('div');
   msg.className = 'message ' + (person.toLowerCase() === 'you' ? 'outgoing' : 'incoming');
-  msg.innerHTML = `${text}<span class="time">${time}${person.toLowerCase() === 'you'?'<span class="ticks">✔✔</span>':''}</span>`;
+  msg.innerHTML = `${text}<span class="time">${time}${person.toLowerCase() === 'you' ? '<span class="ticks">✔✔</span>' : ''}</span>`;
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
 }
@@ -190,32 +191,39 @@ function parseCSV(text){
   let field = '';
   for(let char of text){
     if(char === '"') insideQuotes = !insideQuotes;
-    else if(char === ',' && !insideQuotes){ current.push(field.trim()); field=''; }
-    else if(char === '\n' && !insideQuotes){ current.push(field.trim()); rows.push(current); current=[]; field=''; }
+    else if(char === ',' && !insideQuotes){
+      current.push(field.trim());
+      field = '';
+    }
+    else if(char === '\n' && !insideQuotes){
+      current.push(field.trim());
+      rows.push(current);
+      current = [];
+      field = '';
+    }
     else field += char;
   }
-  if(field.length>0) current.push(field.trim());
-  if(current.length>0) rows.push(current);
+  if(field.length > 0) current.push(field.trim());
+  if(current.length > 0) rows.push(current);
   return rows;
 }
 
-  // Auto-type function for outgoing messages
+// Outgoing typing simulation
 function autoType(text, callback){
   input.value = '';
   let index = 0;
   const typingInterval = setInterval(() => {
     input.value += text[index];
     index++;
-    // Keep send button icon in sync
     sendBtn.innerHTML = "<i class='fas fa-paper-plane'></i>";
     if(index >= text.length){
       clearInterval(typingInterval);
       callback();
     }
-  }, 100); // typing speed in ms per character
+  }, 33); // 🔥 3x faster typing speed (was 100ms)
 }
 
-// Play script function using CSV time for both outgoing and incoming
+// Play script
 function playScript(rows, index = 0){
   if(index >= rows.length) return;
   const row = rows[index];
@@ -226,7 +234,7 @@ function playScript(rows, index = 0){
   if(person.toLowerCase() === 'you'){
     chatTitle.textContent = 'You';
     autoType(message, () => {
-      addMessage('You', message, csvTime); // use CSV time
+      addMessage('You', message, csvTime);
       input.value = '';
       sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
       setTimeout(() => playScript(rows, index + 1), delay);
@@ -234,16 +242,15 @@ function playScript(rows, index = 0){
   } else {
     chatTitle.textContent = person;
     const typing = showTypingIndicator();
-    const typingTime = Math.max(1000, message.length * 150);
+    const typingTime = Math.max(333, message.length * 50); // 🔥 3x faster typing indicator
     setTimeout(() => {
       typing.remove();
-      addMessage(person, message, csvTime); // use CSV time
+      addMessage(person, message, csvTime);
       setTimeout(() => playScript(rows, index + 1), delay);
     }, typingTime);
   }
 }
 
-  
 // Admin toggle
 backBtn.addEventListener('click', ()=>{
   const visible = adminPage.style.display === 'flex';
@@ -256,14 +263,17 @@ backBtn.addEventListener('click', ()=>{
 startScript.addEventListener('click', ()=>{
   chat.innerHTML = '';
   const rows = parseCSV(scriptInput.value.trim()).slice(1);
+  delay = 667; // 🔥 3x faster delay between messages
+  delaySlider.value = delay;
+  delayValue.textContent = delay;
   adminPage.style.display = 'none';
   chat.style.display = 'flex';
   document.querySelector('.input-bar').style.display = 'flex';
-  playScript(rows,0);
+  playScript(rows, 0);
 });
 
 // Clear chat
-clearWindow.addEventListener('click', ()=> chat.innerHTML='');
+clearWindow.addEventListener('click', () => chat.innerHTML = '');
 
 // Send button
 sendBtn.addEventListener('click', ()=>{
@@ -271,15 +281,18 @@ sendBtn.addEventListener('click', ()=>{
   if(!text) return;
   const now = new Date();
   const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  addMessage('You',text,time);
+  addMessage('You', text, time);
   input.value = '';
   sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
 });
 
-// Keep icon sync
+// Keep icon in sync
 setInterval(()=>{
-  sendBtn.innerHTML = input.value.trim() ? "<i class='fas fa-paper-plane'></i>" : "<i class='fas fa-microphone'></i>";
-},300);
+  sendBtn.innerHTML = input.value.trim()
+    ? "<i class='fas fa-paper-plane'></i>"
+    : "<i class='fas fa-microphone'></i>";
+}, 300);
 </script>
+
 </body>
 </html> 
