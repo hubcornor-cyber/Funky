@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,35 +17,60 @@ body {
   height: 100vh;
 }
 
+#bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+#bg-container > div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
 .container {
   width: 100%;
   max-width: 600px;
-  height: 90vh;
+  height: 98vh;
   display: flex;
   flex-direction: column;
   border-radius: 12px;
   overflow: hidden;
   background: #ffffff;
   box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  z-index: 1;
 }
 
 /* Header */
 .header {
-  background: #343541;
+  background: linear-gradient(135deg, #343541, #4a4b57);
   color: #fff;
   padding: 14px 20px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 600;
   position: relative;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
 }
 
 /* Optional menu icon */
 .header .menu {
-  position: absolute;
-  right: 20px;
   font-size: 20px;
   cursor: pointer;
   color: #ccc;
@@ -75,10 +99,17 @@ body {
   line-height: 1.5;
   word-wrap: break-word;
   white-space: pre-wrap;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.message.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 .outgoing { align-self: flex-end; background: linear-gradient(135deg,#10a37f,#2bd9a9); color:#fff; border-bottom-right-radius:4px; }
 .incoming { align-self: flex-start; background: linear-gradient(135deg,#e2e8f0,#cfd8dc); color:#000; border-bottom-left-radius:4px; }
-
+  img{ width:40px; height:40px; padding:1px;border:solid; border-radius:50%;}
 .time { display:block; font-size:11px; text-align:right; margin-top:4px; opacity:0.6; }
 
 /* Typing indicator */
@@ -99,17 +130,26 @@ body {
   padding:16px;
   border-top:1px solid #ddd;
   background:#f4f4f4;
+  transition: opacity 0.5s ease;
+}
+#adminPanel.hiding {
+  opacity: 0;
 }
 #adminPanel textarea { width:100%; height:120px; margin-bottom:10px; padding:10px; border-radius:8px; border:1px solid #ccc; resize:none; }
+#adminPanel input { width:100%; margin-bottom:10px; padding:10px; border-radius:8px; border:1px solid #ccc; }
 #adminPanel button { margin:5px; padding:6px 12px; border:none; border-radius:6px; background:#10a37f; color:white; cursor:pointer; }
 #adminPanel label { font-size:14px; margin-right:8px; }
 #adminPanel input[type=range] { vertical-align:middle; }
 </style>
 </head>
 <body>
+<div id="bg-container"></div>
 <div class="container">
   <div class="header">
-    Shan Awan
+    <div class="header-left">
+      <img id="header-dp" src="https://pbs.twimg.com/profile_images/1647464862/23312_127702803923418_7711_n_400x400.jpg">
+      <span id="header-title">ㅤSub 4 Sub 💎</span>
+    </div>
     <div class="menu" id="adminToggle"><i class="fas fa-cog"></i></div>
   </div>
   <div class="chat" id="chat"></div>
@@ -117,11 +157,14 @@ body {
     <textarea id="messageInput" placeholder="Type a message..."></textarea>
     <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
   </div>
-
+  
   <!-- Admin Panel -->
   <div id="adminPanel">
     <h3>Admin Panel</h3>
-    <textarea id="scriptInput" placeholder="Paste CSV script: Person,Message,Time"></textarea>
+    <textarea id="scriptInput" placeholder="Paste CSV script: Person,Message,Time,BgURL"></textarea>
+    <input id="headerTitleInput"  value="ㅤSub 4 Sub 💎" placeholder="Header Title">
+    <input id="headerDpInput"  value="https://pbs.twimg.com/profile_images/1647464862/23312_127702803923418_7711_n_400x400.jpg" placeholder="DP Image URL">
+    <button id="updateHeader">Update Header</button>
     <div>
       <label>Message Delay: <span id="delayValue">2000</span> ms</label>
       <input type="range" id="delaySlider" min="500" max="5000" step="200" value="2000">
@@ -129,6 +172,7 @@ body {
     <div>
       <button id="startScript">Start Script</button>
       <button id="clearChat">Clear Chat</button>
+      <button id="copyCsv">Copy CSV</button>
     </div>
   </div>
 </div>
@@ -143,21 +187,59 @@ const adminToggle = document.getElementById('adminToggle');
 const scriptInput = document.getElementById('scriptInput');
 const startScript = document.getElementById('startScript');
 const clearChat = document.getElementById('clearChat');
+const copyCsv = document.getElementById('copyCsv');
 const delaySlider = document.getElementById('delaySlider');
 const delayValue = document.getElementById('delayValue');
+const headerTitle = document.getElementById('header-title');
+const headerDp = document.getElementById('header-dp');
+const headerTitleInput = document.getElementById('headerTitleInput');
+const headerDpInput = document.getElementById('headerDpInput');
+const updateHeader = document.getElementById('updateHeader');
 
 let delay = parseInt(delaySlider.value);
-
+ 
 // Scroll chat
 function scrollChat(){ chat.scrollTop = chat.scrollHeight; }
 
-// Add message
+// Add message 
 function addMessage(person,text,time){
   const msg=document.createElement('div');
-  msg.className='message '+(person.toLowerCase()==='you'?'outgoing':'incoming');
+  msg.className='message '+(person.toLowerCase()==='you'?'outgoing':'incoming'); 
   msg.innerHTML=`${text}<span class="time">${time}</span>`;
   chat.appendChild(msg);
+  setTimeout(() => { msg.classList.add('visible'); }, 10);
   scrollChat();
+  if (person.toLowerCase() !== 'you') {
+    playSound();
+  }
+}
+
+// Play sound for incoming message
+function playSound() {
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioCtx.createOscillator();
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+  oscillator.connect(audioCtx.destination);
+  oscillator.start();
+  setTimeout(() => { oscillator.stop(); }, 200);
+}
+
+// Change background with smooth transition
+function changeBackground(url) {
+  if (!url) return;
+  const bgContainer = document.getElementById('bg-container');
+  const newBg = document.createElement('div');
+  newBg.style.backgroundImage = `url(${url})`;
+  newBg.style.opacity = '0';
+  newBg.style.transition = 'opacity 1s ease-in-out';
+  bgContainer.appendChild(newBg);
+  setTimeout(() => { newBg.style.opacity = '1'; }, 10);
+  setTimeout(() => {
+    while (bgContainer.children.length > 1) {
+      bgContainer.removeChild(bgContainer.firstChild);
+    }
+  }, 1000);
 }
 
 // Typing indicator
@@ -196,9 +278,11 @@ function typeOutgoing(text,callback){
 function playScript(rows,index=0){
   if(index>=rows.length) return;
   const row = rows[index];
-  const person=row[0].replace(/^\"|\"$/g,'');
-  const message=row[1].replace(/^\"|\"$/g,'');
-  const time=row[2].replace(/^\"|\"$/g,'');
+  const person=row[0] ? row[0].replace(/^\"|\"$/g,'') : '';
+  const message=row[1] ? row[1].replace(/^\"|\"$/g,'') : '';
+  const time=row[2] ? row[2].replace(/^\"|\"$/g,'') : '';
+  const bgUrl=row[3] ? row[3].replace(/^\"|\"$/g,'') : '';
+  if (bgUrl) changeBackground(bgUrl);
   if(person.toLowerCase()==='you'){
     typeOutgoing(message,()=>{
       addMessage(person,message,time);
@@ -239,10 +323,33 @@ startScript.addEventListener('click',()=>{
   chat.innerHTML='';
   const rows=parseCSV(scriptInput.value.trim()).slice(1);
   playScript(rows,0);
+  adminPanel.classList.add('hiding');
+  setTimeout(() => {
+    adminPanel.style.display = 'none';
+    adminPanel.classList.remove('hiding');
+  }, 500);
 });
 
 // Clear chat
 clearChat.addEventListener('click',()=> chat.innerHTML='');
+
+// Copy CSV
+copyCsv.addEventListener('click', () => {
+  navigator.clipboard.writeText(scriptInput.value);
+});
+
+// Update header
+updateHeader.addEventListener('click', () => {
+  const newTitle = headerTitleInput.value.trim();
+  const newDp = headerDpInput.value.trim();
+  if (newTitle) headerTitle.textContent = newTitle;
+  if (newDp) {
+    headerDp.src = newDp;
+    headerDp.style.display = 'block';
+  } else {
+    headerDp.style.display = 'none';
+  }
+});
 </script>
 </body>
 </html>
