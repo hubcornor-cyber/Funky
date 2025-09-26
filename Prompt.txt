@@ -3,7 +3,7 @@ Create a realistic chat conversation about [TOPIC] between two people in CSV for
 Rules:
 1. Maximum 20 messages (roughly 10 outgoing, 10 incoming).  
 2. Messages should be short, casual texting style, natural, sometimes with emojis.  
-3. Use **bold**, *italic*, or highlight for emotions where appropriate.  
+3. Use <bold>*bold**, <italic>italic*, or <mark>highlight for emotions where appropriate.   
 4. Format must be CSV like this:
 "Person","Message","Time"
 "You","...","HH:MM AM/PM"
