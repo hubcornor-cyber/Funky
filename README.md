@@ -31,6 +31,7 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | 💬 **UI Chat Perfect**       | Enhanced chat UI + images + user DP                | [UIChat.html](https://hubcornor-cyber.github.io/Funky/UIChat.html) |
 | 💬 **Messenger Chat UI**     | Messenger style chat + script                       | [MessengerChat.html](https://hubcornor-cyber.github.io/Funky/MessengerChat.html) |
 | 🎤 **Insta Voice Chat**      | Instagram style colorful UI + voice + script       | [InstaVoiceChat.html](https://hubcornor-cyber.github.io/Funky/InstaVoiceChat.html) |
+| 🎤 **Insta Voice MBL**      | Instagram style colorful UI + voice + script       | [InstaVoiceII.html](https://hubcornor-cyber.github.io/Funky/Instavoicembl.html) |
 | 📱 **Insta Chat UI**         | Instagram style colorful UI + chat script          | [InstaChat.html](https://hubcornor-cyber.github.io/Funky/InstaChat.html) |
 | 📞 **Whatsapp Chat UI**      | Whatsapp style chat UI + script                      | [WhatsappChat.html](https://hubcornor-cyber.github.io/Funky/WhatsappChat.html) |
 | 🎮 **3dot Game**             | Simple dot game                                     | [3dotGame.html](https://hubcornor-cyber.github.io/Funky/3dotGame.html) |
