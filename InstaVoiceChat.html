@@ -63,7 +63,7 @@
     height: 36px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid white;
+    border: 1px dashed white;
   }
 
   #friendName {
@@ -298,7 +298,7 @@
   @media (max-width: 480px) {
     .container {
       max-width: 100%;
-      border-radius: 0;
+      border-radius: 15px;
     }
   }
 </style>
@@ -340,9 +340,10 @@
         <select id="outgoingVoiceSelect" aria-label="Select outgoing TTS voice"></select>
       </div>
       <div>
-        <label for="delaySlider">Message Delay: <span id="delayValue">4000</span> ms</label>
+        <label for="delaySlider">Message Delay: <span id="delayValue">2000</span> ms</label>
         <input type="range" id="delaySlider" min="300" max="6000" step="250" value="2000" aria-label="Message delay slider" />
       </div>
+      <button id="refreshVoices" aria-label="Refresh voices">Refresh Voices</button>
       <button id="startScript" aria-label="Start script">Start Script</button>
       <button id="pauseScript" disabled aria-label="Pause script">Pause Script</button>
       <button id="clearWindow" aria-label="Clear chat">Clear Chat</button>
@@ -366,6 +367,7 @@
     const clearWindow = document.getElementById("clearWindow");
     const delaySlider = document.getElementById("delaySlider");
     const delayValue = document.getElementById("delayValue");
+    const refreshVoices = document.getElementById("refreshVoices");
 
     let delay = parseInt(delaySlider.value);
     let scriptTimeouts = [];
@@ -383,28 +385,54 @@
       delayValue.textContent = delay;
     });
 
-    // Populate TTS voices for both dropdowns
+    // Populate TTS voices for both dropdowns with retry logic
     function populateVoices() {
       voices = window.speechSynthesis.getVoices();
       incomingVoiceSelect.innerHTML = '<option value="">Default Voice</option>';
       outgoingVoiceSelect.innerHTML = '<option value="">Default Voice</option>';
-      voices.forEach((voice, index) => {
-        const option1 = document.createElement("option");
-        option1.value = index;
-        option1.textContent = `${voice.name} (${voice.lang})`;
-        incomingVoiceSelect.appendChild(option1);
+      if (voices.length === 0) {
+        incomingVoiceSelect.innerHTML = '<option value="">No voices available - check Android TTS settings</option>';
+        outgoingVoiceSelect.innerHTML = '<option value="">No voices available - check Android TTS settings</option>';
+      } else {
+        voices.forEach((voice, index) => {
+          const option1 = document.createElement("option");
+          option1.value = index;
+          option1.textContent = `${voice.name} (${voice.lang})`;
+          incomingVoiceSelect.appendChild(option1);
 
-        const option2 = document.createElement("option");
-        option2.value = index;
-        option2.textContent = `${voice.name} (${voice.lang})`;
-        outgoingVoiceSelect.appendChild(option2);
-      });
+          const option2 = document.createElement("option");
+          option2.value = index;
+          option2.textContent = `${voice.name} (${voice.lang})`;
+          outgoingVoiceSelect.appendChild(option2);
+        });
+      }
+    }
+
+    // Retry voice loading for Android WebView
+    function retryPopulateVoices(maxRetries = 5, interval = 500) {
+      let attempts = 0;
+      const tryLoad = () => {
+        window.speechSynthesis.getVoices();
+        populateVoices();
+        if (voices.length === 0 && attempts < maxRetries) {
+          attempts++;
+          setTimeout(tryLoad, interval);
+        }
+      };
+      tryLoad();
     }
 
     if ("speechSynthesis" in window) {
-      populateVoices();
-      window.speechSynthesis.onvoiceschanged = populateVoices;
+      retryPopulateVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        retryPopulateVoices();
+      };
     }
+
+    // Refresh voices on button click
+    refreshVoices.addEventListener("click", () => {
+      retryPopulateVoices();
+    });
 
     // Play demo phrase on voice selection
     function playDemoVoice(voice) {
@@ -657,6 +685,7 @@
     // Start button click
     startScript.addEventListener("click", () => {
       if (runningScript) return;
+      retryPopulateVoices(); // Retry voices before starting script
       currentScriptPromise = runScript(scriptInput.value);
     });
 
