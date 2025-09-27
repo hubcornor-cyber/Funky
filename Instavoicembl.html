@@ -339,10 +339,10 @@
     </div>
     <div id="adminPage">
       <h3>Admin Panel</h3>
-      <textarea id="scriptInput" aria-label="CSV script input">You,Hello! How are you?,12:00,https://example.com/image1.jpg
-Friend,मैं ठीक हूँ, धन्यवाद!,12:01,
-You,Glad to hear that!,12:02,
-Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
+      <textarea id="scriptInput" aria-label="CSV script input">"You","Hello! How are you?","12:00","https://example.com/image1.jpg"
+"Friend","<img src='https://www.shutterstock.com/image-photo/trucks-indian-military-convoy-park-600w-1153263844.jpg' ><br>They’ve started blocking convoys now. Locals aren’t afraid anymore.","08:01 AM"
+"You","Glad to hear that!","12:02",
+"Friend","یہ دیکھیں!","12:03","https://example.com/image2.jpg"</textarea>
       <div>
         <label for="incomingVoiceSelect">Incoming Voice: </label>
         <select id="incomingVoiceSelect" aria-label="Select incoming TTS voice"></select>
@@ -455,7 +455,14 @@ Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
       slider.addEventListener("touchmove", (e) => e.stopPropagation());
     });
 
-    // Cache voices by preloading silent utterances
+    // Strip HTML tags for TTS
+    function stripHtmlTags(text) {
+      const div = document.createElement("div");
+      div.innerHTML = text;
+      return div.textContent || div.innerText || "";
+    }
+
+    // Cache voices
     async function cacheVoices(maxRetries = 5, interval = 500) {
       let attempts = 0;
       voicesCached = false;
@@ -481,14 +488,13 @@ Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
             return;
           }
 
-          // Preload voices with silent utterances
           for (const voice of voices) {
             const utterance = new SpeechSynthesisUtterance("");
-            utterance.volume = 0; // Silent
+            utterance.volume = 0;
             utterance.voice = voice;
             utterance.lang = voice.lang;
             window.speechSynthesis.speak(utterance);
-            await new Promise(r => setTimeout(r, 50)); // Small delay to ensure processing
+            await new Promise(r => setTimeout(r, 50));
           }
 
           voicesCached = true;
@@ -518,7 +524,6 @@ Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
         outgoingVoiceSelect.appendChild(option2);
       });
 
-      // Auto-select Hindi for incoming and Urdu for outgoing if available
       const hindiVoice = voices.find(v => v.lang.startsWith("hi"));
       const urduVoice = voices.find(v => v.lang.startsWith("ur"));
       if (hindiVoice) {
@@ -531,7 +536,7 @@ Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
       }
     }
 
-    // Initialize TTS and cache voices
+    // Initialize TTS
     if ("speechSynthesis" in window) {
       console.log("SpeechSynthesis API supported");
       cacheVoices();
@@ -609,17 +614,23 @@ Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
     function speakText(text, isOutgoing, onEnd) {
       if ("speechSynthesis" in window && voicesCached) {
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
+        const cleanText = stripHtmlTags(text); // Remove HTML tags for TTS
+        if (!cleanText.trim()) {
+          console.log("No text to speak after stripping HTML");
+          setTimeout(onEnd, 100);
+          return;
+        }
+        const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.rate = isOutgoing ? outgoingRate : incomingRate;
         utterance.pitch = isOutgoing ? outgoingPitch : incomingPitch;
         const selectedVoice = isOutgoing ? outgoingVoice : incomingVoice;
         if (selectedVoice) {
           utterance.voice = selectedVoice;
           utterance.lang = selectedVoice.lang;
-          console.log(`Speaking with voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+          console.log(`Speaking with voice: ${selectedVoice.name} (${selectedVoice.lang}), text: ${cleanText}`);
         } else {
           utterance.lang = isOutgoing ? 'ur-PK' : 'hi-IN';
-          console.log("Speaking with default voice");
+          console.log(`Speaking with default voice, text: ${cleanText}`);
         }
         utterance.onend = () => {
           console.log("Speech ended");
@@ -630,7 +641,7 @@ Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
           onEnd();
         };
         window.speechSynthesis.speak(utterance);
-        setTimeout(onEnd, Math.max(estimateTTSDuration(text), 1000));
+        setTimeout(onEnd, Math.max(estimateTTSDuration(cleanText), 1000));
       } else {
         console.warn("TTS not supported or voices not cached.");
         setTimeout(onEnd, estimateTTSDuration(text));
@@ -871,4 +882,4 @@ Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
     });
   </script>
 </body>
-</html>
+</html>      
