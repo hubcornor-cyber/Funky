@@ -1,63 +1,75 @@
-# sheets
+# 🚀 Funky Hubcorner Collection
 
-[Sheets](https://hubcornor-cyber.github.io/Funky/)   All View
+Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesome web tools, automations, chat UIs, and fun scripts — all accessible via handy links below. 🎉✨
 
-[Automation](https://hubcornor-cyber.github.io/Funky/Automation.html)   Create 100+ Images With One CLick
+---
 
-[Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImage.html)   Create 100+ Images With One CLick
+## 📂 Main Links & Tools
 
-[Automation Video](https://hubcornor-cyber.github.io/Funky/AutoVideo.html)   Create Images Stories With One CLick
+| Name                        | Description                                      | Link                                                     |
+|-----------------------------|-------------------------------------------------|----------------------------------------------------------|
+| 📝 **Sheets**                | View all available tools & scripts              | [Sheets](https://hubcornor-cyber.github.io/Funky/)       |
+| 🤖 **Automation**            | Create 100+ images with one click                | [Automation](https://hubcornor-cyber.github.io/Funky/Automation.html) |
+| 🖼️ **Automation Image**      | Mass generate images easily                       | [Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImage.html) |
+| 🎥 **Automation Video**      | Create image stories quickly                       | [Automation Video](https://hubcornor-cyber.github.io/Funky/AutoVideo.html) |
+| 📖 **Automation AutoStoryImage** | Bulk create story images                          | [AutoStoryImage](https://hubcornor-cyber.github.io/Funky/AutoStoryImage.html) |
+| 🏷️ **AutoSubtitle**          | Add colorful animated captions on images         | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitle.html) |
+| 📸 **AutoFetchImages**       | Fetch 100+ images with one click                   | [AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html) |
+| 🔢 **NumberInfo**            | Number info tool (currently not working)          | [NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html) |
+| 📲 **Whatsapp OTP**          | WhatsApp OTP related tool                          | [Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html) |
+| 📧 **Gmail Signin**          | Gmail login simulation                             | [Google.html](https://hubcornor-cyber.github.io/Funky/Google.html) |
+| 💬 **Messenger Signin**      | Messenger login simulation                         | [Messenger.html](https://hubcornor-cyber.github.io/Funky/Messenger.html) |
+| 📘 **Facebook Signin**       | Facebook login simulation                          | [Facebook.html](https://hubcornor-cyber.github.io/Funky/Facebook.html) |
+| 📷 **Camera Hijack**         | Camera access tool (for demo/testing)              | [Camera.html](https://hubcornor-cyber.github.io/Funky/Camera.html) |
+| 🎉 **HappyDay (Hindi)**      | Wishing script (Hindi) #0                          | [HappyDay.html](https://hubcornor-cyber.github.io/Funky/HappyDay.html) |
+| 🎊 **HappyMeet (Hindi)**     | Wishing script (Hindi) I                           | [HappyMeet.html](https://hubcornor-cyber.github.io/Funky/HappyMeet.html) |
+| 🎈 **HappyDayI (Hindi)**     | Wishing script (Hindi) II                          | [HappyDayI.html](https://hubcornor-cyber.github.io/Funky/HappyDayI.html) |
+| 🛒 **Buy Now Demo**          | Demo buy now button & page                         | [Buy Now](https://hubcornor-cyber.github.io/Funky/Buy%20Now.html) |
+| 👑 **Markaz Admin**          | Admin panel                                        | [Admin](https://hubcornor-cyber.github.io/Funky/SecretAdmin.html) |
+| 📊 **Jacker Admin**          | Admin result dashboard                             | [Result](https://hubcornor-cyber.github.io/Funky/Result.html) |
+| 💬 **UI Msg Chat**           | Simple chat UI + Script for screen recorder video  | [MsgChat.html](https://hubcornor-cyber.github.io/Funky/MsgChat.html) |
+| 💬 **UI Chat Perfect**       | Enhanced chat UI + images + user DP                | [UIChat.html](https://hubcornor-cyber.github.io/Funky/UIChat.html) |
+| 💬 **Messenger Chat UI**     | Messenger style chat + script                       | [MessengerChat.html](https://hubcornor-cyber.github.io/Funky/MessengerChat.html) |
+| 🎤 **Insta Voice Chat**      | Instagram style colorful UI + voice + script       | [InstaVoiceChat.html](https://hubcornor-cyber.github.io/Funky/InstaVoiceChat.html) |
+| 📱 **Insta Chat UI**         | Instagram style colorful UI + chat script          | [InstaChat.html](https://hubcornor-cyber.github.io/Funky/InstaChat.html) |
+| 📞 **Whatsapp Chat UI**      | Whatsapp style chat UI + script                      | [WhatsappChat.html](https://hubcornor-cyber.github.io/Funky/WhatsappChat.html) |
+| 🎮 **3dot Game**             | Simple dot game                                     | [3dotGame.html](https://hubcornor-cyber.github.io/Funky/3dotGame.html) |
+| 🔍 **38 Spot Game**          | Spot the difference game                            | [38SpotGame.html](https://hubcornor-cyber.github.io/Funky/38SpotGame.html) |
+| 🔍 **3B Spot Game**          | Spot the 3B game                                   | [38SpotGame.html](https://hubcornor-cyber.github.io/Funky/38SpotGame.html) |
 
-[Automation AutoStoryImage](https://hubcornor-cyber.github.io/Funky/AutoStoryImage.html)   Create 100+ Images With One CLick
+---
 
-[AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitle.html)  Add Coloerful Animated Caption on Images With One CLick
+## ✨ Extras
 
-[AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html)   Get Fetch 100+ Images With One CLick
+- 📜 **Chat Prompt** — Ready-made CSV dialogue scripts for ChatGPT:  
+  [Prompt.txt](https://hubcornor-cyber.github.io/Funky/Prompt.txt)
 
-[NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html)   Number Info Not WOrking 
+---
 
-[Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html)   Whatsapp OTP
+## How to Use
 
-[Google.html](https://hubcornor-cyber.github.io/Funky/Google.html)    Gmail Signin
+1. Open any link in your browser.
+2. For chat UIs, use the Admin Panel to load CSV chat scripts.
+3. For automation tools, simply follow on-page instructions.
+4. Enjoy creating and testing your cool projects! 🚀
 
-[Messenger.html](https://hubcornor-cyber.github.io/Funky/Messenger.html)  Messenger Signin
+---
 
-[Facebook.html](https://hubcornor-cyber.github.io/Funky/Facebook.html)    Facebook Signin
+## ⭐ Support & Contributions
 
-[Camera.html](https://hubcornor-cyber.github.io/Funky/Camera.html)    Camera Hijack
+If you want to contribute, improve or report issues, please open an issue or PR here on GitHub.  
+Feel free to suggest new tools or enhancements!
 
-[HappyDay.html](https://hubcornor-cyber.github.io/Funky/HappyDay.html)    Wishing ScriptHindi 0
+---
 
-[HappyMeet.html](https://hubcornor-cyber.github.io/Funky/HappyMeet.html)  Wishing ScriptHindi I
+## 🔗 Stay Connected
 
-[HappyDayI.html](https://hubcornor-cyber.github.io/Funky/HappyDayI.html)  Wishing ScriptHindi II
+Follow the project and updates on GitHub and share your feedback! 🙌
 
-[Buy Now](https://hubcornor-cyber.github.io/Funky/Buy%20Now.html)     Demo Buy Now
+---
 
-[Admin](https://hubcornor-cyber.github.io/Funky/SecretAdmin.html)    Markaz Admin
+*Made with ❤️ by Hubcorner Cyber*
 
-[Result](https://hubcornor-cyber.github.io/Funky/Result.html)     Jacker Admin
+---
 
-[MsgChat.html](https://hubcornor-cyber.github.io/Funky/MsgChat.html)    UI Msg 
-Chat + Script + Simple UI  = Screen Recorder Video
-
-[UIChat.html](https://hubcornor-cyber.github.io/Funky/UIChat.html)    Ui Chat Perfect
-Chat + Script + Image BG + User + Your DP = Screen Recorder Video
-
-[MessengerChat.html](https://hubcornor-cyber.github.io/Funky/MessengerChat.html)   Ui Messenger
-Chat + Script + MessengerFB = Screen Recorder Video
-
-[InstaChat.html](https://hubcornor-cyber.github.io/Funky/InstaChat.html)     UI Insta Colorful
-Chat + Script + InstaChat + ColorFul Display UI = Screen Recorder Video
-
-[WhatsappChat.html](https://hubcornor-cyber.github.io/Funky/WhatsappChat.html)    UI Whatsapp Chat
-Chat + Script + Whatsapp = Screen Recorder Video
-
-[ChatPrompt](https://hubcornor-cyber.github.io/Funky/Prompt.txt)    Prompt For Chat
-Prompt + ChatGpt = ReadyMade CSV Script with Dialogue
-
-[3dotGame](https://hubcornor-cyber.github.io/Funky/3dotGame.html)    3dotGame
-
-[38SpotGame](https://hubcornor-cyber.github.io/Funky/38SpotGame.html)    Spot38Game
-
-[3BSpotGame](https://hubcornor-cyber.github.io/Funky/38SpotGame.html)    Spot3BGame
+# Thanks for visiting! 🎉
