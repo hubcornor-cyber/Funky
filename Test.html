@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>TTS Voice Tester</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: #fafafa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+      user-select: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin: 0 0 10px;
+      text-align: center;
+      color: #333;
+    }
+
+    .voice-option {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f7f7f7;
+    }
+
+    .voice-option label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .voice-option select {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    .voice-option button {
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #833ab4;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: background 0.3s;
+    }
+
+    .voice-option button:hover:not(:disabled) {
+      background: #6b2989;
+    }
+
+    .voice-option button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    #refreshVoices {
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #2196f3;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #refreshVoices:hover:not(:disabled) {
+      background: #1976d2;
+    }
+
+    #refreshVoices:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    #status {
+      font-size: 12px;
+      color: #555;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        max-width: 100%;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TTS Voice Tester</h1>
+    <div class="voice-option">
+      <label for="voice1">Voice 1</label>
+      <select id="voice1" aria-label="Select Voice 1"></select>
+      <button id="playVoice1" aria-label="Play Voice 1"><i class="fas fa-play"></i> Play</button>
+    </div>
+    <div class="voice-option">
+      <label for="voice2">Voice 2</label>
+      <select id="voice2" aria-label="Select Voice 2"></select>
+      <button id="playVoice2" aria-label="Play Voice 2"><i class="fas fa-play"></i> Play</button>
+    </div>
+    <div class="voice-option">
+      <label for="voice3">Voice 3</label>
+      <select id="voice3" aria-label="Select Voice 3"></select>
+      <button id="playVoice3" aria-label="Play Voice 3"><i class="fas fa-play"></i> Play</button>
+    </div>
+    <div class="voice-option">
+      <label for="voice4">Voice 4 (Hindi)</label>
+      <select id="voice4" aria-label="Select Voice 4"></select>
+      <button id="playVoice4" aria-label="Play Voice 4"><i class="fas fa-play"></i> Play</button>
+    </div>
+    <div class="voice-option">
+      <label for="voice5">Voice 5 (Urdu)</label>
+      <select id="voice5" aria-label="Select Voice 5"></select>
+      <button id="playVoice5" aria-label="Play Voice 5"><i class="fas fa-play"></i> Play</button>
+    </div>
+    <button id="refreshVoices" aria-label="Refresh voices">Refresh Voices</button>
+    <div id="status">Loading voices...</div>
+  </div>
+
+  <script>
+    const voiceSelects = [
+      document.getElementById("voice1"),
+      document.getElementById("voice2"),
+      document.getElementById("voice3"),
+      document.getElementById("voice4"),
+      document.getElementById("voice5")
+    ];
+    const playButtons = [
+      document.getElementById("playVoice1"),
+      document.getElementById("playVoice2"),
+      document.getElementById("playVoice3"),
+      document.getElementById("playVoice4"),
+      document.getElementById("playVoice5")
+    ];
+    const refreshVoices = document.getElementById("refreshVoices");
+    const status = document.getElementById("status");
+
+    let voices = [];
+
+    // Sample phrases for testing
+    const testPhrases = {
+      default: "This is a test of the voice.",
+      hi: "यह एक आवाज़ का परीक्षण है।", // Hindi: "This is a test of the voice."
+      ur: "یہ آواز کا ایک ٹیسٹ ہے۔" // Urdu: "This is a test of the voice."
+    };
+
+    // Populate voices in all dropdowns
+    function populateVoices() {
+      voices = window.speechSynthesis.getVoices();
+      console.log(`Voices loaded: ${voices.length}`, voices.map(v => `${v.name} (${v.lang})`));
+      status.textContent = voices.length ? `${voices.length} voices loaded` : "No voices available - check Android TTS settings";
+
+      voiceSelects.forEach((select, index) => {
+        select.innerHTML = '<option value="">Select Voice</option>';
+        voices.forEach((voice, voiceIndex) => {
+          const option = document.createElement("option");
+          option.value = voiceIndex;
+          option.textContent = `${voice.name} (${voice.lang})`;
+          select.appendChild(option);
+        });
+
+        // Auto-select Hindi and Urdu voices for voice4 and voice5 if available
+        if (index === 3) { // Voice 4 (Hindi)
+          const hindiVoice = voices.find(v => v.lang.startsWith("hi"));
+          if (hindiVoice) {
+            select.value = voices.indexOf(hindiVoice);
+          }
+        } else if (index === 4) { // Voice 5 (Urdu)
+          const urduVoice = voices.find(v => v.lang.startsWith("ur"));
+          if (urduVoice) {
+            select.value = voices.indexOf(urduVoice);
+          }
+        }
+      });
+
+      // Enable/disable play buttons based on selection
+      voiceSelects.forEach((select, index) => {
+        playButtons[index].disabled = !select.value;
+      });
+    }
+
+    // Retry voice loading for Android Chrome
+    function retryPopulateVoices(maxRetries = 5, interval = 500) {
+      let attempts = 0;
+      const tryLoad = () => {
+        voices = window.speechSynthesis.getVoices();
+        console.log(`Voice load attempt ${attempts + 1}: ${voices.length} voices`);
+        populateVoices();
+        if (voices.length === 0 && attempts < maxRetries) {
+          attempts++;
+          status.textContent = `Loading voices... (Attempt ${attempts + 1}/${maxRetries})`;
+          setTimeout(tryLoad, interval);
+        }
+      };
+      tryLoad();
+    }
+
+    // Initialize TTS
+    if ("speechSynthesis" in window) {
+      console.log("SpeechSynthesis API supported");
+      retryPopulateVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        console.log("onvoiceschanged triggered");
+        retryPopulateVoices();
+      };
+    } else {
+      console.warn("SpeechSynthesis not supported in this browser");
+      status.textContent = "SpeechSynthesis not supported. Check Android TTS settings.";
+    }
+
+    // Play selected voice
+    function playVoice(index) {
+      const select = voiceSelects[index];
+      const voiceIndex = parseInt(select.value);
+      if (isNaN(voiceIndex)) {
+        status.textContent = `Please select a voice for Voice ${index + 1}`;
+        return;
+      }
+
+      const voice = voices[voiceIndex];
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(
+          voice.lang.startsWith("hi") ? testPhrases.hi :
+          voice.lang.startsWith("ur") ? testPhrases.ur :
+          testPhrases.default
+        );
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        console.log(`Playing voice: ${voice.name} (${voice.lang})`);
+        utterance.onend = () => {
+          console.log("Speech ended");
+          status.textContent = `Played: ${voice.name} (${voice.lang})`;
+        };
+        utterance.onerror = (e) => {
+          console.warn(`TTS error: ${e.error}`);
+          status.textContent = `Error playing voice: ${e.error}`;
+        };
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    // Event listeners for play buttons
+    playButtons.forEach((button, index) => {
+      button.addEventListener("click", () => playVoice(index));
+    });
+
+    // Update play button state on voice selection
+    voiceSelects.forEach((select, index) => {
+      select.addEventListener("change", () => {
+        playButtons[index].disabled = !select.value;
+        if (select.value) {
+          const voice = voices[parseInt(select.value)];
+          status.textContent = `Selected: ${voice.name} (${voice.lang}) for Voice ${index + 1}`;
+        }
+      });
+    });
+
+    // Refresh voices
+    refreshVoices.addEventListener("click", () => {
+      console.log("Refresh Voices clicked");
+      status.textContent = "Refreshing voices...";
+      retryPopulateVoices();
+    });
+  </script>
+</body>
+</html>
