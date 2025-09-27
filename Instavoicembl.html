@@ -6,7 +6,6 @@
 <title>Insta TTS</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 <style>
-  /* Reset and base */
   * {
     box-sizing: border-box;
   }
@@ -20,7 +19,7 @@
     align-items: center;
     padding: 5px;
     height: 95vh;
-    user-select:none;
+    user-select: none;
   }
 
   .container {
@@ -35,7 +34,6 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   }
 
-  /* Header */
   .header {
     background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
     color: white;
@@ -56,7 +54,6 @@
   .header-left .back {
     cursor: pointer;
     font-size: 22px;
-  
   }
 
   #friendAvatar {
@@ -78,7 +75,6 @@
     user-select: none;
   }
 
-  /* Chat area */
   .chat {
     flex: 1;
     padding: 12px;
@@ -154,7 +150,6 @@
     margin-left: 4px;
   }
 
-  /* Typing indicator */
   .typing-indicator {
     align-self: flex-start;
     background: #ddd;
@@ -185,7 +180,6 @@
     40% { opacity: 1; }
   }
 
-  /* Input bar */
   .input-bar {
     display: flex;
     align-items: center;
@@ -248,7 +242,6 @@
     cursor: not-allowed;
   }
 
-  /* Admin panel */
   #adminPage {
     display: none;
     flex-direction: column;
@@ -256,6 +249,7 @@
     overflow-y: auto;
     background: #f7f7f7;
     border-top: 1px solid #ccc;
+    max-height: 80vh;
   }
 
   #adminPage textarea {
@@ -264,6 +258,16 @@
     margin-bottom: 10px;
     font-family: monospace;
     font-size: 13px;
+    resize: none;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px;
+  }
+
+  #adminPage label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: block;
   }
 
   #adminPage select {
@@ -273,6 +277,11 @@
     border: 1px solid #ccc;
     font-size: 14px;
     width: 100%;
+  }
+
+  #adminPage input[type="range"] {
+    width: 100%;
+    margin-bottom: 10px;
   }
 
   #adminPage button {
@@ -295,18 +304,23 @@
     cursor: not-allowed;
   }
 
-  /* Responsive tweaks */
+  body.admin-open {
+    overflow: hidden;
+  }
+
   @media (max-width: 480px) {
     .container {
       max-width: 100%;
       border-radius: 15px;
+    }
+    #adminPage {
+      max-height: 70vh;
     }
   }
 </style>
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
     <div class="header">
       <div class="header-left">
         <div class="back" id="backBtn" title="Toggle Admin Panel" role="button" aria-label="Toggle Admin Panel">⇦</div>
@@ -315,11 +329,7 @@
       </div>
       <div class="menu" title="Menu" role="button" aria-label="Menu">⋮</div>
     </div>
-
-    <!-- Chat area -->
     <div class="chat" id="chat" role="log" aria-live="polite"></div>
-
-    <!-- Input bar -->
     <div class="input-bar">
       <div class="emoji" title="Emoji" role="button" aria-label="Insert emoji">😊</div>
       <textarea id="messageInput" placeholder="Type a message" aria-label="Type a message"></textarea>
@@ -327,11 +337,20 @@
         <i class="fas fa-microphone"></i>
       </button>
     </div>
-
-    <!-- Admin panel -->
     <div id="adminPage">
       <h3>Admin Panel</h3>
-      <textarea id="scriptInput" placeholder="Paste CSV script here: Person,Message,Time,ImageURL (optional)" aria-label="CSV script input"></textarea>
+      <textarea id="scriptInput" aria-label="CSV script input">You,Hello! How are you?,12:00,https://example.com/image1.jpg
+Friend,मैं ठीक हूँ, धन्यवाद!,12:01,
+You,Glad to hear that!,12:02,
+Friend,یہ دیکھیں!,12:03,https://example.com/image2.jpg</textarea>
+      <div>
+        <label for="incomingVoiceSelect">Incoming Voice: </label>
+        <select id="incomingVoiceSelect" aria-label="Select incoming TTS voice"></select>
+      </div>
+      <div>
+        <label for="outgoingVoiceSelect">Outgoing Voice: </label>
+        <select id="outgoingVoiceSelect" aria-label="Select outgoing TTS voice"></select>
+      </div>
       <div>
         <label for="incomingRateSlider">Incoming Rate: <span id="incomingRateValue">1.0</span></label>
         <input type="range" id="incomingRateSlider" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Incoming rate slider" />
@@ -352,8 +371,9 @@
         <label for="delaySlider">Message Delay: <span id="delayValue">2000</span> ms</label>
         <input type="range" id="delaySlider" min="300" max="6000" step="250" value="2000" aria-label="Message delay slider" />
       </div>
-      <button id="previewIncoming" aria-label="Preview incoming">Preview Incoming</button>
-      <button id="previewOutgoing" aria-label="Preview outgoing">Preview Outgoing</button>
+      <button id="previewIncoming" aria-label="Preview incoming voice">Preview Incoming</button>
+      <button id="previewOutgoing" aria-label="Preview outgoing voice">Preview Outgoing</button>
+      <button id="refreshVoices" aria-label="Refresh voices">Refresh Voices</button>
       <button id="startScript" aria-label="Start script">Start Script</button>
       <button id="pauseScript" disabled aria-label="Pause script">Pause Script</button>
       <button id="clearWindow" aria-label="Clear chat">Clear Chat</button>
@@ -361,7 +381,6 @@
   </div>
 
   <script>
-    // Elements
     const chat = document.getElementById("chat");
     const input = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
@@ -370,11 +389,8 @@
     const backBtn = document.getElementById("backBtn");
     const adminPage = document.getElementById("adminPage");
     const scriptInput = document.getElementById("scriptInput");
-    const startScript = document.getElementById("startScript");
-    const pauseScript = document.getElementById("pauseScript");
-    const clearWindow = document.getElementById("clearWindow");
-    const delaySlider = document.getElementById("delaySlider");
-    const delayValue = document.getElementById("delayValue");
+    const incomingVoiceSelect = document.getElementById("incomingVoiceSelect");
+    const outgoingVoiceSelect = document.getElementById("outgoingVoiceSelect");
     const incomingRateSlider = document.getElementById("incomingRateSlider");
     const incomingRateValue = document.getElementById("incomingRateValue");
     const incomingPitchSlider = document.getElementById("incomingPitchSlider");
@@ -383,8 +399,14 @@
     const outgoingRateValue = document.getElementById("outgoingRateValue");
     const outgoingPitchSlider = document.getElementById("outgoingPitchSlider");
     const outgoingPitchValue = document.getElementById("outgoingPitchValue");
+    const delaySlider = document.getElementById("delaySlider");
+    const delayValue = document.getElementById("delayValue");
     const previewIncoming = document.getElementById("previewIncoming");
     const previewOutgoing = document.getElementById("previewOutgoing");
+    const refreshVoices = document.getElementById("refreshVoices");
+    const startScript = document.getElementById("startScript");
+    const pauseScript = document.getElementById("pauseScript");
+    const clearWindow = document.getElementById("clearWindow");
 
     let delay = parseInt(delaySlider.value);
     let scriptTimeouts = [];
@@ -392,69 +414,178 @@
     let runningScript = false;
     let pausedScript = false;
     let currentScriptPromise = null;
-    let incomingRate = 1.0;
-    let incomingPitch = 1.0;
-    let outgoingRate = 1.0;
-    let outgoingPitch = 1.0;
+    let voices = [];
+    let incomingVoice = null;
+    let outgoingVoice = null;
+    let incomingRate = parseFloat(incomingRateSlider.value);
+    let incomingPitch = parseFloat(incomingPitchSlider.value);
+    let outgoingRate = parseFloat(outgoingRateSlider.value);
+    let outgoingPitch = parseFloat(outgoingPitchSlider.value);
+    let voicesCached = false;
 
-    // Update delay display
+    // Update slider displays
     delaySlider.addEventListener("input", () => {
       delay = parseInt(delaySlider.value);
       delayValue.textContent = delay;
     });
 
-    // Update incoming rate
     incomingRateSlider.addEventListener("input", () => {
       incomingRate = parseFloat(incomingRateSlider.value);
       incomingRateValue.textContent = incomingRate.toFixed(1);
     });
 
-    // Update incoming pitch
     incomingPitchSlider.addEventListener("input", () => {
       incomingPitch = parseFloat(incomingPitchSlider.value);
       incomingPitchValue.textContent = incomingPitch.toFixed(1);
     });
 
-    // Update outgoing rate
     outgoingRateSlider.addEventListener("input", () => {
       outgoingRate = parseFloat(outgoingRateSlider.value);
       outgoingRateValue.textContent = outgoingRate.toFixed(1);
     });
 
-    // Update outgoing pitch
     outgoingPitchSlider.addEventListener("input", () => {
       outgoingPitch = parseFloat(outgoingPitchSlider.value);
       outgoingPitchValue.textContent = outgoingPitch.toFixed(1);
     });
 
-    if ("speechSynthesis" in window) {
-      console.log("SpeechSynthesis API supported");
-    } else {
-      console.warn("SpeechSynthesis not supported in this browser");
+    // Prevent body scroll when interacting with sliders
+    [incomingRateSlider, incomingPitchSlider, outgoingRateSlider, outgoingPitchSlider, delaySlider].forEach(slider => {
+      slider.addEventListener("touchstart", (e) => e.stopPropagation());
+      slider.addEventListener("touchmove", (e) => e.stopPropagation());
+    });
+
+    // Cache voices by preloading silent utterances
+    async function cacheVoices(maxRetries = 5, interval = 500) {
+      let attempts = 0;
+      voicesCached = false;
+      startScript.disabled = true;
+      startScript.textContent = "Loading Voices...";
+
+      return new Promise((resolve, reject) => {
+        const tryLoad = async () => {
+          voices = window.speechSynthesis.getVoices();
+          console.log(`Voice load attempt ${attempts + 1}: ${voices.length} voices`);
+
+          if (voices.length === 0 && attempts < maxRetries) {
+            attempts++;
+            setTimeout(tryLoad, interval);
+            return;
+          }
+
+          if (voices.length === 0) {
+            alert("No voices available. Please check Android TTS settings.");
+            startScript.disabled = false;
+            startScript.textContent = "Start Script";
+            reject("No voices loaded");
+            return;
+          }
+
+          // Preload voices with silent utterances
+          for (const voice of voices) {
+            const utterance = new SpeechSynthesisUtterance("");
+            utterance.volume = 0; // Silent
+            utterance.voice = voice;
+            utterance.lang = voice.lang;
+            window.speechSynthesis.speak(utterance);
+            await new Promise(r => setTimeout(r, 50)); // Small delay to ensure processing
+          }
+
+          voicesCached = true;
+          populateVoices();
+          startScript.disabled = false;
+          startScript.textContent = "Start Script";
+          resolve();
+        };
+        tryLoad();
+      });
     }
 
-    // Play demo phrase
+    // Populate voice dropdowns
+    function populateVoices() {
+      incomingVoiceSelect.innerHTML = '<option value="">Select Voice</option>';
+      outgoingVoiceSelect.innerHTML = '<option value="">Select Voice</option>';
+
+      voices.forEach((voice, index) => {
+        const option1 = document.createElement("option");
+        option1.value = index;
+        option1.textContent = `${voice.name} (${voice.lang})`;
+        incomingVoiceSelect.appendChild(option1);
+
+        const option2 = document.createElement("option");
+        option2.value = index;
+        option2.textContent = `${voice.name} (${voice.lang})`;
+        outgoingVoiceSelect.appendChild(option2);
+      });
+
+      // Auto-select Hindi for incoming and Urdu for outgoing if available
+      const hindiVoice = voices.find(v => v.lang.startsWith("hi"));
+      const urduVoice = voices.find(v => v.lang.startsWith("ur"));
+      if (hindiVoice) {
+        incomingVoiceSelect.value = voices.indexOf(hindiVoice);
+        incomingVoice = hindiVoice;
+      }
+      if (urduVoice) {
+        outgoingVoiceSelect.value = voices.indexOf(urduVoice);
+        outgoingVoice = urduVoice;
+      }
+    }
+
+    // Initialize TTS and cache voices
+    if ("speechSynthesis" in window) {
+      console.log("SpeechSynthesis API supported");
+      cacheVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        console.log("onvoiceschanged triggered");
+        cacheVoices();
+      };
+    } else {
+      console.warn("SpeechSynthesis not supported in this browser");
+      alert("SpeechSynthesis not supported. Check Android TTS settings.");
+    }
+
+    // Refresh voices
+    refreshVoices.addEventListener("click", () => {
+      console.log("Refresh Voices clicked");
+      cacheVoices();
+    });
+
+    // Play demo voice
     function playDemoVoice(isOutgoing) {
-      if ("speechSynthesis" in window) {
+      if ("speechSynthesis" in window && voicesCached) {
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance("This is a demo of the voice.");
+        const utterance = new SpeechSynthesisUtterance(
+          isOutgoing ? "یہ ایک ٹیسٹ ہے۔" : "यह एक परीक्षण है।"
+        );
         utterance.rate = isOutgoing ? outgoingRate : incomingRate;
         utterance.pitch = isOutgoing ? outgoingPitch : incomingPitch;
-        utterance.lang = 'en-US';
-        console.log(`Playing demo: rate=${utterance.rate}, pitch=${utterance.pitch}`);
+        const selectedVoice = isOutgoing ? outgoingVoice : incomingVoice;
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice.lang;
+          console.log(`Playing demo: ${selectedVoice.name} (${selectedVoice.lang})`);
+        } else {
+          utterance.lang = isOutgoing ? 'ur-PK' : 'hi-IN';
+          console.log("Playing demo with default voice");
+        }
         window.speechSynthesis.speak(utterance);
       }
     }
 
-    previewIncoming.addEventListener("click", () => {
-      playDemoVoice(false);
+    incomingVoiceSelect.addEventListener("change", () => {
+      incomingVoice = incomingVoiceSelect.value ? voices[parseInt(incomingVoiceSelect.value)] : null;
+      console.log(`Incoming voice set to: ${incomingVoice ? incomingVoice.name : "Default"}`);
     });
 
-    previewOutgoing.addEventListener("click", () => {
-      playDemoVoice(true);
+    outgoingVoiceSelect.addEventListener("change", () => {
+      outgoingVoice = outgoingVoiceSelect.value ? voices[parseInt(outgoingVoiceSelect.value)] : null;
+      console.log(`Outgoing voice set to: ${outgoingVoice ? outgoingVoice.name : "Default"}`);
     });
 
-    // Toggle send button icon & disable if empty
+    previewIncoming.addEventListener("click", () => playDemoVoice(false));
+    previewOutgoing.addEventListener("click", () => playDemoVoice(true));
+
+    // Toggle send button
     function updateSendBtn() {
       if (input.value.trim()) {
         sendBtn.innerHTML = "<i class='fas fa-paper-plane'></i>";
@@ -467,22 +598,29 @@
     input.addEventListener("input", updateSendBtn);
     updateSendBtn();
 
-    // Estimate TTS duration (in milliseconds)
+    // Estimate TTS duration
     function estimateTTSDuration(text) {
       const words = text.trim().split(/\s+/).length;
-      const wordsPerMinute = 150; // Average speaking rate
+      const wordsPerMinute = 150;
       return (words / wordsPerMinute) * 60 * 1000;
     }
 
-    // Text-to-Speech function with completion callback
+    // Text-to-Speech
     function speakText(text, isOutgoing, onEnd) {
-      if ("speechSynthesis" in window) {
+      if ("speechSynthesis" in window && voicesCached) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = isOutgoing ? outgoingRate : incomingRate;
         utterance.pitch = isOutgoing ? outgoingPitch : incomingPitch;
-        utterance.lang = 'en-US';
-        console.log(`Speaking: rate=${utterance.rate}, pitch=${utterance.pitch}`);
+        const selectedVoice = isOutgoing ? outgoingVoice : incomingVoice;
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice.lang;
+          console.log(`Speaking with voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+        } else {
+          utterance.lang = isOutgoing ? 'ur-PK' : 'hi-IN';
+          console.log("Speaking with default voice");
+        }
         utterance.onend = () => {
           console.log("Speech ended");
           onEnd();
@@ -492,15 +630,14 @@
           onEnd();
         };
         window.speechSynthesis.speak(utterance);
-        // Fallback for browsers with unreliable onend
         setTimeout(onEnd, Math.max(estimateTTSDuration(text), 1000));
       } else {
-        console.warn("TTS not supported in this browser.");
+        console.warn("TTS not supported or voices not cached.");
         setTimeout(onEnd, estimateTTSDuration(text));
       }
     }
 
-    // Add message function with TTS, image support, and smooth scroll
+    // Add message
     function addMessage(person, text, time, imageUrl) {
       return new Promise((resolve) => {
         const msg = document.createElement("div");
@@ -513,8 +650,6 @@
         msg.innerHTML = `${content}<span class="time">${time}${isOutgoing ? '<span class="ticks">✔✔</span>' : ""}</span>`;
         chat.appendChild(msg);
         chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
-
-        // Highlight message while speaking, use only text for TTS
         msg.classList.add("speaking");
         console.log(`Adding message from ${person}: ${text} (Outgoing: ${isOutgoing})`);
         speakText(text, isOutgoing, () => {
@@ -524,7 +659,7 @@
       });
     }
 
-    // Typing indicator with dynamic duration
+    // Typing indicator
     function showTypingIndicator(messageLength) {
       const typing = document.createElement("div");
       typing.className = "typing-indicator";
@@ -534,7 +669,7 @@
       return { element: typing, duration: Math.min(2000, 500 + messageLength * 50) };
     }
 
-    // Improved CSV Parser with image support
+    // CSV Parser
     function parseCSV(text) {
       const rows = [];
       let current = [];
@@ -564,7 +699,7 @@
       return rows.filter(r => r.length >= 3 && r[0] && r[1] && r[2]);
     }
 
-    // Auto type text into input with typing animation
+    // Auto type
     function autoType(text, callback) {
       input.value = "";
       updateSendBtn();
@@ -585,7 +720,7 @@
       }, 50);
     }
 
-    // Clear chat and stop ongoing script and speech
+    // Clear chat
     function clearWindowFunc() {
       scriptTimeouts.forEach(clearTimeout);
       typingTimeouts.forEach(clearTimeout);
@@ -599,10 +734,10 @@
       chat.innerHTML = "";
       input.value = "";
       updateSendBtn();
-      startScript.disabled = false;
+      startScript.disabled = !voicesCached;
       pauseScript.disabled = true;
       pauseScript.textContent = "Pause Script";
-      startScript.textContent = "Start Script";
+      startScript.textContent = voicesCached ? "Start Script" : "Loading Voices...";
     }
 
     // Update friend info
@@ -612,10 +747,15 @@
       friendAvatar.onerror = () => { friendAvatar.src = "https://via.placeholder.com/36"; };
     }
 
-    // Run the script from CSV input
+    // Run script
     async function runScript(csvText) {
+      if (!voicesCached) {
+        alert("Voices are still loading. Please wait or refresh voices.");
+        return;
+      }
       clearWindowFunc();
       adminPage.style.display = "none";
+      document.body.classList.remove("admin-open");
       runningScript = true;
       startScript.disabled = true;
       pauseScript.disabled = false;
@@ -680,18 +820,19 @@
       pauseScript.textContent = "Pause Script";
     }
 
-    // Toggle admin panel visibility
+    // Toggle admin panel
     backBtn.addEventListener("click", () => {
       adminPage.style.display = adminPage.style.display === "flex" ? "none" : "flex";
+      document.body.classList.toggle("admin-open", adminPage.style.display === "flex");
     });
 
-    // Start button click
+    // Start script
     startScript.addEventListener("click", () => {
-      if (runningScript) return;
-      currentScriptPromise = runScript(scriptInput.value);
+      if (runningScript || !voicesCached) return;
+      runScript(scriptInput.value);
     });
 
-    // Pause/Resume button click
+    // Pause/Resume script
     pauseScript.addEventListener("click", () => {
       if (!runningScript) return;
       pausedScript = !pausedScript;
@@ -707,10 +848,10 @@
       }
     });
 
-    // Clear button click
+    // Clear chat
     clearWindow.addEventListener("click", clearWindowFunc);
 
-    // Send button click
+    // Send message
     sendBtn.addEventListener("click", () => {
       if (input.value.trim() === "") return;
       addMessage("You", input.value.trim(), new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -721,7 +862,7 @@
       }
     });
 
-    // Keyboard accessibility for send button
+    // Keyboard accessibility
     input.addEventListener("keypress", (e) => {
       if (e.key === "Enter" && !e.shiftKey && input.value.trim()) {
         e.preventDefault();
