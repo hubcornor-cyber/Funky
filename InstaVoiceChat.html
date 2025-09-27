@@ -20,6 +20,7 @@
     align-items: center;
     padding: 5px;
     height: 95vh;
+    user-select:none;
   }
 
   .container {
@@ -55,7 +56,7 @@
   .header-left .back {
     cursor: pointer;
     font-size: 22px;
-    user-select: none;
+  
   }
 
   #friendAvatar {
@@ -365,9 +366,9 @@
     const startScript = document.getElementById("startScript");
     const pauseScript = document.getElementById("pauseScript");
     const clearWindow = document.getElementById("clearWindow");
+    const refreshVoices = document.getElementById("refreshVoices");
     const delaySlider = document.getElementById("delaySlider");
     const delayValue = document.getElementById("delayValue");
-    const refreshVoices = document.getElementById("refreshVoices");
 
     let delay = parseInt(delaySlider.value);
     let scriptTimeouts = [];
@@ -385,9 +386,10 @@
       delayValue.textContent = delay;
     });
 
-    // Populate TTS voices for both dropdowns with retry logic
+    // Populate TTS voices for both dropdowns with debug logging
     function populateVoices() {
       voices = window.speechSynthesis.getVoices();
+      console.log(`Voices loaded: ${voices.length}`, voices.map(v => `${v.name} (${v.lang})`));
       incomingVoiceSelect.innerHTML = '<option value="">Default Voice</option>';
       outgoingVoiceSelect.innerHTML = '<option value="">Default Voice</option>';
       if (voices.length === 0) {
@@ -408,11 +410,12 @@
       }
     }
 
-    // Retry voice loading for Android WebView
+    // Retry voice loading for Android WebView/Chrome
     function retryPopulateVoices(maxRetries = 5, interval = 500) {
       let attempts = 0;
       const tryLoad = () => {
-        window.speechSynthesis.getVoices();
+        voices = window.speechSynthesis.getVoices();
+        console.log(`Voice load attempt ${attempts + 1}: ${voices.length} voices`);
         populateVoices();
         if (voices.length === 0 && attempts < maxRetries) {
           attempts++;
@@ -423,14 +426,19 @@
     }
 
     if ("speechSynthesis" in window) {
+      console.log("SpeechSynthesis API supported");
       retryPopulateVoices();
       window.speechSynthesis.onvoiceschanged = () => {
+        console.log("onvoiceschanged triggered");
         retryPopulateVoices();
       };
+    } else {
+      console.warn("SpeechSynthesis not supported in this browser");
     }
 
     // Refresh voices on button click
     refreshVoices.addEventListener("click", () => {
+      console.log("Refresh Voices clicked");
       retryPopulateVoices();
     });
 
@@ -441,18 +449,26 @@
         const utterance = new SpeechSynthesisUtterance("This is a demo of the selected voice.");
         utterance.rate = 1;
         utterance.pitch = 1;
-        if (voice) utterance.voice = voice;
+        if (voice) {
+          utterance.voice = voice;
+          utterance.lang = voice.lang; // Fix for Android voice selection
+          console.log(`Playing demo with voice: ${voice.name} (${voice.lang})`);
+        } else {
+          console.log("Playing demo with default voice");
+        }
         window.speechSynthesis.speak(utterance);
       }
     }
 
     incomingVoiceSelect.addEventListener("change", () => {
       incomingVoice = incomingVoiceSelect.value ? voices[parseInt(incomingVoiceSelect.value)] : null;
+      console.log(`Incoming voice set to: ${incomingVoice ? incomingVoice.name : "Default"}`);
       playDemoVoice(incomingVoice);
     });
 
     outgoingVoiceSelect.addEventListener("change", () => {
       outgoingVoice = outgoingVoiceSelect.value ? voices[parseInt(outgoingVoiceSelect.value)] : null;
+      console.log(`Outgoing voice set to: ${outgoingVoice ? outgoingVoice.name : "Default"}`);
       playDemoVoice(outgoingVoice);
     });
 
@@ -483,10 +499,21 @@
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 1;
         utterance.pitch = 1;
-        utterance.voice = isOutgoing ? outgoingVoice : incomingVoice;
-        utterance.onend = onEnd;
-        utterance.onerror = () => {
-          console.warn("TTS error occurred.");
+        const selectedVoice = isOutgoing ? outgoingVoice : incomingVoice;
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice.lang; // Critical fix for Android voice selection
+          console.log(`Speaking with voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+        } else {
+          utterance.lang = 'en-US'; // Default lang if no voice selected
+          console.log("Speaking with default voice");
+        }
+        utterance.onend = () => {
+          console.log("Speech ended");
+          onEnd();
+        };
+        utterance.onerror = (e) => {
+          console.warn(`TTS error: ${e.error}`);
           onEnd();
         };
         window.speechSynthesis.speak(utterance);
@@ -514,6 +541,7 @@
 
         // Highlight message while speaking, use only text for TTS
         msg.classList.add("speaking");
+        console.log(`Adding message from ${person}: ${text} (Outgoing: ${isOutgoing})`);
         speakText(text, isOutgoing, () => {
           msg.classList.remove("speaking");
           resolve();
