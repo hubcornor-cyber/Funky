@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixabay Love Wallpapers Iframe Scraper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3700b3;
+        }
+        .progress-container {
+            width: 300px;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px auto;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #6200ea;
+            width: 0;
+            transition: width 0.5s ease-in-out;
+        }
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #555;
+            margin: 10px 0;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .gallery img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .gallery img:hover {
+            transform: scale(1.05);
+        }
+        iframe {
+            border: 2px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Love Wallpapers from Pixabay</h1>
+    <div class="controls">
+        <button id="scrapeButton">Load Images</button>
+        <div id="imageCount" class="loading">Click the button to load images...</div>
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </div>
+    <iframe id="scrapeFrame" src="https://pixabay.com/images/search/love/?orientation=vertical"></iframe>
+    <div class="gallery" id="gallery"></div>
+
+    <script>
+        const iframe = document.getElementById('scrapeFrame');
+        const scrapeButton = document.getElementById('scrapeButton');
+        const imageCount = document.getElementById('imageCount');
+        const gallery = document.getElementById('gallery');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const targetUrl = 'https://pixabay.com/images/search/love/?orientation=vertical';
+        const corsProxy = 'https://corsproxy.io/?';
+        const scrapeUrl = corsProxy + encodeURIComponent(targetUrl);
+        let imageUrls = [];
+
+        // Update progress bar
+        function updateProgress(percent) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${percent}%`;
+        }
+
+        // Try scraping from iframe
+        function tryIframeScrape() {
+            updateProgress(20);
+            imageCount.textContent = 'Parsing iframe images...';
+            try {
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                if (!doc) {
+                    throw new Error('Iframe content not accessible (blocked by same-origin policy).');
+                }
+                const images = doc.querySelectorAll('img[src*="pixabay.com"], img[data-lazy-src*="pixabay.com"]');
+                imageUrls = new Set();
+
+                images.forEach(img => {
+                    let src = img.getAttribute('data-lazy-src') || img.getAttribute('src');
+                    if (src && src.includes('pixabay.com') && !src.includes('static.pixabay.com') && !src.includes('96x96.jpg')) {
+                        src = src.replace(/(__\d+\.\w+)$/, '_340.$1');
+                        imageUrls.add(src);
+                    }
+                });
+
+                const urlsArray = Array.from(imageUrls).slice(0, 30);
+                imageCount.textContent = `Found ${urlsArray.length} images in iframe.`;
+                updateProgress(60);
+
+                if (urlsArray.length >= 15) {
+                    displayImages(urlsArray);
+                    progressContainer.style.display = 'none';
+                    imageCount.textContent = `Loaded ${urlsArray.length} images.`;
+                } else {
+                    throw new Error(`Only ${urlsArray.length} images found in iframe, trying fallback...`);
+                }
+            } catch (error) {
+                console.error('Iframe scrape failed:', error);
+                imageCount.textContent = error.message;
+                scrapeWithFetch();
+            }
+        }
+
+        // Fallback: Scrape using fetch and CORS proxy
+        async function scrapeWithFetch() {
+            updateProgress(40);
+            imageCount.textContent = 'Trying fallback method...';
+            try {
+                const response = await fetch(scrapeUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const html = await response.text();
+                imageCount.textContent = 'Parsing fallback images...';
+                updateProgress(80);
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const images = doc.querySelectorAll('img[src*="pixabay.com"], img[data-lazy-src*="pixabay.com"]');
+                imageUrls = new Set();
+
+                images.forEach(img => {
+                    let src = img.getAttribute('data-lazy-src') || img.getAttribute('src');
+                    if (src && src.includes('pixabay.com') && !src.includes('static.pixabay.com') && !src.includes('96x96.jpg')) {
+                        src = src.replace(/(__\d+\.\w+)$/, '_340.$1');
+                        imageUrls.add(src);
+                    }
+                });
+
+                const urlsArray = Array.from(imageUrls).slice(0, 30);
+                imageCount.textContent = `Found ${urlsArray.length} images in fallback.`;
+
+                if (urlsArray.length >= 15) {
+                    displayImages(urlsArray);
+                    progressContainer.style.display = 'none';
+                    imageCount.textContent = `Loaded ${urlsArray.length} images.`;
+                } else {
+                    throw new Error(`Only ${urlsArray.length} images found. Minimum 15 required.`);
+                }
+            } catch (error) {
+                console.error('Fallback scrape failed:', error);
+                imageCount.textContent = `Error: ${error.message}. Check console.`;
+                gallery.innerHTML = '<p>No images loaded. Site may block scraping.</p>';
+                progressContainer.style.display = 'none';
+            }
+        }
+
+        function displayImages(urls) {
+            gallery.innerHTML = '';
+            updateProgress(90);
+            urls.forEach((url, index) => {
+                const imgElement = document.createElement('img');
+                imgElement.src = url;
+                imgElement.alt = 'Pixabay Love Wallpaper';
+                imgElement.onerror = () => {
+                    imgElement.style.display = 'none';
+                };
+                gallery.appendChild(imgElement);
+                updateProgress(90 + (index / urls.length) * 10);
+            });
+        }
+
+        // Manual trigger
+        scrapeButton.addEventListener('click', () => {
+            imageCount.textContent = 'Loading iframe...';
+            updateProgress(0);
+            iframe.src = targetUrl; // Reload iframe to ensure fresh content
+        });
+
+        iframe.onload = () => {
+            imageCount.textContent = 'Iframe loaded. Click button to scrape images.';
+            scrapeButton.disabled = false;
+        };
+
+        iframe.onerror = () => {
+            imageCount.textContent = 'Iframe failed to load. Trying fallback method...';
+            scrapeWithFetch();
+        };
+    </script>
+</body>
+</html>
