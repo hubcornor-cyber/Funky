@@ -109,7 +109,7 @@
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
     white-space: pre-wrap;
     user-select: text;
-    transition: background 0.3s;
+    transition: background 0.3s, transform 0.3s;
   }
 
   .message.speaking {
@@ -265,6 +265,15 @@
     font-size: 13px;
   }
 
+  #adminPage select {
+    margin-bottom: 10px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    width: 100%;
+  }
+
   #adminPage button {
     margin: 5px;
     padding: 6px 12px;
@@ -300,7 +309,7 @@
     <div class="header">
       <div class="header-left">
         <div class="back" id="backBtn" title="Toggle Admin Panel" role="button" aria-label="Toggle Admin Panel">⇦</div>
-        <img id="friendAvatar" src="https://via.placeholder.com/36" alt="Friend avatar" />
+        <img id="friendAvatar" src="https://banner2.cleanpng.com/cb2/ykn/pfc/adoi6oygb.webp" alt="Friend avatar" onerror="this.src='https://via.placeholder.com/36';" />
         <div id="friendName">GROW Youtube</div>
       </div>
       <div class="menu" title="Menu" role="button" aria-label="Menu">⋮</div>
@@ -321,7 +330,15 @@
     <!-- Admin panel -->
     <div id="adminPage">
       <h3>Admin Panel</h3>
-      <textarea id="scriptInput" placeholder="Paste CSV script here: Person,Message,Time" aria-label="CSV script input"></textarea>
+      <textarea id="scriptInput" placeholder="Paste CSV script here: Person,Message,Time,ImageURL (optional)" aria-label="CSV script input"></textarea>
+      <div>
+        <label for="incomingVoiceSelect">Incoming Voice: </label>
+        <select id="incomingVoiceSelect" aria-label="Select incoming TTS voice"></select>
+      </div>
+      <div>
+        <label for="outgoingVoiceSelect">Outgoing Voice: </label>
+        <select id="outgoingVoiceSelect" aria-label="Select outgoing TTS voice"></select>
+      </div>
       <div>
         <label for="delaySlider">Message Delay: <span id="delayValue">4000</span> ms</label>
         <input type="range" id="delaySlider" min="300" max="6000" step="250" value="2000" aria-label="Message delay slider" />
@@ -342,6 +359,8 @@
     const backBtn = document.getElementById("backBtn");
     const adminPage = document.getElementById("adminPage");
     const scriptInput = document.getElementById("scriptInput");
+    const incomingVoiceSelect = document.getElementById("incomingVoiceSelect");
+    const outgoingVoiceSelect = document.getElementById("outgoingVoiceSelect");
     const startScript = document.getElementById("startScript");
     const pauseScript = document.getElementById("pauseScript");
     const clearWindow = document.getElementById("clearWindow");
@@ -354,11 +373,59 @@
     let runningScript = false;
     let pausedScript = false;
     let currentScriptPromise = null;
+    let voices = [];
+    let incomingVoice = null;
+    let outgoingVoice = null;
 
     // Update delay display
     delaySlider.addEventListener("input", () => {
       delay = parseInt(delaySlider.value);
       delayValue.textContent = delay;
+    });
+
+    // Populate TTS voices for both dropdowns
+    function populateVoices() {
+      voices = window.speechSynthesis.getVoices();
+      incomingVoiceSelect.innerHTML = '<option value="">Default Voice</option>';
+      outgoingVoiceSelect.innerHTML = '<option value="">Default Voice</option>';
+      voices.forEach((voice, index) => {
+        const option1 = document.createElement("option");
+        option1.value = index;
+        option1.textContent = `${voice.name} (${voice.lang})`;
+        incomingVoiceSelect.appendChild(option1);
+
+        const option2 = document.createElement("option");
+        option2.value = index;
+        option2.textContent = `${voice.name} (${voice.lang})`;
+        outgoingVoiceSelect.appendChild(option2);
+      });
+    }
+
+    if ("speechSynthesis" in window) {
+      populateVoices();
+      window.speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    // Play demo phrase on voice selection
+    function playDemoVoice(voice) {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance("This is a demo of the selected voice.");
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        if (voice) utterance.voice = voice;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    incomingVoiceSelect.addEventListener("change", () => {
+      incomingVoice = incomingVoiceSelect.value ? voices[parseInt(incomingVoiceSelect.value)] : null;
+      playDemoVoice(incomingVoice);
+    });
+
+    outgoingVoiceSelect.addEventListener("change", () => {
+      outgoingVoice = outgoingVoiceSelect.value ? voices[parseInt(outgoingVoiceSelect.value)] : null;
+      playDemoVoice(outgoingVoice);
     });
 
     // Toggle send button icon & disable if empty
@@ -374,37 +441,52 @@
     input.addEventListener("input", updateSendBtn);
     updateSendBtn();
 
+    // Estimate TTS duration (in milliseconds)
+    function estimateTTSDuration(text) {
+      const words = text.trim().split(/\s+/).length;
+      const wordsPerMinute = 150; // Average speaking rate
+      return (words / wordsPerMinute) * 60 * 1000;
+    }
+
     // Text-to-Speech function with completion callback
-    function speakText(text, onEnd) {
+    function speakText(text, isOutgoing, onEnd) {
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 1;
         utterance.pitch = 1;
+        utterance.voice = isOutgoing ? outgoingVoice : incomingVoice;
         utterance.onend = onEnd;
         utterance.onerror = () => {
           console.warn("TTS error occurred.");
           onEnd();
         };
         window.speechSynthesis.speak(utterance);
+        // Fallback for browsers with unreliable onend
+        setTimeout(onEnd, Math.max(estimateTTSDuration(text), 1000));
       } else {
         console.warn("TTS not supported in this browser.");
-        onEnd();
+        setTimeout(onEnd, estimateTTSDuration(text));
       }
     }
 
-    // Add message function with TTS and smooth scroll
-    function addMessage(person, text, time) {
+    // Add message function with TTS, image support, and smooth scroll
+    function addMessage(person, text, time, imageUrl) {
       return new Promise((resolve) => {
         const msg = document.createElement("div");
-        msg.className = `message ${person.toLowerCase() === "you" ? "outgoing" : "incoming"}`;
-        msg.innerHTML = `${text}<span class="time">${time}${person.toLowerCase() === "you" ? '<span class="ticks">✔✔</span>' : ""}</span>`;
+        const isOutgoing = person.toLowerCase() === "you";
+        msg.className = `message ${isOutgoing ? "outgoing" : "incoming"}`;
+        let content = text;
+        if (imageUrl) {
+          content = `<img src="${imageUrl}" alt="Message image" onerror="this.style.display='none';" />${text}`;
+        }
+        msg.innerHTML = `${content}<span class="time">${time}${isOutgoing ? '<span class="ticks">✔✔</span>' : ""}</span>`;
         chat.appendChild(msg);
         chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 
         // Highlight message while speaking
         msg.classList.add("speaking");
-        speakText(text, () => {
+        speakText(text, isOutgoing, () => {
           msg.classList.remove("speaking");
           resolve();
         });
@@ -421,7 +503,7 @@
       return { element: typing, duration: Math.min(2000, 500 + messageLength * 50) };
     }
 
-    // Improved CSV Parser
+    // Improved CSV Parser with image support
     function parseCSV(text) {
       const rows = [];
       let current = [];
@@ -489,12 +571,14 @@
       startScript.disabled = false;
       pauseScript.disabled = true;
       pauseScript.textContent = "Pause Script";
+      startScript.textContent = "Start Script";
     }
- 
+
     // Update friend info
     function updateFriendInfo(name) {
       friendNameElem.textContent = name;
       friendAvatar.src = "https://banner2.cleanpng.com/cb2/ykn/pfc/adoi6oygb.webp";
+      friendAvatar.onerror = () => { friendAvatar.src = "https://via.placeholder.com/36"; };
     }
 
     // Run the script from CSV input
@@ -508,7 +592,7 @@
 
       const lines = parseCSV(csvText);
       if (!lines.length) {
-        alert("No valid data found in CSV! Format: Person,Message,Time");
+        alert("No valid data found in CSV! Format: Person,Message,Time,ImageURL (optional)");
         runningScript = false;
         startScript.disabled = false;
         pauseScript.disabled = true;
@@ -521,7 +605,7 @@
 
       for (const line of lines) {
         if (!runningScript || pausedScript) break;
-        const [person, message, time] = line;
+        const [person, message, time, imageUrl] = line;
         const waitTime = parseInt(time) || delay;
 
         if (person.toLowerCase() !== "you") {
@@ -534,7 +618,7 @@
                 return;
               }
               typingInd.remove();
-              addMessage(person, message, time).then(resolve);
+              addMessage(person, message, time, imageUrl).then(resolve);
             }, duration);
             typingTimeouts.push(t1);
           });
@@ -546,7 +630,7 @@
           await new Promise((resolve) => {
             autoType(message, () => {
               if (runningScript && !pausedScript) {
-                addMessage(person, message, time).then(resolve);
+                addMessage(person, message, time, imageUrl).then(resolve);
                 input.value = "";
                 updateSendBtn();
               } else {
