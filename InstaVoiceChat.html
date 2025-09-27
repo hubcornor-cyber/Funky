@@ -484,7 +484,7 @@
         chat.appendChild(msg);
         chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
 
-        // Highlight message while speaking
+        // Highlight message while speaking, use only text for TTS
         msg.classList.add("speaking");
         speakText(text, isOutgoing, () => {
           msg.classList.remove("speaking");
