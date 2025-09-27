@@ -36,6 +36,10 @@
         button:hover {
             background-color: #3700b3;
         }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
         .progress-container {
             width: 300px;
             height: 20px;
@@ -76,15 +80,15 @@
             transform: scale(1.05);
         }
         iframe {
-            border: 2px;
+            display: none;
         }
     </style>
 </head>
 <body>
     <h1>Love Wallpapers from Pixabay</h1>
     <div class="controls">
-        <button id="scrapeButton">Load Images</button>
-        <div id="imageCount" class="loading">Click the button to load images...</div>
+        <button id="scrapeButton" disabled>Load Images</button>
+        <div id="imageCount" class="loading">Waiting for iframe to load...</div>
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar" id="progressBar"></div>
         </div>
@@ -209,13 +213,15 @@
 
         // Manual trigger
         scrapeButton.addEventListener('click', () => {
-            imageCount.textContent = 'Loading iframe...';
+            scrapeButton.disabled = true;
+            imageCount.textContent = 'Loading images...';
             updateProgress(0);
-            iframe.src = targetUrl; // Reload iframe to ensure fresh content
+            tryIframeScrape();
         });
 
+        // Wait for iframe to load
         iframe.onload = () => {
-            imageCount.textContent = 'Iframe loaded. Click button to scrape images.';
+            imageCount.textContent = 'Iframe loaded. Click "Load Images" to scrape.';
             scrapeButton.disabled = false;
         };
 
