@@ -15,6 +15,8 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | 📖 **Automation AutoStoryImage** | Bulk create story images                          | [AutoStoryImage](https://hubcornor-cyber.github.io/Funky/AutoStoryImage.html) |
 | 🏷️ **AutoSubtitle**          | Add colorful animated captions on images         | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitle.html) |
 | 📸 **AutoFetchImages**       | Fetch 100+ images with one click                   | [AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html) |
+| 📸 **PixaBay FetchImages**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/Pixabay.html) |
+| 📸 **PixaBay II Fetch**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/PixabayII.html) |
 | 🔢 **NumberInfo**            | Number info tool (currently not working)          | [NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html) |
 | 📲 **Whatsapp OTP**          | WhatsApp OTP related tool                          | [Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html) |
 | 📧 **Gmail Signin**          | Gmail login simulation                             | [Google.html](https://hubcornor-cyber.github.io/Funky/Google.html) |
