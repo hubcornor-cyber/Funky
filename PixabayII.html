@@ -128,7 +128,7 @@
 
                 images.forEach(img => {
                     let src = img.getAttribute('data-lazy-src') || img.getAttribute('src');
-                    if (src && src.includes('pixabay.com') && !src.includes('static.pixabay.com') && !src.includes('96x96.jpg')) {
+                    if (src && src.includes('pixabay.com') && !src.includes('static.pixabay.com') && !src.includes('96x96.jpg') && !src.includes('96x96.jpeg') && !src.includes('96x96.png')) {
                         src = src.replace(/(__\d+\.\w+)$/, '_340.$1');
                         imageUrls.add(src);
                     }
@@ -172,7 +172,7 @@
 
                 images.forEach(img => {
                     let src = img.getAttribute('data-lazy-src') || img.getAttribute('src');
-                    if (src && src.includes('pixabay.com') && !src.includes('static.pixabay.com') && !src.includes('96x96.jpg')) {
+                    if (src && src.includes('pixabay.com') && !src.includes('static.pixabay.com') && !src.includes('96x96.jpg') && !src.includes('96x96.jpeg') && !src.includes('96x96.png')) {
                         src = src.replace(/(__\d+\.\w+)$/, '_340.$1');
                         imageUrls.add(src);
                     }
