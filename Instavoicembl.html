@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Insta TTS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background: #fafafa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+    height: 95vh;
+    user-select:none;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 420px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    color: white;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 17px;
+    font-weight: 500;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-left .back {
+    cursor: pointer;
+    font-size: 22px;
+  
+  }
+
+  #friendAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px dashed white;
+  }
+
+  #friendName {
+    font-weight: 600;
+    font-size: 18px;
+  }
+
+  .menu {
+    cursor: pointer;
+    font-size: 22px;
+    user-select: none;
+  }
+
+  /* Chat area */
+  .chat {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    background: #f0f0f0;
+    scrollbar-width: none;
+  }
+
+  .chat::-webkit-scrollbar {
+    width: 0;
+  }
+
+  .chat::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+
+  .message {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 20px;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    white-space: pre-wrap;
+    user-select: text;
+    transition: background 0.3s, transform 0.3s;
+  }
+
+  .message.speaking {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    transform: scale(1.02);
+  }
+
+  .outgoing {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .incoming {
+    align-self: flex-start;
+    background: linear-gradient(135deg, #36d1dc, #5b86e5);
+    color: white;
+    border-bottom-left-radius: 4px;
+  }
+
+  .message img {
+    max-width: 180px;
+    border-radius: 12px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .time {
+    display: block;
+    font-size: 11px;
+    text-align: right;
+    margin-top: 4px;
+    opacity: 0.7;
+    user-select: none;
+  }
+
+  .ticks {
+    font-size: 12px;
+    color: white;
+    margin-left: 4px;
+  }
+
+  /* Typing indicator */
+  .typing-indicator {
+    align-self: flex-start;
+    background: #ddd;
+    border-radius: 20px;
+    padding: 8px 12px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #888;
+    animation: blink 1s infinite;
+  }
+
+  .dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.3; }
+    40% { opacity: 1; }
+  }
+
+  /* Input bar */
+  .input-bar {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-top: 1px solid #ccc;
+    gap: 8px;
+    background: #fff;
+  }
+
+  .input-bar .emoji {
+    font-size: 22px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s;
+  }
+
+  .input-bar .emoji:hover {
+    transform: scale(1.2);
+  }
+
+  .input-bar textarea {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    resize: none;
+    line-height: 1.4;
+    max-height: 4.5em;
+    overflow-y: auto;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .input-bar textarea:focus {
+    border-color: #833ab4;
+  }
+
+  .input-bar button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: #833ab4;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+  }
+
+  .input-bar button:hover:not(:disabled) {
+    background: #6b2989;
+  }
+
+  .input-bar button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  /* Admin panel */
+  #adminPage {
+    display: none;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+    background: #f7f7f7;
+    border-top: 1px solid #ccc;
+  }
+
+  #adminPage textarea {
+    width: 100%;
+    height: 120px;
+    margin-bottom: 10px;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  #adminPage select {
+    margin-bottom: 10px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  #adminPage button {
+    margin: 5px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background: #833ab4;
+    color: white;
+    transition: background 0.3s;
+  }
+
+  #adminPage button:hover:not(:disabled) {
+    background: #6b2989;
+  }
+
+  #adminPage button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 480px) {
+    .container {
+      max-width: 100%;
+      border-radius: 15px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="back" id="backBtn" title="Toggle Admin Panel" role="button" aria-label="Toggle Admin Panel">⇦</div>
+        <img id="friendAvatar" src="https://banner2.cleanpng.com/cb2/ykn/pfc/adoi6oygb.webp" alt="Friend avatar" onerror="this.src='https://via.placeholder.com/36';" />
+        <div id="friendName">GROW Youtube</div>
+      </div>
+      <div class="menu" title="Menu" role="button" aria-label="Menu">⋮</div>
+    </div>
+
+    <!-- Chat area -->
+    <div class="chat" id="chat" role="log" aria-live="polite"></div>
+
+    <!-- Input bar -->
+    <div class="input-bar">
+      <div class="emoji" title="Emoji" role="button" aria-label="Insert emoji">😊</div>
+      <textarea id="messageInput" placeholder="Type a message" aria-label="Type a message"></textarea>
+      <button id="sendBtn" title="Send / Record" disabled aria-label="Send message">
+        <i class="fas fa-microphone"></i>
+      </button>
+    </div>
+
+    <!-- Admin panel -->
+    <div id="adminPage">
+      <h3>Admin Panel</h3>
+      <textarea id="scriptInput" placeholder="Paste CSV script here: Person,Message,Time,ImageURL (optional)" aria-label="CSV script input"></textarea>
+      <div>
+        <label for="incomingRateSlider">Incoming Rate: <span id="incomingRateValue">1.0</span></label>
+        <input type="range" id="incomingRateSlider" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Incoming rate slider" />
+      </div>
+      <div>
+        <label for="incomingPitchSlider">Incoming Pitch: <span id="incomingPitchValue">1.0</span></label>
+        <input type="range" id="incomingPitchSlider" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Incoming pitch slider" />
+      </div>
+      <div>
+        <label for="outgoingRateSlider">Outgoing Rate: <span id="outgoingRateValue">1.0</span></label>
+        <input type="range" id="outgoingRateSlider" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Outgoing rate slider" />
+      </div>
+      <div>
+        <label for="outgoingPitchSlider">Outgoing Pitch: <span id="outgoingPitchValue">1.0</span></label>
+        <input type="range" id="outgoingPitchSlider" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Outgoing pitch slider" />
+      </div>
+      <div>
+        <label for="delaySlider">Message Delay: <span id="delayValue">2000</span> ms</label>
+        <input type="range" id="delaySlider" min="300" max="6000" step="250" value="2000" aria-label="Message delay slider" />
+      </div>
+      <button id="previewIncoming" aria-label="Preview incoming">Preview Incoming</button>
+      <button id="previewOutgoing" aria-label="Preview outgoing">Preview Outgoing</button>
+      <button id="startScript" aria-label="Start script">Start Script</button>
+      <button id="pauseScript" disabled aria-label="Pause script">Pause Script</button>
+      <button id="clearWindow" aria-label="Clear chat">Clear Chat</button>
+    </div>
+  </div>
+
+  <script>
+    // Elements
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const friendNameElem = document.getElementById("friendName");
+    const friendAvatar = document.getElementById("friendAvatar");
+    const backBtn = document.getElementById("backBtn");
+    const adminPage = document.getElementById("adminPage");
+    const scriptInput = document.getElementById("scriptInput");
+    const startScript = document.getElementById("startScript");
+    const pauseScript = document.getElementById("pauseScript");
+    const clearWindow = document.getElementById("clearWindow");
+    const delaySlider = document.getElementById("delaySlider");
+    const delayValue = document.getElementById("delayValue");
+    const incomingRateSlider = document.getElementById("incomingRateSlider");
+    const incomingRateValue = document.getElementById("incomingRateValue");
+    const incomingPitchSlider = document.getElementById("incomingPitchSlider");
+    const incomingPitchValue = document.getElementById("incomingPitchValue");
+    const outgoingRateSlider = document.getElementById("outgoingRateSlider");
+    const outgoingRateValue = document.getElementById("outgoingRateValue");
+    const outgoingPitchSlider = document.getElementById("outgoingPitchSlider");
+    const outgoingPitchValue = document.getElementById("outgoingPitchValue");
+    const previewIncoming = document.getElementById("previewIncoming");
+    const previewOutgoing = document.getElementById("previewOutgoing");
+
+    let delay = parseInt(delaySlider.value);
+    let scriptTimeouts = [];
+    let typingTimeouts = [];
+    let runningScript = false;
+    let pausedScript = false;
+    let currentScriptPromise = null;
+    let incomingRate = 1.0;
+    let incomingPitch = 1.0;
+    let outgoingRate = 1.0;
+    let outgoingPitch = 1.0;
+
+    // Update delay display
+    delaySlider.addEventListener("input", () => {
+      delay = parseInt(delaySlider.value);
+      delayValue.textContent = delay;
+    });
+
+    // Update incoming rate
+    incomingRateSlider.addEventListener("input", () => {
+      incomingRate = parseFloat(incomingRateSlider.value);
+      incomingRateValue.textContent = incomingRate.toFixed(1);
+    });
+
+    // Update incoming pitch
+    incomingPitchSlider.addEventListener("input", () => {
+      incomingPitch = parseFloat(incomingPitchSlider.value);
+      incomingPitchValue.textContent = incomingPitch.toFixed(1);
+    });
+
+    // Update outgoing rate
+    outgoingRateSlider.addEventListener("input", () => {
+      outgoingRate = parseFloat(outgoingRateSlider.value);
+      outgoingRateValue.textContent = outgoingRate.toFixed(1);
+    });
+
+    // Update outgoing pitch
+    outgoingPitchSlider.addEventListener("input", () => {
+      outgoingPitch = parseFloat(outgoingPitchSlider.value);
+      outgoingPitchValue.textContent = outgoingPitch.toFixed(1);
+    });
+
+    if ("speechSynthesis" in window) {
+      console.log("SpeechSynthesis API supported");
+    } else {
+      console.warn("SpeechSynthesis not supported in this browser");
+    }
+
+    // Play demo phrase
+    function playDemoVoice(isOutgoing) {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance("This is a demo of the voice.");
+        utterance.rate = isOutgoing ? outgoingRate : incomingRate;
+        utterance.pitch = isOutgoing ? outgoingPitch : incomingPitch;
+        utterance.lang = 'en-US';
+        console.log(`Playing demo: rate=${utterance.rate}, pitch=${utterance.pitch}`);
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    previewIncoming.addEventListener("click", () => {
+      playDemoVoice(false);
+    });
+
+    previewOutgoing.addEventListener("click", () => {
+      playDemoVoice(true);
+    });
+
+    // Toggle send button icon & disable if empty
+    function updateSendBtn() {
+      if (input.value.trim()) {
+        sendBtn.innerHTML = "<i class='fas fa-paper-plane'></i>";
+        sendBtn.disabled = false;
+      } else {
+        sendBtn.innerHTML = "<i class='fas fa-microphone'></i>";
+        sendBtn.disabled = true;
+      }
+    }
+    input.addEventListener("input", updateSendBtn);
+    updateSendBtn();
+
+    // Estimate TTS duration (in milliseconds)
+    function estimateTTSDuration(text) {
+      const words = text.trim().split(/\s+/).length;
+      const wordsPerMinute = 150; // Average speaking rate
+      return (words / wordsPerMinute) * 60 * 1000;
+    }
+
+    // Text-to-Speech function with completion callback
+    function speakText(text, isOutgoing, onEnd) {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = isOutgoing ? outgoingRate : incomingRate;
+        utterance.pitch = isOutgoing ? outgoingPitch : incomingPitch;
+        utterance.lang = 'en-US';
+        console.log(`Speaking: rate=${utterance.rate}, pitch=${utterance.pitch}`);
+        utterance.onend = () => {
+          console.log("Speech ended");
+          onEnd();
+        };
+        utterance.onerror = (e) => {
+          console.warn(`TTS error: ${e.error}`);
+          onEnd();
+        };
+        window.speechSynthesis.speak(utterance);
+        // Fallback for browsers with unreliable onend
+        setTimeout(onEnd, Math.max(estimateTTSDuration(text), 1000));
+      } else {
+        console.warn("TTS not supported in this browser.");
+        setTimeout(onEnd, estimateTTSDuration(text));
+      }
+    }
+
+    // Add message function with TTS, image support, and smooth scroll
+    function addMessage(person, text, time, imageUrl) {
+      return new Promise((resolve) => {
+        const msg = document.createElement("div");
+        const isOutgoing = person.toLowerCase() === "you";
+        msg.className = `message ${isOutgoing ? "outgoing" : "incoming"}`;
+        let content = text;
+        if (imageUrl) {
+          content = `<img src="${imageUrl}" alt="Message image" onerror="this.style.display='none';" />${text}`;
+        }
+        msg.innerHTML = `${content}<span class="time">${time}${isOutgoing ? '<span class="ticks">✔✔</span>' : ""}</span>`;
+        chat.appendChild(msg);
+        chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
+
+        // Highlight message while speaking, use only text for TTS
+        msg.classList.add("speaking");
+        console.log(`Adding message from ${person}: ${text} (Outgoing: ${isOutgoing})`);
+        speakText(text, isOutgoing, () => {
+          msg.classList.remove("speaking");
+          resolve();
+        });
+      });
+    }
+
+    // Typing indicator with dynamic duration
+    function showTypingIndicator(messageLength) {
+      const typing = document.createElement("div");
+      typing.className = "typing-indicator";
+      typing.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+      chat.appendChild(typing);
+      chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" });
+      return { element: typing, duration: Math.min(2000, 500 + messageLength * 50) };
+    }
+
+    // Improved CSV Parser with image support
+    function parseCSV(text) {
+      const rows = [];
+      let current = [];
+      let insideQuotes = false;
+      let field = "";
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (char === "," && !insideQuotes) {
+          current.push(field.trim());
+          field = "";
+        } else if ((char === "\n" || char === "\r") && !insideQuotes) {
+          if (field.length || current.length) {
+            current.push(field.trim());
+            if (current.length >= 3) rows.push(current);
+            current = [];
+            field = "";
+          }
+          if (char === "\r" && text[i + 1] === "\n") i++;
+        } else {
+          field += char;
+        }
+      }
+      if (field.length) current.push(field.trim());
+      if (current.length >= 3) rows.push(current);
+      return rows.filter(r => r.length >= 3 && r[0] && r[1] && r[2]);
+    }
+
+    // Auto type text into input with typing animation
+    function autoType(text, callback) {
+      input.value = "";
+      updateSendBtn();
+      let index = 0;
+      const typingInterval = setInterval(() => {
+        if (!runningScript || pausedScript) {
+          clearInterval(typingInterval);
+          callback();
+          return;
+        }
+        input.value += text[index];
+        index++;
+        updateSendBtn();
+        if (index >= text.length) {
+          clearInterval(typingInterval);
+          callback();
+        }
+      }, 50);
+    }
+
+    // Clear chat and stop ongoing script and speech
+    function clearWindowFunc() {
+      scriptTimeouts.forEach(clearTimeout);
+      typingTimeouts.forEach(clearTimeout);
+      scriptTimeouts = [];
+      typingTimeouts = [];
+      runningScript = false;
+      pausedScript = false;
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      chat.innerHTML = "";
+      input.value = "";
+      updateSendBtn();
+      startScript.disabled = false;
+      pauseScript.disabled = true;
+      pauseScript.textContent = "Pause Script";
+      startScript.textContent = "Start Script";
+    }
+
+    // Update friend info
+    function updateFriendInfo(name) {
+      friendNameElem.textContent = name;
+      friendAvatar.src = "https://banner2.cleanpng.com/cb2/ykn/pfc/adoi6oygb.webp";
+      friendAvatar.onerror = () => { friendAvatar.src = "https://via.placeholder.com/36"; };
+    }
+
+    // Run the script from CSV input
+    async function runScript(csvText) {
+      clearWindowFunc();
+      adminPage.style.display = "none";
+      runningScript = true;
+      startScript.disabled = true;
+      pauseScript.disabled = false;
+      startScript.textContent = "Running...";
+
+      const lines = parseCSV(csvText);
+      if (!lines.length) {
+        alert("No valid data found in CSV! Format: Person,Message,Time,ImageURL (optional)");
+        runningScript = false;
+        startScript.disabled = false;
+        pauseScript.disabled = true;
+        startScript.textContent = "Start Script";
+        return;
+      }
+
+      const firstFriendLine = lines.find(line => line[0].toLowerCase() !== "you");
+      if (firstFriendLine) updateFriendInfo(firstFriendLine[0]);
+
+      for (const line of lines) {
+        if (!runningScript || pausedScript) break;
+        const [person, message, time, imageUrl] = line;
+        const waitTime = parseInt(time) || delay;
+
+        if (person.toLowerCase() !== "you") {
+          const { element: typingInd, duration } = showTypingIndicator(message.length);
+          await new Promise((resolve) => {
+            const t1 = setTimeout(() => {
+              if (!runningScript || pausedScript) {
+                typingInd.remove();
+                resolve();
+                return;
+              }
+              typingInd.remove();
+              addMessage(person, message, time, imageUrl).then(resolve);
+            }, duration);
+            typingTimeouts.push(t1);
+          });
+          if (!runningScript || pausedScript) break;
+          await new Promise((r) => setTimeout(r, 500));
+        } else {
+          await new Promise((r) => setTimeout(r, waitTime));
+          if (!runningScript || pausedScript) break;
+          await new Promise((resolve) => {
+            autoType(message, () => {
+              if (runningScript && !pausedScript) {
+                addMessage(person, message, time, imageUrl).then(resolve);
+                input.value = "";
+                updateSendBtn();
+              } else {
+                resolve();
+              }
+            });
+          });
+        }
+      }
+
+      runningScript = false;
+      pausedScript = false;
+      startScript.disabled = false;
+      pauseScript.disabled = true;
+      startScript.textContent = "Start Script";
+      pauseScript.textContent = "Pause Script";
+    }
+
+    // Toggle admin panel visibility
+    backBtn.addEventListener("click", () => {
+      adminPage.style.display = adminPage.style.display === "flex" ? "none" : "flex";
+    });
+
+    // Start button click
+    startScript.addEventListener("click", () => {
+      if (runningScript) return;
+      currentScriptPromise = runScript(scriptInput.value);
+    });
+
+    // Pause/Resume button click
+    pauseScript.addEventListener("click", () => {
+      if (!runningScript) return;
+      pausedScript = !pausedScript;
+      pauseScript.textContent = pausedScript ? "Resume Script" : "Pause Script";
+      if (!pausedScript) {
+        currentScriptPromise.then(() => {
+          if (!runningScript) {
+            startScript.disabled = false;
+            pauseScript.disabled = true;
+            startScript.textContent = "Start Script";
+          }
+        });
+      }
+    });
+
+    // Clear button click
+    clearWindow.addEventListener("click", clearWindowFunc);
+
+    // Send button click
+    sendBtn.addEventListener("click", () => {
+      if (input.value.trim() === "") return;
+      addMessage("You", input.value.trim(), new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      input.value = "";
+      updateSendBtn();
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    // Keyboard accessibility for send button
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey && input.value.trim()) {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>
