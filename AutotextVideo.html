@@ -6,6 +6,7 @@
     <title>Awesome Subtitle Video Generator - Light Theme</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&family=Open+Sans&family=Lora&family=Poppins&display=swap">
     <style>
+       
         body {
             margin: 0;
             padding: 0;
@@ -54,7 +55,7 @@
             padding: 10px;
             border-radius: 8px;
             border: 0px dashed #007bff; 
-            border-bottom: 2px dashed #007bff;
+            border-bottom: 2px dashed #ffee33;
            
             background: #fff;
             color: #00c4b4;
@@ -201,12 +202,13 @@
                 flex-direction: column;
             }
         }
+      
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
     <div id="controller">
-        <h1 style="color:#007bff;">Awesome Subtitle Video Generator</h1>
+        <h1>Awesome Subtitle Video Generator</h1>
         <textarea id="subtitles-input" placeholder="Enter subtitles, one line per subtitle..."></textarea>
         <input type="file" id="background-file" accept="image/*,video/mp4,video/webm">
         <input type="text" id="background-url" placeholder="Enter image or video URL (optional)...">
@@ -229,7 +231,7 @@
             <option value="Lora">Lora</option>
             <option value="Poppins">Poppins</option>
         </select>
-        <input type="number" id="font-size-input" value="48" placeholder="Font size (px, default 48)" min="10" step="2">
+        <input type="number" id="font-size-input" value="48" placeholder="Font size (px, default 48)" min="10" max="100" step="2">
         <button onclick="addScene()">Add Scene</button>
         <button onclick="generateVideo()" id="generate-btn">Generate Video</button>
         <button onclick="previewCurrent()">Preview Current</button>
@@ -241,11 +243,11 @@
         <div id="scenes"></div>
         <div class="preview-container">
             <div class="preview">
-                <label style="color:#007bff;">YouTube Preview (16:9)</label>
+                <label>YouTube Preview (16:9)</label>
                 <canvas id="youtube-preview" width="320" height="180"></canvas>
             </div>
             <div class="preview">
-                <label style="color:#007bff;">Instagram Reel Preview (9:16)</label>
+                <label>Instagram Reel Preview (9:16)</label>
                 <canvas id="instagram-preview" width="180" height="320"></canvas>
             </div>
         </div>
@@ -270,8 +272,7 @@
             const savedScenes = localStorage.getItem('scenes');
             if (savedScenes) {
                 try {
-                    const parsedScenes = JSON.parse(savedScenes);
-                    scenes = parsedScenes.filter(scene => 
+                    scenes = JSON.parse(savedScenes).filter(scene => 
                         scene && 
                         Array.isArray(scene.subtitles) && 
                         scene.subtitles.length > 0
@@ -300,34 +301,36 @@
             const font = document.getElementById('font-select').value;
             const fontSize = parseInt(document.getElementById('font-size-input').value) || 48;
 
+            console.log('Adding scene...');
             if (!input) {
-                alert('Please enter subtitles!');
+                alert('Please enter at least one subtitle.');
+                console.error('No subtitles provided');
                 return;
             }
 
-            if (!fileInput.files[0] && !backgroundUrlInput) {
-                alert('Please select a background file or enter a URL!');
-                return;
-            }
-
-            const subtitles = input.split('\n').filter(line => line.trim() !== '');
-            if (subtitles.length === 0) {
-                alert('Please enter at least one valid subtitle!');
-                return;
-            }
-
-            let backgroundUrl;
-            let fileType;
+            let backgroundUrl, fileType;
             if (fileInput.files[0]) {
-                const file = fileInput.files[0];
-                backgroundUrl = URL.createObjectURL(file);
-                fileType = file.type;
-            } else {
+                backgroundUrl = URL.createObjectURL(fileInput.files[0]);
+                fileType = fileInput.files[0].type;
+                console.log('Using file upload:', fileInput.files[0].name, fileType);
+            } else if (backgroundUrlInput) {
                 backgroundUrl = backgroundUrlInput;
-                fileType = backgroundUrl.endsWith('.mp4') || backgroundUrl.endsWith('.webm') ? 'video/mp4' : 'image/jpeg';
+                fileType = backgroundUrlInput.match(/\.(mp4|webm)$/i) ? 'video/mp4' : 'image/jpeg';
+                console.log('Using URL:', backgroundUrl, fileType);
+            } else {
+                alert('Please select a background file or enter a URL.');
+                console.error('No background provided');
+                return;
             }
 
-            scenes.push({ 
+            const subtitles = input.split('\n').filter(line => line.trim());
+            if (subtitles.length === 0) {
+                alert('Please enter valid subtitles.');
+                console.error('No valid subtitles');
+                return;
+            }
+
+            const scene = { 
                 subtitles, 
                 backgroundUrl, 
                 textPosition, 
@@ -336,17 +339,19 @@
                 font, 
                 fontSize,
                 fileType
-            });
-            localStorage.setItem('scenes', JSON.stringify(scenes.map(scene => ({
-                ...scene,
-                backgroundUrl: scene.backgroundUrl.startsWith('blob:') ? null : scene.backgroundUrl
+            };
+            scenes.push(scene);
+            localStorage.setItem('scenes', JSON.stringify(scenes.map(s => ({
+                ...s,
+                backgroundUrl: s.backgroundUrl.startsWith('blob:') ? null : s.backgroundUrl
             }))));
+            console.log('Scene added:', scene);
             document.getElementById('subtitles-input').value = '';
             fileInput.value = '';
             document.getElementById('background-url').value = '';
             document.getElementById('text-position').value = 'bottom';
             document.getElementById('caption-style').value = 'highlight';
-            document.getElementById('timing-input').value = '';
+            document.getElementById('timing-input').value = '1200';
             document.getElementById('font-select').value = 'Arial';
             document.getElementById('font-size-input').value = '48';
             renderScenes();
@@ -354,6 +359,7 @@
         }
 
         function loadDemo() {
+            console.log('Loading demo...');
             document.getElementById('background-url').value = 'https://image.lexica.art/md2/17485980-efeb-4663-8f46-5ef010951ecc';
             document.getElementById('subtitles-input').value = 'Beautiful Portrait\nOrnate Jewelry\nRoyal Attire';
             document.getElementById('caption-style').value = 'gradient';
@@ -362,30 +368,41 @@
         }
 
         function deleteScene(index) {
-            if (scenes[index].backgroundUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(scenes[index].backgroundUrl);
+            console.log('Deleting scene at index:', index);
+            if (index < 0 || index >= scenes.length) {
+                console.error('Invalid scene index:', index);
+                return;
+            }
+            const scene = scenes[index];
+            if (scene.backgroundUrl && scene.backgroundUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(scene.backgroundUrl);
+                console.log('Revoked blob URL for scene:', index);
             }
             scenes.splice(index, 1);
-            localStorage.setItem('scenes', JSON.stringify(scenes.map(scene => ({
-                ...scene,
-                backgroundUrl: scene.backgroundUrl.startsWith('blob:') ? null : scene.backgroundUrl
+            localStorage.setItem('scenes', JSON.stringify(scenes.map(s => ({
+                ...s,
+                backgroundUrl: s.backgroundUrl && s.backgroundUrl.startsWith('blob:') ? null : s.backgroundUrl
             }))));
+            console.log('Scene deleted, new scenes array:', scenes);
             renderScenes();
         }
 
         function renderScenes() {
+            console.log('Rendering scenes:', scenes.length);
             const scenesDiv = document.getElementById('scenes');
             scenesDiv.innerHTML = '';
             scenes.forEach((scene, index) => {
+                const isVideo = scene.fileType && scene.fileType.startsWith('video/');
                 const sceneDiv = document.createElement('div');
                 sceneDiv.className = 'scene';
-                const isVideo = scene.fileType && scene.fileType.startsWith('video/');
                 sceneDiv.innerHTML = `
-                    ${isVideo ? 
-                        `<video src="${scene.backgroundUrl}" autoplay loop muted></video>` : 
-                        `<img src="${scene.backgroundUrl}" alt="Scene Preview">`
+                    ${scene.backgroundUrl ? 
+                        (isVideo ? 
+                            `<video src="${scene.backgroundUrl}" autoplay loop muted></video>` : 
+                            `<img src="${scene.backgroundUrl}" alt="Scene Preview">`) : 
+                        `<div style="width:100%;height:80px;background:#ccc;border-radius:5px;">No Preview</div>`
                     }
-                    <p>${scene.subtitles[0].substring(0, 20)}...</p>
+                    <p>${scene.subtitles[0]?.substring(0, 20) || 'No subtitle'}...</p>
                     <p>Pos: ${scene.textPosition}</p>
                     <p>Style: ${scene.captionStyle}</p>
                     <p>Timing: ${scene.timing}ms</p>
@@ -396,9 +413,11 @@
                 `;
                 scenesDiv.appendChild(sceneDiv);
             });
+            console.log('Scenes rendered');
         }
 
         function exportScenes() {
+            console.log('Exporting scenes...');
             const data = JSON.stringify(scenes.map(scene => ({
                 ...scene,
                 backgroundUrl: scene.backgroundUrl.startsWith('blob:') ? null : scene.backgroundUrl,
@@ -411,11 +430,16 @@
             a.download = 'scenes.json';
             a.click();
             URL.revokeObjectURL(url);
+            console.log('Scenes exported');
         }
 
         function importScenes(event) {
+            console.log('Importing scenes...');
             const file = event.target.files[0];
-            if (!file) return;
+            if (!file) {
+                console.error('No file selected for import');
+                return;
+            }
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
@@ -425,13 +449,14 @@
                         Array.isArray(scene.subtitles) && 
                         scene.subtitles.length > 0
                     );
-                    alert('Imported scenes detected, but if using files, they must be re-uploaded manually.');
                     scenes = validScenes;
                     localStorage.setItem('scenes', JSON.stringify(scenes));
                     renderScenes();
+                    alert('Scenes imported. Re-upload background files if needed.');
+                    console.log('Scenes imported:', scenes);
                 } catch (e) {
                     console.error('Error importing scenes:', e);
-                    alert('Failed to import scenes. Please ensure the file is a valid JSON.');
+                    alert('Failed to import scenes. Please ensure the file is valid JSON.');
                 }
             };
             reader.readAsText(file);
@@ -440,6 +465,7 @@
         async function generateVideo() {
             if (scenes.length === 0) {
                 alert('Please add at least one scene!');
+                console.error('No scenes to generate video');
                 return;
             }
 
@@ -479,17 +505,7 @@
                         URL.revokeObjectURL(url);
                         progressDiv.textContent = 'Video generated and downloaded!';
                     }
-                    generateBtn.disabled = false;
-                    generateBtn.textContent = 'Generate Video';
-                    document.getElementById('controller').style.opacity = '1';
-                    canvas.style.display = 'none';
-                    scenes.forEach(scene => {
-                        if (scene.backgroundUrl.startsWith('blob:')) {
-                            URL.revokeObjectURL(scene.backgroundUrl);
-                            delete scene.backgroundUrl;
-                        }
-                    });
-                    renderScenes();
+                    cleanup();
                 };
 
                 mediaRecorder.onerror = (error) => {
@@ -525,56 +541,13 @@
                 console.log(`Processing scene ${sceneIndex + 1}:`, scene);
 
                 const isVideo = scene.fileType && scene.fileType.startsWith('video/');
-                let background;
-
-                if (isVideo) {
-                    background = document.createElement('video');
-                    background.src = scene.backgroundUrl;
-                    background.muted = true;
-                    background.loop = true;
-                    try {
-                        await background.play();
-                        console.log('Video background playing');
-                    } catch (err) {
-                        console.error('Error playing video:', err);
-                        background = null;
-                    }
-                } else {
-                    background = new Image();
-                    background.src = scene.backgroundUrl;
-                }
-
-                await new Promise((resolve) => {
-                    if (isVideo && background) {
-                        background.oncanplay = () => {
-                            console.log('Video loaded');
-                            resolve();
-                        };
-                        background.onerror = (err) => {
-                            console.error('Error loading video:', err);
-                            resolve();
-                        };
-                    } else if (background) {
-                        background.onload = () => {
-                            console.log('Image loaded');
-                            resolve();
-                        };
-                        background.onerror = (err) => {
-                            console.error('Error loading image:', err);
-                            resolve();
-                        };
-                    } else {
-                        resolve();
-                    }
-                });
-
+                let background = await loadBackground(scene.backgroundUrl, scene.fileType);
                 for (let lineIndex = 0; lineIndex < scene.subtitles.length; lineIndex++) {
                     progressDiv.textContent = `Rendering scene ${sceneIndex + 1}/${scenes.length}, line ${lineIndex + 1}/${scene.subtitles.length}...`;
                     console.log(`Rendering line ${lineIndex + 1}: ${scene.subtitles[lineIndex]}`);
                     await renderLine(scene.subtitles[lineIndex], scene, background);
                     await wait(scene.timing);
                 }
-
                 if (isVideo && background) {
                     background.pause();
                 }
@@ -612,13 +585,13 @@
                         await wait(300);
                     }
                 } else if (scene.captionStyle === 'color-change') {
-                    for (let t = 0; t < 5; t++) { // Cycle 5 times
+                    for (let t = 0; t < 5; t++) {
                         drawChunk(chunkWords, -1, scene, background, scene.captionStyle, t);
                         await wait(300);
                     }
-                } else { // gradient or default
+                } else {
                     drawChunk(chunkWords, -1, scene, background, scene.captionStyle);
-                    await wait(300 * chunkWords.length); // Simulate duration
+                    await wait(300 * chunkWords.length);
                 }
             }
         }
@@ -687,17 +660,18 @@
         }
 
         async function previewCurrent() {
+            console.log('Generating preview...');
             const lastScene = scenes[scenes.length - 1] || getCurrentInputAsScene();
             if (!lastScene) {
                 alert('Add a scene or fill inputs to preview.');
+                console.error('No scene for preview');
                 return;
             }
 
-            const backgrounds = await loadBackground(lastScene.backgroundUrl, lastScene.fileType);
-            if (!backgrounds) return;
-
-            renderPreview(youtubeCtx, youtubePreview, lastScene, backgrounds, 320, 180);
-            renderPreview(instagramCtx, instagramPreview, lastScene, backgrounds, 180, 320);
+            const background = await loadBackground(lastScene.backgroundUrl, lastScene.fileType);
+            renderPreview(youtubeCtx, youtubePreview, lastScene, background, 320, 180);
+            renderPreview(instagramCtx, instagramPreview, lastScene, background, 180, 320);
+            console.log('Preview rendered');
         }
 
         function getCurrentInputAsScene() {
@@ -708,15 +682,19 @@
             const timing = parseInt(document.getElementById('timing-input').value) || 1200;
             const font = document.getElementById('font-select').value;
             const fontSize = parseInt(document.getElementById('font-size-input').value) || 48;
-            const fileType = backgroundUrl.endsWith('.mp4') || backgroundUrl.endsWith('.webm') ? 'video/mp4' : 'image/jpeg';
+            const fileType = backgroundUrl.match(/\.(mp4|webm)$/i) ? 'video/mp4' : 'image/jpeg';
 
-            if (!input || !backgroundUrl) return null;
+            if (!input || !backgroundUrl) {
+                console.error('Invalid preview input:', { input, backgroundUrl });
+                return null;
+            }
 
-            const subtitles = input.split('\n').filter(line => line.trim() !== '');
+            const subtitles = input.split('\n').filter(line => line.trim());
             return { subtitles, backgroundUrl, textPosition, captionStyle, timing, font, fontSize, fileType };
         }
 
         async function loadBackground(url, fileType) {
+            console.log('Loading background:', url, fileType);
             const isVideo = fileType.startsWith('video/');
             let background = isVideo ? document.createElement('video') : new Image();
             background.src = url;
@@ -725,6 +703,7 @@
                 background.loop = true;
                 try {
                     await background.play();
+                    console.log('Video background playing for preview');
                 } catch (err) {
                     console.error('Preview video play error:', err);
                     return null;
@@ -732,11 +711,20 @@
             }
             return new Promise((resolve) => {
                 if (isVideo) {
-                    background.oncanplay = () => resolve(background);
+                    background.oncanplay = () => {
+                        console.log('Video loaded for preview');
+                        resolve(background);
+                    };
                 } else {
-                    background.onload = () => resolve(background);
+                    background.onload = () => {
+                        console.log('Image loaded for preview');
+                        resolve(background);
+                    };
                 }
-                background.onerror = () => resolve(null);
+                background.onerror = () => {
+                    console.error('Error loading background for preview:', url);
+                    resolve(null);
+                };
             });
         }
 
@@ -752,9 +740,6 @@
             const scale = Math.min(pwidth / canvas.width, pheight / canvas.height);
             const fontSize = scene.fontSize * scale;
             pctx.font = `bold ${fontSize}px ${scene.font}`;
-            pctx.fillStyle = '#333';
-            pctx.strokeStyle = '#fff';
-            pctx.lineWidth = 2 * scale;
             pctx.textAlign = 'center';
             pctx.textBaseline = 'middle';
 
@@ -771,9 +756,32 @@
                     break;
             }
 
+            if (scene.captionStyle === 'gradient') {
+                const gradient = pctx.createLinearGradient(0, y - fontSize / 2, 0, y + fontSize / 2);
+                gradient.addColorStop(0, '#007bff');
+                gradient.addColorStop(0.5, '#00c4b4');
+                gradient.addColorStop(1, '#ff6b6b');
+                pctx.fillStyle = gradient;
+            } else {
+                pctx.fillStyle = '#333';
+            }
+
+            pctx.strokeStyle = '#fff';
+            pctx.lineWidth = 2 * scale;
+
             const text = scene.subtitles[0] || 'Preview Text';
             pctx.strokeText(text, pwidth / 2, y);
             pctx.fillText(text, pwidth / 2, y);
+
+            if (scene.captionStyle === 'highlight' || scene.captionStyle === 'hover') {
+                const words = text.split(' ');
+                if (words.length > 0) {
+                    const highText = words[0];
+                    const preWidth = pctx.measureText('').width;
+                    pctx.fillStyle = '#007bff';
+                    pctx.fillText(highText, pwidth / 2 - pctx.measureText(text).width / 2, y);
+                }
+            }
         }
 
         function wait(ms) {
