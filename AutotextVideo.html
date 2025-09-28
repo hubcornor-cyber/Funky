@@ -16,7 +16,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f0f0f0;
+            background-color: #fee;
         }
 
         #controller {
@@ -53,9 +53,11 @@
             width: 100%;
             padding: 10px;
             border-radius: 8px;
-            border: 1px solid #ccc;
+            border: 0px dashed #007bff; 
+            border-bottom: 2px dashed #007bff;
+           
             background: #fff;
-            color: #333;
+            color: #00c4b4;
             font-size: 1em;
             margin-bottom: 15px;
             box-sizing: border-box;
@@ -121,12 +123,12 @@
             color: white;
             padding: 10px;
             border-radius: 5px;
-            top: -10px;
+            top: 1px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
             display: none;
-            max-width: 200px;
+            width: 200px;
             white-space: normal;
         }
 
@@ -204,7 +206,7 @@
 <body>
     <canvas id="canvas"></canvas>
     <div id="controller">
-        <h1>Awesome Subtitle Video Generator</h1>
+        <h1 style="color:#007bff;">Awesome Subtitle Video Generator</h1>
         <textarea id="subtitles-input" placeholder="Enter subtitles, one line per subtitle..."></textarea>
         <input type="file" id="background-file" accept="image/*,video/mp4,video/webm">
         <input type="text" id="background-url" placeholder="Enter image or video URL (optional)...">
@@ -239,11 +241,11 @@
         <div id="scenes"></div>
         <div class="preview-container">
             <div class="preview">
-                <label>YouTube Preview (16:9)</label>
+                <label style="color:#007bff;">YouTube Preview (16:9)</label>
                 <canvas id="youtube-preview" width="320" height="180"></canvas>
             </div>
             <div class="preview">
-                <label>Instagram Reel Preview (9:16)</label>
+                <label style="color:#007bff;">Instagram Reel Preview (9:16)</label>
                 <canvas id="instagram-preview" width="180" height="320"></canvas>
             </div>
         </div>
