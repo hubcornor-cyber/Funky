@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>WebM to MP4 Converter (Online/Offline)</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 1em; }
+        video { width: 100%; max-width: 480px; margin: 1em 0; }
+        #loader { display: none; font-weight: bold; color: #0066cc; }
+        input, button, label { margin: 0.5em 0; display: block; }
+        button { padding: 0.6em 1em; font-size: 1em; }
+    </style>
+</head>
+<body>
+    <h1>WebM to MP4 Converter</h1>
+    
+    <label>
+      <input type="checkbox" id="toggleMode" checked />
+      Use Online FFmpeg (CDN)
+    </label>
+
+    <input type="file" id="uploadWebM" accept="video/webm" />
+    <button id="convertBtn" disabled>Convert to MP4</button>
+
+    <div id="loader">Processing... Please wait.</div>
+
+    <video id="videoOutput" controls></video>
+    <a id="downloadLink" style="display:none;" download="converted.mp4">Download Converted MP4</a>
+
+    <script>
+      const toggleMode = document.getElementById('toggleMode');
+      const uploadWebM = document.getElementById('uploadWebM');
+      const convertBtn = document.getElementById('convertBtn');
+      const loader = document.getElementById('loader');
+      const videoOutput = document.getElementById('videoOutput');
+      const downloadLink = document.getElementById('downloadLink');
+
+      let ffmpegWorker;
+      let selectedFile;
+
+      // Paths
+      const onlineWorkerPath = 'https://archive.org/download/ffmpeg_asm/ffmpeg_asm.js';
+      const offlineWorkerPath = './ffmpeg_asm.js'; // you must place this file locally
+
+      // Enable convert button only when a file is selected
+      uploadWebM.addEventListener('change', () => {
+        selectedFile = uploadWebM.files[0];
+        convertBtn.disabled = !selectedFile;
+      });
+
+      toggleMode.addEventListener('change', () => {
+        if (ffmpegWorker) {
+          ffmpegWorker.terminate();
+          ffmpegWorker = null;
+        }
+      });
+
+      function createWorker(path) {
+        const blobCode = `
+          importScripts('${path}');
+          var now = Date.now;
+          function print(text) { postMessage({ type: "stdout", data: text }); }
+          onmessage = function(event) {
+            var message = event.data;
+            if (message.type === "command") {
+              var Module = {
+                print: print,
+                printErr: print,
+                files: message.files || [],
+                arguments: message.arguments || [],
+                TOTAL_MEMORY: message.TOTAL_MEMORY || false
+              };
+              postMessage({ type: "start", data: Module.arguments.join(" ") });
+              postMessage({ type: "stdout", data: "Received command: " + Module.arguments.join(" ") });
+              var start = now();
+              var result = ffmpeg_run(Module);
+              var totalTime = now() - start;
+              postMessage({ type: "stdout", data: "Finished processing (took " + totalTime + "ms)" });
+              postMessage({ type: "done", data: result, time: totalTime });
+            }
+          };
+          postMessage({ type: "ready" });
+        `;
+        const blob = new Blob([blobCode], { type: 'application/javascript' });
+        const worker = new Worker(URL.createObjectURL(blob));
+        return worker;
+      }
+
+      function log(msg) {
+        console.log(msg);
+      }
+
+      convertBtn.onclick = () => {
+        if (!selectedFile) return;
+
+        loader.style.display = 'block';
+        videoOutput.src = '';
+        downloadLink.style.display = 'none';
+        convertBtn.disabled = true;
+
+        if (!ffmpegWorker) {
+          const path = toggleMode.checked ? onlineWorkerPath : offlineWorkerPath;
+          ffmpegWorker = createWorker(path);
+        }
+
+        let fileReader = new FileReader();
+        fileReader.onload = () => {
+          const arrayBuffer = fileReader.result;
+          ffmpegWorker.onmessage = (e) => {
+            const msg = e.data;
+            if (msg.type === 'ready') {
+              log('FFmpeg worker ready');
+              ffmpegWorker.postMessage({
+                type: 'command',
+                arguments: ['-i', 'input.webm', '-c:v', 'mpeg4', '-b:v', '6400k', 'output.mp4'],
+                files: [{ name: 'input.webm', data: new Uint8Array(arrayBuffer) }],
+              });
+            } else if (msg.type === 'stdout') {
+              log(msg.data);
+            } else if (msg.type === 'start') {
+              log('FFmpeg command started');
+            } else if (msg.type === 'done') {
+              log('FFmpeg done processing');
+              const result = msg.data[0];
+              const mp4Blob = new Blob([result.data], { type: 'video/mp4' });
+              const url = URL.createObjectURL(mp4Blob);
+              videoOutput.src = url;
+              downloadLink.href = url;
+              downloadLink.style.display = 'inline-block';
+
+              loader.style.display = 'none';
+              convertBtn.disabled = false;
+            }
+          };
+        };
+        fileReader.readAsArrayBuffer(selectedFile);
+      };
+    </script>
+</body>
+</html>
