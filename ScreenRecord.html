@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Offline Screen Recorder</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        video {
+            margin-top: 20px;
+            width: 60%;
+            max-width: 800px;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+
+        #downloadBtn {
+            margin-top: 20px;
+            display: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #downloadBtn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Offline Screen Recorder (10 Seconds)</h1>
+    <p>Recording will start automatically and stop after 10 seconds.</p>
+    <video id="player" controls autoplay playsinline></video>
+    <br>
+    <a id="downloadBtn" href="#" download="recording.webm">Download Recording</a>
+
+    <!-- Load local RecordRTC -->
+    <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
+
+    <script>
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+            alert('Your browser does not support screen recording (getDisplayMedia).');
+            throw new Error('getDisplayMedia not supported.');
+        }
+
+        const video = document.getElementById('player');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        navigator.mediaDevices.getDisplayMedia({ video: true }).then(screenStream => {
+            video.srcObject = screenStream;
+            video.muted = true;
+            video.play();
+
+            const recorder = RecordRTC(screenStream, {
+                type: 'video',
+                mimeType: 'video/webm'
+            });
+
+            recorder.startRecording();
+
+            setTimeout(() => {
+                recorder.stopRecording(() => {
+                    const blob = recorder.getBlob();
+
+                    // Stop screen stream
+                    screenStream.getTracks().forEach(track => track.stop());
+
+                    // Update video
+                    video.srcObject = null;
+                    const videoURL = URL.createObjectURL(blob);
+                    video.src = videoURL;
+                    video.muted = false;
+                    video.controls = true;
+                    video.play();
+
+                    // Show download link
+                    downloadBtn.href = videoURL;
+                    downloadBtn.style.display = 'inline-block';
+                });
+            }, 10 * 1000); // 10 seconds
+
+        }).catch(err => {
+            alert('Screen capture failed: ' + err);
+            console.error(err);
+        });
+    </script>
+</body>
+</html>
