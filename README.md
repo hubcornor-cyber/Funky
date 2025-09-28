@@ -9,17 +9,18 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | Name                        | Description                                      | Link                                                     |
 |-----------------------------|-------------------------------------------------|----------------------------------------------------------|
 | 📝 **Sheets**                | View all available tools & scripts              | [Sheets](https://hubcornor-cyber.github.io/Funky/)       | 
-| 🤖 **Automation ScreenRecord**            | Create 100+ images with one click                | [ScreenRecord](https://hubcornor-cyber.github.io/Funky/ScreenRecord.html) |
-| 🤖 **Automation**            | Create 100+ images with one click                | [Automation](https://hubcornor-cyber.github.io/Funky/Automation.html) |
-| 🖼️ **Automation Image**      | Mass generate images easily                       | [Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImage.html) |
+| 📷 **Automation ScreenRecord**            | Create 100+ images with one click                | [ScreenRecord](https://hubcornor-cyber.github.io/Funky/ScreenRecord.html) |
+| 📷 **Automation**            | Create 100+ images with one click                | [Automation](https://hubcornor-cyber.github.io/Funky/Automation.html) |
+| 📷 **Automation Image**      | Mass generate images easily                       | [Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImage.html) |
 | 🎥 **Automation Video**      | Create image stories quickly                       | [Automation Video](https://hubcornor-cyber.github.io/Funky/AutoVideo.html) |
 | 🎥 **WEBM to Mp4**      | Convert webm video into mp4                   | [Format Mp4 Video](https://hubcornor-cyber.github.io/mp4/examples/wasm-ffmpeg/index.html) |
-  | 🎥      |                    | [Format Mp4 Video](https://hubcornor-cyber.github.io/mp4/examples/wasm-ffmpeg/mp4.html) |
+| 🎥      |                    | [Format Mp4 Video](https://hubcornor-cyber.github.io/mp4/examples/wasm-ffmpeg/mp4.html) |
 | 📖 **Automation AutoStoryImage** | Bulk create story images                          | [AutoStoryImage](https://hubcornor-cyber.github.io/Funky/AutoStoryImage.html) |
-| 🏷️ **AutoSubtitle**          | Add colorful animated captions on images         | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitle.html) |
-| 📸 **AutoFetchImages**       | Fetch 100+ images with one click                   | [AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html) |
-| 📸 **PixaBay FetchImages**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/Pixabay.html) |
-| 📸 **PixaBay II Fetch**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/PixabayII.html) |
+| 📘 **Auto Subtitle**          | Add colorful animated captions on images         | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitle.html) |
+| 📷        | Add colorful animated captions on gallery images   | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitleOffline.html) |
+| 📷 **AutoFetchImages**       | Fetch 100+ images with one click                   | [AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html) |
+| 📷 **PixaBay FetchImages**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/Pixabay.html) |
+| 📷 **PixaBay II Fetch**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/PixabayII.html) |
 | 🔢 **NumberInfo**            | Number info tool (currently not working)          | [NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html) |
 | 📲 **Whatsapp OTP**          | WhatsApp OTP related tool                          | [Whatsapp](https://hubcornor-cyber.github.io/Funky/Whatsapp.html) |
 | 📧 **Gmail Signin**          | Gmail login simulation                             | [Google.html](https://hubcornor-cyber.github.io/Funky/Google.html) |
