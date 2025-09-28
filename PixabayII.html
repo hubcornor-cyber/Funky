@@ -82,13 +82,25 @@
         iframe {
             display: none;
         }
+        input[type="text"], select {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <h1>Love Wallpapers from Pixabay</h1>
     <div class="controls">
-        <button id="scrapeButton" disabled>Load Images</button>
-        <div id="imageCount" class="loading">Waiting for iframe to load...</div>
+        <input type="text" id="keywordInput" placeholder="Enter search keyword (e.g., love)" value="love">
+        <select id="orientationSelect">
+            <option value="vertical" selected>Vertical</option>
+            <option value="horizontal">Horizontal</option>
+        </select>
+        <button id="searchButton">Search</button>
+        <div id="imageCount" class="loading">Enter a keyword and click Search...</div>
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar" id="progressBar"></div>
         </div>
@@ -98,20 +110,27 @@
 
     <script>
         const iframe = document.getElementById('scrapeFrame');
-        const scrapeButton = document.getElementById('scrapeButton');
+        const searchButton = document.getElementById('searchButton');
+        const keywordInput = document.getElementById('keywordInput');
+        const orientationSelect = document.getElementById('orientationSelect');
         const imageCount = document.getElementById('imageCount');
         const gallery = document.getElementById('gallery');
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
-        const targetUrl = 'https://pixabay.com/images/search/love/?orientation=vertical';
         const corsProxy = 'https://corsproxy.io/?';
-        const scrapeUrl = corsProxy + encodeURIComponent(targetUrl);
         let imageUrls = [];
 
         // Update progress bar
         function updateProgress(percent) {
             progressContainer.style.display = 'block';
             progressBar.style.width = `${percent}%`;
+        }
+
+        // Get dynamic URL based on user input
+        function getTargetUrl() {
+            const keyword = encodeURIComponent(keywordInput.value.trim() || 'love');
+            const orientation = orientationSelect.value;
+            return `https://pixabay.com/images/search/${keyword}/?orientation=${orientation}`;
         }
 
         // Try scraping from iframe
@@ -157,6 +176,8 @@
             updateProgress(40);
             imageCount.textContent = 'Trying fallback method...';
             try {
+                const targetUrl = getTargetUrl();
+                const scrapeUrl = corsProxy + encodeURIComponent(targetUrl);
                 const response = await fetch(scrapeUrl);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -202,7 +223,7 @@
             urls.forEach((url, index) => {
                 const imgElement = document.createElement('img');
                 imgElement.src = url;
-                imgElement.alt = 'Pixabay Love Wallpaper';
+                imgElement.alt = `Pixabay ${keywordInput.value || 'Love'} Wallpaper`;
                 imgElement.onerror = () => {
                     imgElement.style.display = 'none';
                 };
@@ -211,22 +232,27 @@
             });
         }
 
-        // Manual trigger
-        scrapeButton.addEventListener('click', () => {
-            scrapeButton.disabled = true;
+        // Search button trigger
+        searchButton.addEventListener('click', () => {
+            if (!keywordInput.value.trim()) {
+                imageCount.textContent = 'Please enter a keyword.';
+                return;
+            }
+            searchButton.disabled = true;
             imageCount.textContent = 'Loading images...';
             updateProgress(0);
-            tryIframeScrape();
+            iframe.src = getTargetUrl();
         });
 
         // Wait for iframe to load
         iframe.onload = () => {
-            imageCount.textContent = 'Iframe loaded. Click "Load Images" to scrape.';
-            scrapeButton.disabled = false;
+            imageCount.textContent = 'Iframe loaded. Click "Search" to load images.';
+            searchButton.disabled = false;
+            tryIframeScrape();
         };
 
         iframe.onerror = () => {
-            imageCount.textContent = 'Iframe failed to load. Trying fallback method...';
+            imageCount.textContent = 'Iframe failed to load. Trying fallback method Crosbyethod...';
             scrapeWithFetch();
         };
     </script>
