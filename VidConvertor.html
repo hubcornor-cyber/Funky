@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Upload WebM and Convert to MP4 (Offline)</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 2em;
+            background: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        video {
+            width: 100%;
+            margin-top: 1em;
+        }
+        button, input[type="file"] {
+            padding: 10px;
+            margin-top: 1em;
+            font-size: 1em;
+        }
+        ol {
+            background: #fff;
+            padding: 1em;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Upload WebM Video & Convert to MP4</h2>
+
+    <input type="file" id="webmInput" accept="video/webm">
+    <button id="convertBtn" disabled>Convert to MP4</button>
+
+    <video id="videoPreview" controls></video>
+
+    <ol id="logs-preview">
+        <li>Select a .webm video to convert.</li>
+    </ol>
+</div>
+
+<script>
+    const webmInput = document.getElementById('webmInput');
+    const convertBtn = document.getElementById('convertBtn');
+    const videoPreview = document.getElementById('videoPreview');
+    const logs = document.getElementById('logs-preview');
+
+    let selectedBlob;
+    let worker;
+    const workerPath = 'ffmpeg_asm.js'; // Use local copy
+
+    webmInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (file && file.type === 'video/webm') {
+            selectedBlob = file;
+            videoPreview.src = URL.createObjectURL(file);
+            convertBtn.disabled = false;
+            log("WebM file selected: " + file.name);
+        } else {
+            log("Please upload a valid .webm file.");
+            convertBtn.disabled = true;
+        }
+    });
+
+    convertBtn.addEventListener('click', function () {
+        if (!selectedBlob) return;
+        log("Starting conversion...");
+
+        convertBtn.disabled = true;
+        convertStreams(selectedBlob);
+    });
+
+    function processInWebWorker() {
+        const blob = URL.createObjectURL(new Blob([`
+            importScripts("${workerPath}");
+            var now = Date.now;
+            function print(text) { postMessage({type: "stdout", data: text}); }
+            onmessage = function(event) {
+                var message = event.data;
+                if (message.type === "command") {
+                    var Module = {
+                        print: print,
+                        printErr: print,
+                        files: message.files || [],
+                        arguments: message.arguments || [],
+                        TOTAL_MEMORY: message.TOTAL_MEMORY || false
+                    };
+                    postMessage({type: "start", data: Module.arguments.join(" ")});
+                    var time = now();
+                    var result = ffmpeg_run(Module);
+                    var totalTime = now() - time;
+                    postMessage({type: "done", data: result, time: totalTime});
+                }
+            };
+            postMessage({type: "ready"});
+        `], {type: 'application/javascript'}));
+        const worker = new Worker(blob);
+        URL.revokeObjectURL(blob);
+        return worker;
+    }
+
+    function convertStreams(videoBlob) {
+        let aab;
+        let buffersReady = false;
+        let workerReady = false;
+
+        const fileReader = new FileReader();
+        fileReader.onload = function () {
+            aab = this.result;
+            buffersReady = true;
+            if (workerReady) sendCommand();
+        };
+        fileReader.readAsArrayBuffer(videoBlob);
+
+        if (!worker) {
+            worker = processInWebWorker();
+        }
+
+        worker.onmessage = function (event) {
+            const message = event.data;
+            if (message.type === "ready") {
+                log("FFmpeg worker is ready.");
+                workerReady = true;
+                if (buffersReady) sendCommand();
+            } else if (message.type === "stdout") {
+                log(message.data);
+            } else if (message.type === "start") {
+                log("FFmpeg started with arguments.");
+            } else if (message.type === "done") {
+                const result = message.data[0];
+                const mp4Blob = new File([result.data], 'converted.mp4', {type: 'video/mp4'});
+                displayConvertedVideo(mp4Blob);
+            }
+        };
+
+        function sendCommand() {
+            worker.postMessage({
+                type: 'command',
+                arguments: '-i video.webm -c:v mpeg4 -b:v 6400k output.mp4'.split(' '),
+                files: [{
+                    data: new Uint8Array(aab),
+                    name: 'video.webm'
+                }]
+            });
+        }
+    }
+
+    function displayConvertedVideo(blob) {
+        const mp4Url = URL.createObjectURL(blob);
+
+        const h3 = document.createElement('h3');
+        h3.innerHTML = `<a href="${mp4Url}" download="converted.mp4">Download Converted MP4</a>`;
+        logs.appendChild(document.createElement('hr'));
+        logs.appendChild(h3);
+
+        const video = document.createElement('video');
+        video.controls = true;
+        video.src = mp4Url;
+        logs.appendChild(video);
+
+        video.play();
+        convertBtn.disabled = false;
+        log("Conversion complete.");
+    }
+
+    function log(msg) {
+        const li = document.createElement('li');
+        li.textContent = msg;
+        logs.appendChild(li);
+    }
+</script>
+</body>
+</html>
