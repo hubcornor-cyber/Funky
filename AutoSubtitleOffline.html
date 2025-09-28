@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awesome Auto Subtitle Effect - Light Theme</title>
+    <!-- Google Fonts CDN for font selection -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&family=Open+Sans&family=Lora&family=Poppins&display=swap">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease;
+            position: relative;
+        }
+
+        video#background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        #controller {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            z-index: 2;
+            max-height: 70vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #controller::-webkit-scrollbar {
+            display: none;
+        }
+        #controller {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        #controller h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #subtitles-input, #background-file, #text-position, #caption-style, #timing-input, #font-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background: #fff;
+            color: #333;
+            font-size: 1em;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        #subtitles-input {
+            height: 100px;
+        }
+
+        #scenes {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #scenes::-webkit-scrollbar {
+            display: none;
+        }
+        #scenes {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .scene {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            width: 150px;
+            text-align: center;
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        .scene img, .scene video {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .scene p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .scene button {
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+
+        .scene .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding:15px;
+            border-radius: 5px;
+            top: 10px;
+            left: 100%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: none;
+            max-width: 300px;
+            white-space: normal;
+        }
+
+        .scene:hover .tooltip {
+            display: block;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #007bff, #00c4b4);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #subtitle-display {
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            max-width: 90%;
+            margin: 0 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: var(--selected-font, 'Arial');
+        }
+
+        #subtitle-display.top {
+            position: fixed;
+            top: 50px;
+        }
+
+        #subtitle-display.center {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #subtitle-display.bottom {
+            position: fixed;
+            bottom: 90px;
+        }
+
+        #subtitle-display.visible {
+            opacity: 1;
+        }
+
+        .word {
+            color: rgba(0, 0, 0, 0.7);
+            transition: color 0.3s ease, background 0.3s ease;
+        }
+
+        .word.highlight {
+            color: #007bff;
+            text-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .word.gradient {
+            background: linear-gradient(45deg, #007bff, #00c4b4, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            animation: gradientShift 2s linear infinite;
+        }
+
+        .word.hover {
+            color: rgba(0, 0, 0, 0.7);
+        }
+
+        .word.hover.active {
+            color: #007bff;
+            text-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .word.color-change {
+            animation: colorChange 1.5s linear infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 400% 50%; }
+        }
+
+        @keyframes colorChange {
+            0% { color: #007bff; }
+            33% { color: #00c4b4; }
+            66% { color: #ff6b6b; }
+            100% { color: #007bff; }
+        }
+
+        #controller.hidden {
+            display: none;
+        }
+
+        @media screen and (max-width: 600px) {
+            #subtitle-display {
+                font-size: 1.2em;
+            }
+            #controller {
+                width: 95%;
+                padding: 15px;
+            }
+        }
+
+        @media screen and (min-width: 601px) and (max-width: 900px) {
+            #subtitle-display {
+                font-size: 1.8em;
+            }
+        }
+
+        @media screen and (min-width: 901px) {
+            #subtitle-display {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <video id="background-video" autoplay loop muted></video>
+    <div id="controller">
+        <h1>Awesome Subtitle Show</h1>
+        <textarea id="subtitles-input" placeholder="Enter subtitles, one line per subtitle..."></textarea>
+        <input type="file" id="background-file" accept="image/*,video/mp4,video/webm">
+        <select id="text-position">
+            <option value="bottom">Bottom</option>
+            <option value="center">Center</option>
+            <option value="top">Top</option>
+        </select>
+        <select id="caption-style">
+            <option value="highlight">Highlight</option>
+            <option value="gradient">Gradient</option>
+            <option value="hover">Hover</option>
+            <option value="color-change">Color Change</option>
+        </select>
+        <input type="number" id="timing-input" value="1200" placeholder="Subtitle timing (ms, default 1200)" min="500" step="100">
+        <select id="font-select">
+            <option value="Arial">Arial</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Open Sans">Open Sans</option>
+            <option value="Lora">Lora</option>
+            <option value="Poppins">Poppins</option>
+        </select>
+        <button onclick="addScene()">Add Scene</button>
+        <button onclick="startShow()">Start Show</button>
+        <button onclick="exportScenes()">Export Scenes</button>
+        <input type="file" id="import-scenes" accept=".json" style="display: none;" onchange="importScenes(event)">
+        <button onclick="document.getElementById('import-scenes').click()">Import Scenes</button>
+        <div id="scenes"></div>
+    </div>
+
+    <div id="subtitle-display" class="bottom"></div>
+
+    <script>
+        let scenes = [];
+        let currentSceneIndex = -1;
+        const videoElement = document.getElementById('background-video');
+
+        window.onload = () => {
+            const savedScenes = localStorage.getItem('scenes');
+            if (savedScenes) {
+                try {
+                    const parsedScenes = JSON.parse(savedScenes);
+                    scenes = parsedScenes.filter(scene => 
+                        scene && 
+                        scene.backgroundUrl && 
+                        Array.isArray(scene.subtitles) && 
+                        scene.subtitles.length > 0
+                    );
+                    localStorage.setItem('scenes', JSON.stringify(scenes));
+                    renderScenes();
+                } catch (e) {
+                    console.error('Error parsing scenes from localStorage:', e);
+                    localStorage.removeItem('scenes');
+                }
+            }
+            if (!('objectFit' in document.documentElement.style)) {
+                videoElement.style.width = '100vw';
+                videoElement.style.height = '100vh';
+            }
+        };
+
+        function addScene() {
+            const input = document.getElementById('subtitles-input').value.trim();
+            const fileInput = document.getElementById('background-file');
+            const textPosition = document.getElementById('text-position').value;
+            const captionStyle = document.getElementById('caption-style').value;
+            const timing = parseInt(document.getElementById('timing-input').value) || 1200;
+            const font = document.getElementById('font-select').value;
+
+            if (!input || !fileInput.files[0]) {
+                alert('Please enter subtitles and select a background image or video!');
+                return;
+            }
+
+            const subtitles = input.split('\n').filter(line => line.trim() !== '');
+            if (subtitles.length === 0) {
+                alert('Please enter at least one valid subtitle!');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const backgroundUrl = URL.createObjectURL(file);
+
+            scenes.push({ subtitles, backgroundUrl, textPosition, captionStyle, timing, font, fileType: file.type });
+            localStorage.setItem('scenes', JSON.stringify(scenes.map(scene => ({
+                ...scene,
+                backgroundUrl: null // Don't store blob URLs in localStorage
+            }))));
+            document.getElementById('subtitles-input').value = '';
+            fileInput.value = '';
+            document.getElementById('text-position').value = 'bottom';
+            document.getElementById('caption-style').value = 'highlight';
+            document.getElementById('timing-input').value = '';
+            document.getElementById('font-select').value = 'Arial';
+            renderScenes();
+        }
+
+        function deleteScene(index) {
+            if (scenes[index].backgroundUrl) {
+                URL.revokeObjectURL(scenes[index].backgroundUrl);
+            }
+            scenes.splice(index, 1);
+            localStorage.setItem('scenes', JSON.stringify(scenes.map(scene => ({
+                ...scene,
+                backgroundUrl: null
+            }))));
+            renderScenes();
+        }
+
+        function renderScenes() {
+            const scenesDiv = document.getElementById('scenes');
+            scenesDiv.innerHTML = '';
+            scenes.forEach((scene, index) => {
+                const sceneDiv = document.createElement('div');
+                sceneDiv.className = 'scene';
+                const isVideo = scene.fileType && scene.fileType.startsWith('video/');
+                sceneDiv.innerHTML = `
+                    ${isVideo ? 
+                        `<video src="${scene.backgroundUrl}" autoplay loop muted></video>` : 
+                        `<img src="${scene.backgroundUrl}" alt="Scene Preview">`
+                    }
+                    <p>${scene.subtitles[0].substring(0, 20)}...</p>
+                    <p>Pos: ${scene.textPosition}</p>
+                    <p>Style: ${scene.captionStyle}</p>
+                    <p>Timing: ${scene.timing}ms</p>
+                    <p>Font: ${scene.font}</p>
+                    <div class="tooltip">${scene.subtitles.join('<br>')}</div>
+                    <button onclick="deleteScene(${index})">Delete</button>
+                `;
+                scenesDiv.appendChild(sceneDiv);
+            });
+        }
+
+        function exportScenes() {
+            const data = JSON.stringify(scenes.map(scene => ({
+                ...scene,
+                backgroundUrl: null,
+                fileType: scene.fileType
+            })));
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'scenes.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importScenes(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedScenes = JSON.parse(e.target.result);
+                    const validScenes = importedScenes.filter(scene => 
+                        scene && 
+                        Array.isArray(scene.subtitles) && 
+                        scene.subtitles.length > 0
+                    );
+                    alert('Imported scenes detected, but background files must be re-uploaded manually.');
+                    scenes = validScenes;
+                    localStorage.setItem('scenes', JSON.stringify(scenes));
+                    renderScenes();
+                } catch (e) {
+                    console.error('Error importing scenes:', e);
+                    alert('Failed to import scenes. Please ensure the file is a valid JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function startShow() {
+            if (scenes.length === 0) {
+                alert('Please add at least one scene!');
+                return;
+            }
+
+            document.getElementById('controller').classList.add('hidden');
+            currentSceneIndex = 0;
+            displayScene();
+        }
+
+        async function displayScene() {
+            if (currentSceneIndex >= scenes.length) {
+                document.getElementById('subtitle-display').innerHTML = '';
+                document.getElementById('subtitle-display').classList.remove('visible');
+                document.getElementById('controller').classList.remove('hidden');
+                videoElement.style.display = 'none';
+                document.body.style.backgroundImage = '';
+                alert('Show ended! You can restart or edit.');
+                return;
+            }
+
+            const scene = scenes[currentSceneIndex];
+            if (!scene || !scene.backgroundUrl) {
+                console.error('Invalid scene at index', currentSceneIndex, scene);
+                currentSceneIndex++;
+                await displayScene();
+                return;
+            }
+
+            const isVideo = scene.fileType && scene.fileType.startsWith('video/');
+            if (isVideo) {
+                videoElement.src = scene.backgroundUrl;
+                videoElement.style.display = 'block';
+                document.body.style.backgroundImage = '';
+            } else {
+                videoElement.style.display = 'none';
+                document.body.style.backgroundImage = `url(${scene.backgroundUrl})`;
+            }
+
+            const display = document.getElementById('subtitle-display');
+            display.className = scene.textPosition;
+            display.style.setProperty('--selected-font', scene.font);
+
+            for (let line of scene.subtitles) {
+                await displayLine(line, scene.captionStyle);
+                await wait(scene.timing);
+            }
+
+            currentSceneIndex++;
+            await displayScene();
+        }
+
+        async function displayLine(line, captionStyle) {
+            const display = document.getElementById('subtitle-display');
+            display.classList.add('visible');
+
+            const words = line.split(' ');
+            const maxWords = window.innerWidth < 600 ? 5 : 7;
+            let currentChunk = [];
+            let chunks = [];
+            let charCount = 0;
+
+            for (let word of words) {
+                currentChunk.push(word);
+                charCount += word.length;
+                if (currentChunk.length >= maxWords || charCount > 40) {
+                    chunks.push(currentChunk.join(' '));
+                    currentChunk = [];
+                    charCount = 0;
+                }
+            }
+            if (currentChunk.length > 0) {
+                chunks.push(currentChunk.join(' '));
+            }
+
+            for (let chunk of chunks) {
+                const words = chunk.split(' ');
+                display.innerHTML = words.map(word => `<span class="word">${word}</span>`).join(' ');
+
+                const wordElements = display.querySelectorAll('.word');
+                wordElements.forEach(el => {
+                    el.classList.remove('highlight', 'gradient', 'hover', 'color-change', 'active');
+                });
+
+                if (captionStyle === 'hover') {
+                    for (let i = 0; i < wordElements.length; i++) {
+                        wordElements.forEach(el => el.classList.remove('active'));
+                        wordElements[i].classList.add('hover', 'active');
+                        await wait(300);
+                    }
+                } else {
+                    for (let i = 0; i < wordElements.length; i++) {
+                        wordElements[i].classList.add(captionStyle);
+                        await wait(300);
+                    }
+                }
+                await wait(300);
+            }
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
