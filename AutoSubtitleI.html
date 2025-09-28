@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Offline Screen Recorder</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        video {
+            margin-top: 20px;
+            width: 60%;
+            max-width: 800px;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+
+        button, #downloadBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        button:hover, #downloadBtn:hover {
+            background-color: #45a049;
+        }
+
+        #downloadBtn {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Offline Screen Recorder</h1>
+    <p>Click "Start Recording" to begin, then "Stop Recording" to finish.</p>
+
+    <video id="player" controls autoplay playsinline></video>
+    <br>
+
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+    <a id="downloadBtn" href="#" download="recording.webm">Download Recording</a>
+
+    <!-- Load RecordRTC -->
+    <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
+
+    <script>
+        const video = document.getElementById('player');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let recorder;
+        let screenStream;
+
+        startBtn.onclick = async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                alert('Your browser does not support screen recording.');
+                return;
+            }
+
+            try {
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                video.srcObject = screenStream;
+                video.muted = true;
+                video.play();
+
+                recorder = RecordRTC(screenStream, {
+                    type: 'video',
+                    mimeType: 'video/webm'
+                });
+
+                recorder.startRecording();
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                downloadBtn.style.display = 'none';
+            } catch (err) {
+                alert('Screen capture failed: ' + err);
+                console.error(err);
+            }
+        };
+
+        stopBtn.onclick = () => {
+            recorder.stopRecording(() => {
+                const blob = recorder.getBlob();
+
+                // Stop screen sharing
+                screenStream.getTracks().forEach(track => track.stop());
+
+                // Update video player
+                video.srcObject = null;
+                const videoURL = URL.createObjectURL(blob);
+                video.src = videoURL;
+                video.muted = false;
+                video.controls = true;
+                video.play();
+
+                // Enable download
+                downloadBtn.href = videoURL;
+                downloadBtn.style.display = 'inline-block';
+
+                // Reset buttons
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            });
+        };
+    </script>
+</body>
+</html>
