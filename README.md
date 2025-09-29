@@ -52,6 +52,7 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
    [Prompt.txt](https://hubcornor-cyber.github.io/Funky/Prompt.txt)
    [Unsplash.txt](https://hubcornor-cyber.github.io/Funky/UnsplashList.txt)
    [PixabayList.txt](https://hubcornor-cyber.github.io/Funky/PixabayList.txt)
+   [psylogicaltip.txt](https://hubcornor-cyber.github.io/Funky/psylogicaltip.txt)
 
 ---
 
