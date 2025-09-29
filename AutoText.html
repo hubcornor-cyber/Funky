@@ -159,7 +159,10 @@
         .scene-item .placeholder {
             width: 50px;
             height: 50px;
-            background: linear-gradient(#ccc, #ddd);
+            background: #ccc;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
             border-radius: 5px;
             margin-right: 10px;
         }
@@ -187,6 +190,7 @@
             height: 80px;
             background-size: cover;
             background-position: center;
+            background-repeat: no-repeat;
             border-radius: 8px;
             border: 2px solid #333;
             cursor: pointer;
@@ -336,7 +340,7 @@
                 glowColor: "#ff4500",
                 borderThickness: "2",
                 duration: 4000,
-                media: "https://image.lexica.art/md2/17485980-efeb-4663-8f46-5ef010951ecc",
+                media: "https://via.placeholder.com/300x400?text=Boy",
                 useMedia: true
             },
             {
@@ -367,14 +371,12 @@
                 colorCheckbox.checked = false;
                 imageInput.style.display = 'block';
                 colorInput.style.display = 'none';
-            } else if (colorCheckbox.checked) {
+            } else {
                 imageCheckbox.checked = false;
+                colorCheckbox.checked = true;
                 imageInput.style.display = 'none';
                 colorInput.style.display = 'block';
                 toggleColorInputs();
-            } else {
-                imageInput.style.display = 'none';
-                colorInput.style.display = 'none';
             }
         }
 
@@ -392,7 +394,22 @@
             mediaInput.style.display = mediaCheckbox.checked ? 'block' : 'none';
         }
 
-        function addScene() {
+        async function validateImageUrl(url) {
+            if (!url) return false;
+            try {
+                const img = new Image();
+                img.src = url;
+                return new Promise((resolve) => {
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    setTimeout(() => resolve(false), 3000); // Timeout after 3s
+                });
+            } catch {
+                return false;
+            }
+        }
+
+        async function addScene() {
             const isImage = document.getElementById('bg-image-checkbox').checked;
             const isColor = document.getElementById('bg-color-checkbox').checked;
             const bgType = document.getElementById('bg-type').value;
@@ -408,8 +425,9 @@
 
             if (isImage) {
                 bgImage = document.getElementById('bg-image').value.trim();
-                background = bgImage ? `url(${bgImage})` : "#e0e0e0";
-                backgroundType = "image";
+                const isValidImage = bgImage ? await validateImageUrl(bgImage) : false;
+                background = isValidImage ? `url(${bgImage})` : "#e0e0e0";
+                backgroundType = isValidImage ? "image" : "solid";
             } else if (isColor) {
                 if (bgType === "solid") {
                     background = document.getElementById('bg-solid-color').value;
@@ -422,6 +440,12 @@
                     background = `linear-gradient(${bgDegree}deg, ${bgColor1}, ${bgColor2})`;
                     backgroundType = "gradient";
                 }
+            }
+
+            let media = isMedia ? document.getElementById('media').value.trim() : "";
+            if (isMedia && media) {
+                const isValidMedia = await validateImageUrl(media);
+                if (!isValidMedia) media = "";
             }
 
             const scene = {
@@ -438,7 +462,7 @@
                 glowColor: document.getElementById('glow-color').value,
                 borderThickness: document.getElementById('border-thickness').value,
                 duration: parseInt(document.getElementById('duration').value) || 4000,
-                media: isMedia ? document.getElementById('media').value.trim() : "",
+                media,
                 useMedia: isMedia
             };
 
@@ -536,13 +560,17 @@
             scenes.forEach((scene, index) => {
                 const sceneItem = document.createElement('div');
                 sceneItem.className = 'scene-item';
-                const isVideo = scene.media.includes('.mp4') || scene.media.includes('.webm');
+                const isVideo = scene.media && (scene.media.includes('.mp4') || scene.media.includes('.webm'));
+                let thumbnailHtml = '';
+                if (scene.useMedia && scene.media) {
+                    thumbnailHtml = isVideo ?
+                        `<video src="${scene.media}" autoplay loop muted></video>` :
+                        `<img src="${scene.media}" alt="Scene Preview" onerror="const div = document.createElement('div'); div.className='placeholder'; div.style.background='#e0e0e0'; this.parentElement.replaceChild(div, this);">`;
+                } else {
+                    thumbnailHtml = `<div class="placeholder" style="background: ${scene.background};${scene.backgroundType === 'image' ? 'background-size: cover; background-repeat: no-repeat;' : ''}"></div>`;
+                }
                 sceneItem.innerHTML = `
-                    ${scene.media && scene.useMedia ? (isVideo ? 
-                        `<video src="${scene.media}" autoplay loop muted></video>` : 
-                        `<img src="${scene.media}" alt="Scene Preview" onerror="this.parentElement.replaceChild(document.createElement('div'), this).className='placeholder'">`) : 
-                        `<div class="placeholder"></div>`
-                    }
+                    ${thumbnailHtml}
                     <span>${scene.text.substring(0, 15)}${scene.text.length > 15 ? '...' : ''}</span>
                     <button onclick="editScene(${index})">Edit</button>
                     <button onclick="deleteScene(${index})">Delete</button>
@@ -588,6 +616,62 @@
             }
         }
 
+        async function updatePreview() {
+            const previewPanel = document.getElementById('preview-panel');
+            previewPanel.innerHTML = '';
+            for (const [index, scene] of scenes.entries()) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                let background = scene.background;
+                if (scene.backgroundType === "image" && scene.bgImage) {
+                    const isValidImage = await validateImageUrl(scene.bgImage);
+                    background = isValidImage ? scene.background : "#e0e0e0";
+                }
+                previewItem.style.background = background;
+                if (scene.backgroundType === "image") {
+                    previewItem.style.backgroundSize = 'cover';
+                    previewItem.style.backgroundRepeat = 'no-repeat';
+                } else {
+                    previewItem.style.backgroundSize = 'auto';
+                    previewItem.style.backgroundRepeat = 'repeat';
+                }
+                previewItem.setAttribute('data-text', scene.text.substring(0, 20) + (scene.text.length > 20 ? '...' : ''));
+                previewItem.onclick = () => {
+                    currentSceneIndex = index;
+                    clearInterval(sceneInterval);
+                    displayScene(currentSceneIndex);
+                    document.getElementById('preview-panel').style.display = 'none';
+                    isPreviewVisible = false;
+                    startShow();
+                };
+                previewPanel.appendChild(previewItem);
+            }
+        }
+
+        function togglePreview() {
+            isPreviewVisible = !isPreviewVisible;
+            document.getElementById('preview-panel').style.display = isPreviewVisible ? 'flex' : 'none';
+            if (isPreviewVisible) {
+                clearInterval(sceneInterval);
+            } else {
+                startShow();
+            }
+        }
+
+        function minimizePanel() {
+            isControlPanelMinimized = true;
+            document.getElementById('control-panel').classList.add('minimized');
+            document.getElementById('expand-button').classList.add('visible');
+            document.getElementById('expand-button').style.display = 'block';
+        }
+
+        function expandPanel() {
+            isControlPanelMinimized = false;
+            document.getElementById('control-panel').classList.remove('minimized');
+            document.getElementById('expand-button').classList.remove('visible');
+            document.getElementById('expand-button').style.display = 'none';
+        }
+
         function startShow() {
             if (scenes.length === 0) {
                 alert('No scenes loaded. Please add at least one scene.');
@@ -623,50 +707,6 @@
             document.getElementById('boy-media').style.opacity = 0;
             document.getElementById('boy-media').style.display = 'none';
             alert('Show ended! You can restart or edit scenes.');
-        }
-
-        function updatePreview() {
-            const previewPanel = document.getElementById('preview-panel');
-            previewPanel.innerHTML = '';
-            scenes.forEach((scene, index) => {
-                const previewItem = document.createElement('div');
-                previewItem.className = 'preview-item';
-                previewItem.style.backgroundImage = scene.media && scene.useMedia ? (scene.media.includes('.mp4') || scene.media.includes('.webm') ? 'linear-gradient(#333, #555)' : `url(${scene.media})`) : 'linear-gradient(#ccc, #ddd)';
-                previewItem.setAttribute('data-text', scene.text.substring(0, 20) + (scene.text.length > 20 ? '...' : ''));
-                previewItem.onclick = () => {
-                    currentSceneIndex = index;
-                    clearInterval(sceneInterval);
-                    displayScene(currentSceneIndex);
-                    document.getElementById('preview-panel').style.display = 'none';
-                    isPreviewVisible = false;
-                    startShow();
-                };
-                previewPanel.appendChild(previewItem);
-            });
-        }
-
-        function togglePreview() {
-            isPreviewVisible = !isPreviewVisible;
-            document.getElementById('preview-panel').style.display = isPreviewVisible ? 'flex' : 'none';
-            if (isPreviewVisible) {
-                clearInterval(sceneInterval);
-            } else {
-                startShow();
-            }
-        }
-
-        function minimizePanel() {
-            isControlPanelMinimized = true;
-            document.getElementById('control-panel').classList.add('minimized');
-            document.getElementById('expand-button').classList.add('visible');
-            document.getElementById('expand-button').style.display = 'block';
-        }
-
-        function expandPanel() {
-            isControlPanelMinimized = false;
-            document.getElementById('control-panel').classList.remove('minimized');
-            document.getElementById('expand-button').classList.remove('visible');
-            document.getElementById('expand-button').style.display = 'none';
         }
 
         // Initialize inputs
