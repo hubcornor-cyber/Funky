@@ -51,7 +51,7 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 - 📜 **Chat Prompt** — Ready-made CSV dialogue scripts for ChatGPT:  
    [Prompt.txt](https://hubcornor-cyber.github.io/Funky/Prompt.txt)
    [Unsplash.txt](https://hubcornor-cyber.github.io/Funky/UnsplashList.txt)
-   [Pixabay List.txt](https://hubcornor-cyber.github.io/Funky/Pixabay List.txt)
+   [PixabayList.txt](https://hubcornor-cyber.github.io/Funky/PixabayList.txt)
 
 ---
 
