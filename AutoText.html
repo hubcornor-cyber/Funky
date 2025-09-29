@@ -17,6 +17,7 @@
             height: 100vh;
             background: #e0e0e0;
             background-size: cover;
+            background-repeat: no-repeat;
             background-position: center;
             transition: background 0.7s ease;
             position: relative;
@@ -326,11 +327,9 @@
         // Default scenes for testing
         scenes = [
             {
-                background: "linear-gradient(135deg, #ff6b6b, #ffe066)",
-                backgroundType: "gradient",
-                bgDegree: 135,
-                bgColor1: "#ff6b6b",
-                bgColor2: "#ffe066",
+                background: "url(https://via.placeholder.com/1920x1080?text=Sky)",
+                backgroundType: "image",
+                bgImage: "https://via.placeholder.com/1920x1080?text=Sky",
                 text: "Adventure Begins!",
                 textColor: "#ffffff",
                 border: "solid",
@@ -405,10 +404,11 @@
             let bgDegree = 135;
             let bgColor1 = "#ff6b6b";
             let bgColor2 = "#ffe066";
+            let bgImage = "";
 
             if (isImage) {
-                const imageUrl = document.getElementById('bg-image').value.trim();
-                background = imageUrl ? `url(${imageUrl})` : "#e0e0e0";
+                bgImage = document.getElementById('bg-image').value.trim();
+                background = bgImage ? `url(${bgImage})` : "#e0e0e0";
                 backgroundType = "image";
             } else if (isColor) {
                 if (bgType === "solid") {
@@ -431,6 +431,7 @@
                 bgDegree,
                 bgColor1,
                 bgColor2,
+                bgImage,
                 text: document.getElementById('scene-text').value.trim() || "Default Text",
                 textColor: document.getElementById('text-color').value,
                 border: document.getElementById('border-style').value,
@@ -474,7 +475,7 @@
             colorInput.style.display = scene.backgroundType !== "image" ? 'block' : 'none';
 
             if (scene.backgroundType === "image") {
-                imageInput.value = scene.background.replace('url(', '').replace(')', '');
+                imageInput.value = scene.bgImage;
             } else if (scene.backgroundType === "solid") {
                 bgType.value = "solid";
                 document.getElementById('bg-solid-color').value = scene.bgSolidColor;
@@ -560,6 +561,8 @@
 
             // Update body background
             document.body.style.background = scene.background;
+            document.body.style.backgroundSize = scene.backgroundType === "image" ? 'cover' : 'auto';
+            document.body.style.backgroundRepeat = scene.backgroundType === "image" ? 'no-repeat' : 'repeat';
 
             // Update subtitle
             const subtitle = document.getElementById('subtitle');
