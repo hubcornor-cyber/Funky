@@ -17,6 +17,8 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | 🎥      |                    | [Format Mp4 Video](https://hubcornor-cyber.github.io/mp4/examples/wasm-ffmpeg/mp4.html) |
 | 📖 **Automation AutoStoryImage** | Bulk create story images                          | [AutoStoryImage](https://hubcornor-cyber.github.io/Funky/AutoStoryImage.html) |
 | 📘 **Auto Subtitle**          | Add colorful animated captions on images         | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitle.html) |
+| 📘 **AutoText**          | Add colorful animated captions on images         | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoText.html) |
+| 📘 **Auto TextI**          | Add colorful animated captions on images         | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoTextI.html) |
 | 📷        | Add colorful animated captions on gallery images   | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitleOffline.html) |
 | 📷 **AutoFetchImages**       | Fetch 100+ images with one click                   | [AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html) |
 | 📷 **PixaBay FetchImages**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/Pixabay.html) |
