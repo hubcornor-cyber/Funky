@@ -44,6 +44,31 @@
             max-width: 80%;
             transition: all 0.7s ease;
             z-index: 1;
+            white-space: pre-wrap;
+        }
+
+        .subtitle-line {
+            animation: fadeSlide 1s ease-in-out;
+            display: inline-block;
+        }
+
+        @keyframes fadeSlide {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            80% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
         }
 
         #control-panel {
@@ -236,8 +261,8 @@
 <body>
     <div id="control-panel">
         <div class="input-group">
-            <label for="scene-text">Subtitle Text</label>
-            <input type="text" id="scene-text" placeholder="Enter subtitle text">
+            <label for="scene-text">Subtitle Text (use \n for new line)</label>
+            <input type="text" id="scene-text" placeholder="Enter subtitle text (e.g., Line 1\nLine 2)">
         </div>
         <div class="input-group">
             <label for="text-color">Text Color</label>
@@ -327,6 +352,7 @@
         let isPreviewVisible = false;
         let editingIndex = -1;
         let isControlPanelMinimized = false;
+        let subtitleInterval;
 
         // Default scenes for testing
         scenes = [
@@ -334,7 +360,7 @@
                 background: "url(https://via.placeholder.com/1920x1080?text=Sky)",
                 backgroundType: "image",
                 bgImage: "https://via.placeholder.com/1920x1080?text=Sky",
-                text: "Adventure Begins!",
+                text: "Shan AWan\nSid Creative",
                 textColor: "#ffffff",
                 border: "solid",
                 glowColor: "#ff4500",
@@ -402,7 +428,7 @@
                 return new Promise((resolve) => {
                     img.onload = () => resolve(true);
                     img.onerror = () => resolve(false);
-                    setTimeout(() => resolve(false), 3000); // Timeout after 3s
+                    setTimeout(() => resolve(false), 3000);
                 });
             } catch {
                 return false;
@@ -448,6 +474,11 @@
                 if (!isValidMedia) media = "";
             }
 
+            // Normalize subtitle text to handle literal \n
+            let rawText = document.getElementById('scene-text').value.trim() || "Default Text";
+            // Replace literal "\n" with actual newline
+            rawText = rawText.replace(/\\n/g, '\n');
+
             const scene = {
                 background,
                 backgroundType,
@@ -456,7 +487,7 @@
                 bgColor1,
                 bgColor2,
                 bgImage,
-                text: document.getElementById('scene-text').value.trim() || "Default Text",
+                text: rawText,
                 textColor: document.getElementById('text-color').value,
                 border: document.getElementById('border-style').value,
                 glowColor: document.getElementById('glow-color').value,
@@ -569,9 +600,10 @@
                 } else {
                     thumbnailHtml = `<div class="placeholder" style="background: ${scene.background};${scene.backgroundType === 'image' ? 'background-size: cover; background-repeat: no-repeat;' : ''}"></div>`;
                 }
+                const firstLine = scene.text.split('\n')[0].substring(0, 15) + (scene.text.split('\n')[0].length > 15 ? '...' : '');
                 sceneItem.innerHTML = `
                     ${thumbnailHtml}
-                    <span>${scene.text.substring(0, 15)}${scene.text.length > 15 ? '...' : ''}</span>
+                    <span>${firstLine}</span>
                     <button onclick="editScene(${index})">Edit</button>
                     <button onclick="deleteScene(${index})">Delete</button>
                 `;
@@ -587,6 +619,9 @@
             const scene = scenes[index];
             if (!scene) return;
 
+            // Clear any existing subtitle interval
+            if (subtitleInterval) clearInterval(subtitleInterval);
+
             // Update body background
             document.body.style.background = scene.background;
             document.body.style.backgroundSize = scene.backgroundType === "image" ? 'cover' : 'auto';
@@ -594,10 +629,31 @@
 
             // Update subtitle
             const subtitle = document.getElementById('subtitle');
-            subtitle.textContent = scene.text;
             subtitle.style.color = scene.textColor;
             subtitle.style.border = `${scene.borderThickness}px ${scene.border} #333`;
             subtitle.style.textShadow = `0 0 12px ${scene.glowColor}, 0 0 24px ${scene.glowColor}`;
+
+            // Handle multi-line subtitles
+            const lines = scene.text.split('\n').filter(line => line.trim() !== '');
+            let lineIndex = 0;
+
+            function displayNextLine() {
+                if (lineIndex < lines.length) {
+                    subtitle.innerHTML = `<span class="subtitle-line">${lines[lineIndex]}</span>`;
+                    lineIndex++;
+                } else {
+                    clearInterval(subtitleInterval);
+                    subtitle.innerHTML = '';
+                }
+            }
+
+            if (lines.length > 0) {
+                const lineDuration = scene.duration / lines.length;
+                displayNextLine();
+                subtitleInterval = setInterval(displayNextLine, lineDuration);
+            } else {
+                subtitle.innerHTML = '';
+            }
 
             // Update boy media
             const boyMedia = document.getElementById('boy-media');
@@ -635,7 +691,8 @@
                     previewItem.style.backgroundSize = 'auto';
                     previewItem.style.backgroundRepeat = 'repeat';
                 }
-                previewItem.setAttribute('data-text', scene.text.substring(0, 20) + (scene.text.length > 20 ? '...' : ''));
+                const firstLine = scene.text.split('\n')[0].substring(0, 20) + (scene.text.split('\n')[0].length > 20 ? '...' : '');
+                previewItem.setAttribute('data-text', firstLine);
                 previewItem.onclick = () => {
                     currentSceneIndex = index;
                     clearInterval(sceneInterval);
@@ -697,6 +754,7 @@
         }
 
         function endShow() {
+            clearInterval(subtitleInterval);
             document.getElementById('control-panel').classList.remove('minimized');
             if (isControlPanelMinimized) {
                 document.getElementById('control-panel').classList.add('minimized');
