@@ -82,12 +82,18 @@
         iframe {
             display: none;
         }
-        input[type="text"], select {
+        input[type="text"], select, textarea {
             padding: 10px;
             font-size: 16px;
             margin: 5px;
             border: 1px solid #ccc;
             border-radius: 5px;
+        }
+        textarea {
+            width: 100%;
+            max-width: 500px;
+            height: 100px;
+            resize: vertical;
         }
     </style>
 </head>
@@ -96,15 +102,17 @@
     <div class="controls">
         <input type="text" id="keywordInput" placeholder="Enter search keyword (e.g., love)" value="love">
         <select id="orientationSelect">
-            <option value="vertical" selected>Vertical</option>
-           <option value="any" selected>All</option>
+            <option value="vertical">Vertical</option>
+            <option value="any" selected>All</option>
             <option value="horizontal">Horizontal</option>
         </select>
         <button id="searchButton">Search</button>
+        <button id="showCsvButton" disabled>Show CSV</button>
         <div id="imageCount" class="loading">Enter a keyword and click Search...</div>
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar" id="progressBar"></div>
         </div>
+        <textarea id="csvOutput" placeholder="Image URLs will appear here in CSV format..." readonly></textarea>
     </div>
     <iframe id="scrapeFrame" src="https://pixabay.com/images/search/love/?orientation=vertical"></iframe>
     <div class="gallery" id="gallery"></div>
@@ -112,12 +120,14 @@
     <script>
         const iframe = document.getElementById('scrapeFrame');
         const searchButton = document.getElementById('searchButton');
+        const showCsvButton = document.getElementById('showCsvButton');
         const keywordInput = document.getElementById('keywordInput');
         const orientationSelect = document.getElementById('orientationSelect');
         const imageCount = document.getElementById('imageCount');
         const gallery = document.getElementById('gallery');
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
+        const csvOutput = document.getElementById('csvOutput');
         const corsProxy = 'https://corsproxy.io/?';
         let imageUrls = [];
 
@@ -132,6 +142,22 @@
             const keyword = encodeURIComponent(keywordInput.value.trim() || 'love');
             const orientation = orientationSelect.value;
             return `https://pixabay.com/images/search/${keyword}/?orientation=${orientation}`;
+        }
+
+        // Populate CSV text box with gallery image URLs
+        function updateCsvOutput() {
+            const galleryImages = gallery.querySelectorAll('img');
+            const urls = Array.from(galleryImages)
+                .filter(img => img.src && !img.style.display.includes('none'))
+                .map(img => img.src);
+            if (urls.length === 0) {
+                csvOutput.value = 'No images in gallery. Please search first.';
+                showCsvButton.disabled = true;
+                return;
+            }
+            const csvContent = ['Image URL'].concat(urls).join(',\n');
+            csvOutput.value = csvContent;
+            showCsvButton.disabled = false;
         }
 
         // Try scraping from iframe
@@ -160,8 +186,10 @@
 
                 if (urlsArray.length >= 15) {
                     displayImages(urlsArray);
+                    updateCsvOutput();
                     progressContainer.style.display = 'none';
                     imageCount.textContent = `Loaded ${urlsArray.length} images.`;
+                    showCsvButton.disabled = false;
                 } else {
                     throw new Error(`Only ${urlsArray.length} images found in iframe, trying fallback...`);
                 }
@@ -205,8 +233,10 @@
 
                 if (urlsArray.length >= 15) {
                     displayImages(urlsArray);
+                    updateCsvOutput();
                     progressContainer.style.display = 'none';
                     imageCount.textContent = `Loaded ${urlsArray.length} images.`;
+                    showCsvButton.disabled = false;
                 } else {
                     throw new Error(`Only ${urlsArray.length} images found. Minimum 15 required.`);
                 }
@@ -214,7 +244,9 @@
                 console.error('Fallback scrape failed:', error);
                 imageCount.textContent = `Error: ${error.message}. Check console.`;
                 gallery.innerHTML = '<p>No images loaded. Site may block scraping.</p>';
+                csvOutput.value = 'No images loaded due to an error.';
                 progressContainer.style.display = 'none';
+                showCsvButton.disabled = true;
             }
         }
 
@@ -231,19 +263,27 @@
                 gallery.appendChild(imgElement);
                 updateProgress(90 + (index / urls.length) * 10);
             });
+            updateCsvOutput();
         }
 
         // Search button trigger
         searchButton.addEventListener('click', () => {
             if (!keywordInput.value.trim()) {
                 imageCount.textContent = 'Please enter a keyword.';
+                csvOutput.value = 'Please enter a keyword.';
+                showCsvButton.disabled = true;
                 return;
             }
             searchButton.disabled = true;
+            showCsvButton.disabled = true;
             imageCount.textContent = 'Loading images...';
+            csvOutput.value = 'Loading images...';
             updateProgress(0);
             iframe.src = getTargetUrl();
         });
+
+        // Show CSV button trigger
+        showCsvButton.addEventListener('click', updateCsvOutput);
 
         // Wait for iframe to load
         iframe.onload = () => {
@@ -253,7 +293,8 @@
         };
 
         iframe.onerror = () => {
-            imageCount.textContent = 'Iframe failed to load. Trying fallback method Crosbyethod...';
+            imageCount.textContent = 'Iframe failed to load. Trying fallback method...';
+            csvOutput.value = 'Iframe failed. Trying fallback method...';
             scrapeWithFetch();
         };
     </script>
