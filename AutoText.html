@@ -48,27 +48,41 @@
         }
 
         .subtitle-line {
-            animation: fadeSlide 1s ease-in-out;
             display: inline-block;
         }
 
+        .fadeSlide {
+            animation: fadeSlide 1s ease-in-out;
+        }
+
         @keyframes fadeSlide {
-            0% {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            20% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            80% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        .typewriter {
+            animation: typewriter 1s steps(20) forwards;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid;
+        }
+
+        @keyframes typewriter {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+
+        .scale {
+            animation: scale 1s ease-in-out;
+        }
+
+        @keyframes scale {
+            0% { opacity: 0; transform: scale(0.5); }
+            20% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
         }
 
         #control-panel {
@@ -289,6 +303,17 @@
             <input type="number" id="border-thickness" value="2" min="0" step="1">
         </div>
         <div class="input-group">
+            <label for="animation-style">Subtitle Animation</label>
+            <select id="animation-style">
+                <option value="fadeSlide">Fade & Slide</option>
+                <option value="typewriter">Typewriter</option>
+                <option value="scale">Scale</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label><input type="checkbox" id="animation-checkbox" checked> Use Subtitle Animation</label>
+        </div>
+        <div class="input-group">
             <label>Background Type</label>
             <div class="checkbox-group">
                 <label><input type="checkbox" id="bg-image-checkbox" onchange="toggleBackgroundInputs()"> Image</label>
@@ -367,7 +392,9 @@
                 borderThickness: "2",
                 duration: 4000,
                 media: "https://via.placeholder.com/300x400?text=Boy",
-                useMedia: true
+                useMedia: true,
+                animation: "fadeSlide",
+                useAnimation: true
             },
             {
                 background: "#1a1a1a",
@@ -380,7 +407,9 @@
                 borderThickness: "3",
                 duration: 5000,
                 media: "",
-                useMedia: false
+                useMedia: false,
+                animation: "typewriter",
+                useAnimation: true
             }
         ];
         renderSceneList();
@@ -440,6 +469,8 @@
             const isColor = document.getElementById('bg-color-checkbox').checked;
             const bgType = document.getElementById('bg-type').value;
             const isMedia = document.getElementById('media-checkbox').checked;
+            const animationStyle = document.getElementById('animation-style').value;
+            const useAnimation = document.getElementById('animation-checkbox').checked;
 
             let background = "#e0e0e0";
             let backgroundType = "solid";
@@ -476,7 +507,6 @@
 
             // Normalize subtitle text to handle literal \n
             let rawText = document.getElementById('scene-text').value.trim() || "Default Text";
-            // Replace literal "\n" with actual newline
             rawText = rawText.replace(/\\n/g, '\n');
 
             const scene = {
@@ -494,7 +524,9 @@
                 borderThickness: document.getElementById('border-thickness').value,
                 duration: parseInt(document.getElementById('duration').value) || 4000,
                 media,
-                useMedia: isMedia
+                useMedia: isMedia,
+                animation: animationStyle,
+                useAnimation
             };
 
             if (editingIndex >= 0) {
@@ -517,6 +549,8 @@
             document.getElementById('glow-color').value = scene.glowColor;
             document.getElementById('border-style').value = scene.border;
             document.getElementById('border-thickness').value = scene.borderThickness;
+            document.getElementById('animation-style').value = scene.animation;
+            document.getElementById('animation-checkbox').checked = scene.useAnimation;
 
             const imageCheckbox = document.getElementById('bg-image-checkbox');
             const colorCheckbox = document.getElementById('bg-color-checkbox');
@@ -568,6 +602,8 @@
             document.getElementById('glow-color').value = '#ff4500';
             document.getElementById('border-style').value = 'solid';
             document.getElementById('border-thickness').value = '2';
+            document.getElementById('animation-style').value = 'fadeSlide';
+            document.getElementById('animation-checkbox').checked = true;
             document.getElementById('bg-image-checkbox').checked = false;
             document.getElementById('bg-color-checkbox').checked = true;
             document.getElementById('bg-image').value = '';
@@ -639,7 +675,8 @@
 
             function displayNextLine() {
                 if (lineIndex < lines.length) {
-                    subtitle.innerHTML = `<span class="subtitle-line">${lines[lineIndex]}</span>`;
+                    const className = scene.useAnimation ? `subtitle-line ${scene.animation}` : '';
+                    subtitle.innerHTML = `<span class="${className}">${lines[lineIndex]}</span>`;
                     lineIndex++;
                 } else {
                     clearInterval(subtitleInterval);
