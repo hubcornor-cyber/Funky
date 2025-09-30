@@ -102,11 +102,11 @@
       border: 1px solid var(--border-color, #4a5568);
     }
 
-    #csvInput.minimized {
+    #csvInput.collapsed {
       height: 40px;
     }
 
-    .csv-toggle {
+    .section-toggle {
       position: absolute;
       top: 10px;
       right: 10px;
@@ -124,7 +124,7 @@
     #itemCount {
       font-size: 14px;
       color: var(--text-secondary-dark, #718096);
-      margin-top: 10px;
+      margin-left: 10px;
       display: inline-block;
     }
 
@@ -157,6 +157,26 @@
       display: block;
     }
 
+    /* Collapsible Sections */
+    .collapsible-section {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .collapsible-section h3 {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .collapsible-content {
+      display: block;
+    }
+
+    .collapsible-content.collapsed {
+      display: none;
+    }
+
     /* Designer Section */
     #designer-tab {
       display: grid;
@@ -165,10 +185,10 @@
     }
 
     #designer-tab label {
-      display: flex;
-      flex-direction: column;
+    
       margin: 10px 0;
     }
+    
 
     #designer-tab input[type="range"],
     #designer-tab input[type="color"],
@@ -182,7 +202,7 @@
     }
 
     #designer-tab input[type="color"] {
-      height: 40px;
+      height: 40px; width:40px;
     }
 
     #designer-tab .slider-container {
@@ -342,11 +362,13 @@
     <!-- Controller Section -->
     <section id="controller-section">
       <h2>Content Source <span id="itemCount">0 items</span></h2>
-      <button id="csvToggle" class="csv-toggle">−</button>
-      <div id="csvDropZone" class="drop-zone">
-        <textarea id="csvInput" placeholder="Paste CSV data here (URL,Title,Detail)"></textarea>
-        <input type="file" id="csvFile" accept=".csv,.txt">
-        <button id="clearCsvBtn" class="btn btn-secondary">🗑️ Clear CSV</button>
+      <div class="collapsible-section">
+        <button id="csvToggle" class="section-toggle">−</button>
+        <div id="csvDropZone" class="collapsible-content">
+          <textarea id="csvInput" placeholder="Paste CSV data here (URL,Title,Detail)"></textarea>
+          <input type="file" id="csvFile" accept=".csv,.txt">
+          <button id="clearCsvBtn" class="btn btn-secondary">🗑️ Clear CSV</button>
+        </div>
       </div>
       <div class="tab-buttons">
         <button class="tab-btn active" data-tab="designer">Designer</button>
@@ -354,225 +376,246 @@
       </div>
       <!-- Designer Section -->
       <div id="designer-tab" class="tab-content active">
-        <label>
-          Title Size:
-          <div class="slider-container">
-            <input id="titleSize" type="range" min="10" max="100" value="60">
-            <span id="titleSizeValue" class="slider-value">60px</span>
+        <div class="collapsible-section">
+          <h3>Title Settings <button id="titleToggle" class="section-toggle">−</button></h3>
+          <div id="titleSettings" class="collapsible-content">
+            <label>
+               Size:
+              <div class="slider-container">
+                <input id="titleSize" type="range" min="10" max="100" value="60">
+                <span id="titleSizeValue" class="slider-value">60px</span>
+              </div>
+            </label>
+            <label>
+               Color:
+              <input id="titleColor" type="color" value="#ffffff">
+            </label>
+            <label>
+               Glow :
+              <input id="titleGlowColor" type="color" value="#ff6b6b">
+            </label>
+            <br>
+            <label>
+               Shadow Blur:
+              <div class="slider-container">
+                <input id="titleShadowBlur" type="range" min="0" max="50" value="20">
+                <span id="titleShadowBlurValue" class="slider-value">20px</span>
+              </div>
+            </label>
+            <label>
+               BG Color 1:
+              <input id="titleBg1" type="color" value="#000000">
+            </label>
+            <label>
+               BG Color 2:
+              <input id="titleBg2" type="color" value="#000000">
+            </label>
+            <label>
+               Tranperancy:
+              <div class="slider-container">
+                <input id="titleBgOpacity" type="range" min="0" max="100" value="80">
+                <span id="titleBgOpacityValue" class="slider-value">80%</span>
+              </div>
+            </label>
+            <label>
+               Border Color:
+              <input id="titleBorderColor" type="color" value="#ffffff">
+            </label><br>
+            <label>
+               Border Width:
+              <div class="slider-container">
+                <input id="titleBorderWidth" type="range" min="0" max="10" value="2">
+                <span id="titleBorderWidthValue" class="slider-value">2px</span>
+              </div>
+            </label>
+            <label>
+               Corner Radius:
+              <div class="slider-container">
+                <input id="titleCornerRadius" type="range" min="0" max="50" value="20">
+                <span id="titleCornerRadiusValue" class="slider-value">20px</span>
+              </div>
+            </label>
+            <label>
+               Padding:
+              <div class="slider-container">
+                <input id="titlePadding" type="range" min="0" max="50" value="15">
+                <span id="titlePaddingValue" class="slider-value">15px</span>
+              </div>
+            </label>
+            <label>
+               Position (Y):
+              <div class="slider-container">
+                <input id="titleSlider" type="range" min="0" max="200" value="0">
+                <span id="titleSliderValue" class="slider-value">0px</span>
+              </div>
+            </label>
+            <label>
+               Alignment:
+              <select id="titleAlign">
+                <option value="center">Center</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </label>
+            <label>
+               Font Family:
+              <select id="titleFontFamily">
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Bebas Neue">Bebas Neue</option>
+                <option value="Oswald">Oswald</option>
+                <option value="Roboto Slab">Roboto Slab</option>
+                <option value="Inter">Inter</option>
+              </select>
+            </label>
           </div>
-        </label>
-        <label>
-          Title Color:
-          <input id="titleColor" type="color" value="#ffffff">
-        </label>
-        <label>
-          Title Glow Color:
-          <input id="titleGlowColor" type="color" value="#ff6b6b">
-        </label>
-        <label>
-          Title Shadow Blur:
-          <div class="slider-container">
-            <input id="titleShadowBlur" type="range" min="0" max="50" value="20">
-            <span id="titleShadowBlurValue" class="slider-value">20px</span>
+        </div>
+        <div class="collapsible-section">
+          <h3>Detail Settings <button id="detailToggle" class="section-toggle">−</button></h3>
+          <div id="detailSettings" class="collapsible-content">
+            <label>
+               Size:
+              <div class="slider-container">
+                <input id="detailSize" type="range" min="10" max="100" value="50">
+                <span id="detailSizeValue" class="slider-value">50px</span>
+              </div>
+            </label>
+            <label>
+               Color:
+              <input id="detailColor" type="color" value="#f8fafc">
+            </label>
+            <label>
+               Glow:
+              <input id="detailGlowColor" type="color" value="#4f46e5">
+            </label><br>
+            <label>
+               Shadow Blur:
+              <div class="slider-container">
+                <input id="detailShadowBlur" type="range" min="0" max="50" value="10">
+                <span id="detailShadowBlurValue" class="slider-value">10px</span>
+              </div>
+            </label>
+            <label>
+               BG Color 1:
+              <input id="detailBg1" type="color" value="#000000">
+            </label>
+            <label>
+               BG Color 2:
+              <input id="detailBg2" type="color" value="#000000">
+            </label>
+            <label>
+              Tranperancy:
+              <div class="slider-container">
+                <input id="detailBgOpacity" type="range" min="0" max="100" value="70">
+                <span id="detailBgOpacityValue" class="slider-value">70%</span>
+              </div>
+            </label>
+            <label>
+               Border Color:
+              <input id="detailBorderColor" type="color" value="#e2e8f0">
+            </label><br>
+            <label>
+               Border Width:
+              <div class="slider-container">
+                <input id="detailBorderWidth" type="range" min="0" max="10" value="1">
+                <span id="detailBorderWidthValue" class="slider-value">1px</span>
+              </div>
+            </label>
+            <label>
+               Corner Radius:
+              <div class="slider-container">
+                <input id="detailCornerRadius" type="range" min="0" max="50" value="12">
+                <span id="detailCornerRadiusValue" class="slider-value">12px</span>
+              </div>
+            </label>
+            <label>
+               Padding:
+              <div class="slider-container">
+                <input id="detailPadding" type="range" min="0" max="50" value="10">
+                <span id="detailPaddingValue" class="slider-value">10px</span>
+              </div>
+            </label>
+            <label>
+               Position (Y):
+              <div class="slider-container">
+                <input id="detailSlider" type="range" min="0" max="200" value="0">
+                <span id="detailSliderValue" class="slider-value">0px</span>
+              </div>
+            </label>
+            <label>
+               Alignment:
+              <select id="detailAlign">
+                <option value="center">Center</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </label>
+            <label>
+               Line Height:
+              <div class="slider-container">
+                <input id="detailLineHeight" type="range" min="1" max="3" step="0.1" value="1.6">
+                <span id="detailLineHeightValue" class="slider-value">1.6x</span>
+              </div>
+            </label>
+            <label>
+              Deail Font Family:
+              <select id="detailFontFamily">
+                <option value="Inter">Inter</option>
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Bebas Neue">Bebas Neue</option>
+                <option value="Oswald">Oswald</option>
+                <option value="Roboto Slab">Roboto Slab</option>
+              </select>
+            </label>
           </div>
-        </label>
-        <label>
-          Title Background Color 1:
-          <input id="titleBg1" type="color" value="#000000">
-        </label>
-        <label>
-          Title Background Color 2:
-          <input id="titleBg2" type="color" value="#000000">
-        </label>
-        <label>
-          Title Background Opacity:
-          <div class="slider-container">
-            <input id="titleBgOpacity" type="range" min="0" max="100" value="80">
-            <span id="titleBgOpacityValue" class="slider-value">80%</span>
+        </div>
+        <div class="collapsible-section">
+          <h3>Generation Settings <button id="generationToggle" class="section-toggle">−</button></h3>
+          <div id="generationSettings" class="collapsible-content">
+            <label>
+              Custom Font:
+              <input id="customFont" type="text" placeholder="Enter custom font name">
+            </label>
+            <label>
+              Output Size:
+              <select id="outputSize">
+                <option value="reel">Reel (1080x1920)</option>
+                <option value="youtube">YouTube (1920x1080)</option>
+                <option value="square">Square (1080x1080)</option>
+                <option value="portrait">Portrait (1080x1350)</option>
+                <option value="landscape">Landscape (1350x1080)</option>
+              </select>
+            </label>
+            <label>
+              Output Quality:
+              <div class="slider-container">
+                <input id="outputQuality" type="range" min="0.1" max="1" step="0.1" value="1.0">
+                <span id="outputQualityValue" class="slider-value">1.0</span>
+              </div>
+            </label>
+            <label>
+              File Prefix:
+              <input id="filePrefix" type="text" value="overlay">
+            </label>
           </div>
-        </label>
-        <label>
-          Title Border Color:
-          <input id="titleBorderColor" type="color" value="#ffffff">
-        </label>
-        <label>
-          Title Border Width:
-          <div class="slider-container">
-            <input id="titleBorderWidth" type="range" min="0" max="10" value="2">
-            <span id="titleBorderWidthValue" class="slider-value">2px</span>
-          </div>
-        </label>
-        <label>
-          Title Corner Radius:
-          <div class="slider-container">
-            <input id="titleCornerRadius" type="range" min="0" max="50" value="20">
-            <span id="titleCornerRadiusValue" class="slider-value">20px</span>
-          </div>
-        </label>
-        <label>
-          Title Padding:
-          <div class="slider-container">
-            <input id="titlePadding" type="range" min="0" max="50" value="15">
-            <span id="titlePaddingValue" class="slider-value">15px</span>
-          </div>
-        </label>
-        <label>
-          Title Position (Y):
-          <div class="slider-container">
-            <input id="titleSlider" type="range" min="0" max="200" value="0">
-            <span id="titleSliderValue" class="slider-value">0px</span>
-          </div>
-        </label>
-        <label>
-          Title Alignment:
-          <select id="titleAlign">
-            <option value="center">Center</option>
-            <option value="left">Left</option>
-            <option value="right">Right</option>
-          </select>
-        </label>
-        <label>
-          Title Font Family:
-          <select id="titleFontFamily">
-            <option value="Playfair Display">Playfair Display</option>
-            <option value="Bebas Neue">Bebas Neue</option>
-            <option value="Oswald">Oswald</option>
-            <option value="Roboto Slab">Roboto Slab</option>
-            <option value="Inter">Inter</option>
-          </select>
-        </label>
-        <label>
-          Detail Size:
-          <div class="slider-container">
-            <input id="detailSize" type="range" min="10" max="100" value="50">
-            <span id="detailSizeValue" class="slider-value">50px</span>
-          </div>
-        </label>
-        <label>
-          Detail Color:
-          <input id="detailColor" type="color" value="#f8fafc">
-        </label>
-        <label>
-          Detail Glow Color:
-          <input id="detailGlowColor" type="color" value="#4f46e5">
-        </label>
-        <label>
-          Detail Shadow Blur:
-          <div class="slider-container">
-            <input id="detailShadowBlur" type="range" min="0" max="50" value="10">
-            <span id="detailShadowBlurValue" class="slider-value">10px</span>
-          </div>
-        </label>
-        <label>
-          Detail Background Color 1:
-          <input id="detailBg1" type="color" value="#000000">
-        </label>
-        <label>
-          Detail Background Color 2:
-          <input id="detailBg2" type="color" value="#000000">
-        </label>
-        <label>
-          Detail Background Opacity:
-          <div class="slider-container">
-            <input id="detailBgOpacity" type="range" min="0" max="100" value="70">
-            <span id="detailBgOpacityValue" class="slider-value">70%</span>
-          </div>
-        </label>
-        <label>
-          Detail Border Color:
-          <input id="detailBorderColor" type="color" value="#e2e8f0">
-        </label>
-        <label>
-          Detail Border Width:
-          <div class="slider-container">
-            <input id="detailBorderWidth" type="range" min="0" max="10" value="1">
-            <span id="detailBorderWidthValue" class="slider-value">1px</span>
-          </div>
-        </label>
-        <label>
-          Detail Corner Radius:
-          <div class="slider-container">
-            <input id="detailCornerRadius" type="range" min="0" max="50" value="12">
-            <span id="detailCornerRadiusValue" class="slider-value">12px</span>
-          </div>
-        </label>
-        <label>
-          Detail Padding:
-          <div class="slider-container">
-            <input id="detailPadding" type="range" min="0" max="50" value="10">
-            <span id="detailPaddingValue" class="slider-value">10px</span>
-          </div>
-        </label>
-        <label>
-          Detail Position (Y):
-          <div class="slider-container">
-            <input id="detailSlider" type="range" min="0" max="200" value="0">
-            <span id="detailSliderValue" class="slider-value">0px</span>
-          </div>
-        </label>
-        <label>
-          Detail Alignment:
-          <select id="detailAlign">
-            <option value="center">Center</option>
-            <option value="left">Left</option>
-            <option value="right">Right</option>
-          </select>
-        </label>
-        <label>
-          Detail Line Height:
-          <div class="slider-container">
-            <input id="detailLineHeight" type="range" min="1" max="3" step="0.1" value="1.6">
-            <span id="detailLineHeightValue" class="slider-value">1.6x</span>
-          </div>
-        </label>
-        <label>
-          Detail Font Family:
-          <select id="detailFontFamily">
-            <option value="Inter">Inter</option>
-            <option value="Playfair Display">Playfair Display</option>
-            <option value="Bebas Neue">Bebas Neue</option>
-            <option value="Oswald">Oswald</option>
-            <option value="Roboto Slab">Roboto Slab</option>
-          </select>
-        </label>
-        <label>
-          Custom Font:
-          <input id="customFont" type="text" placeholder="Enter custom font name">
-        </label>
-        <label>
-          Output Size:
-          <select id="outputSize">
-            <option value="reel">Reel (1080x1920)</option>
-            <option value="youtube">YouTube (1920x1080)</option>
-            <option value="square">Square (1080x1080)</option>
-            <option value="portrait">Portrait (1080x1350)</option>
-            <option value="landscape">Landscape (1350x1080)</option>
-          </select>
-        </label>
-        <label>
-          Output Quality:
-          <div class="slider-container">
-            <input id="outputQuality" type="range" min="0.1" max="1" step="0.1" value="1.0">
-            <span id="outputQualityValue" class="slider-value">1.0</span>
-          </div>
-        </label>
-        <label>
-          File Prefix:
-          <input id="filePrefix" type="text" value="overlay">
-        </label>
+        </div>
       </div>
       <!-- Controller Tab (Buttons) -->
       <div id="controller-tab" class="tab-content">
-        <button id="singleBtn" class="btn btn-primary">Generate Single</button>
-        <button id="generateBtn" class="btn btn-primary">Generate All</button>
-        <button id="clearBtn" class="btn btn-secondary">Clear Results</button>
-        <button id="resetBtn" class="btn btn-secondary">Reset Settings</button>
-        <button id="exportZipBtn" class="btn btn-primary">Export as ZIP</button>
-        <button class="btn btn-secondary" onclick="applyPreset('instagram')">Instagram Preset</button>
-        <button class="btn btn-secondary" onclick="applyPreset('youtube')">YouTube Preset</button>
-        <button class="btn btn-secondary" onclick="applyPreset('tiktok')">TikTok Preset</button>
-        <button class="btn btn-secondary" onclick="applyPreset('twitter')">Twitter Preset</button>
-        <button class="btn btn-secondary" onclick="applyPreset('linkedin')">LinkedIn Preset</button>
+        <div class="collapsible-section">
+          <h3>Generation Controls <span id="controllerItemCount">0 items</span> <button id="controllerToggle" class="section-toggle">−</button></h3>
+          <div id="controllerSettings" class="collapsible-content">
+            <button id="singleBtn" class="btn btn-primary">Generate Single</button>
+            <button id="generateBtn" class="btn btn-primary">Generate All</button>
+            <button id="clearBtn" class="btn btn-secondary">Clear Results</button>
+            <button id="resetBtn" class="btn btn-secondary">Reset Settings</button>
+            <button id="exportZipBtn" class="btn btn-primary">Export as ZIP</button>
+            <button class="btn btn-secondary" onclick="applyPreset('instagram')">Instagram Preset</button>
+            <button class="btn btn-secondary" onclick="applyPreset('youtube')">YouTube Preset</button>
+            <button class="btn btn-secondary" onclick="applyPreset('tiktok')">TikTok Preset</button>
+            <button class="btn btn-secondary" onclick="applyPreset('twitter')">Twitter Preset</button>
+            <button class="btn btn-secondary" onclick="applyPreset('linkedin')">LinkedIn Preset</button>
+          </div>
+        </div>
       </div>
     </section>
     <!-- Results Section -->
@@ -588,11 +631,13 @@
     <canvas id="previewCanvas"></canvas>
     <div id="previewInfo">
       <span id="previewDimensions"></span>
+      
     </div>
+     <button id="themeToggle">🌙</button>
+  <button id="goToTop" style="display: none;">↑</button>
   </div>
   <!-- Theme and Scroll Buttons -->
-  <button id="themeToggle">🌙</button>
-  <button id="goToTop" style="display: none;">↑</button>
+ 
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -629,6 +674,7 @@
         csvFile: document.getElementById('csvFile'),
         csvDropZone: document.getElementById('csvDropZone'),
         itemCount: document.getElementById('itemCount'),
+        controllerItemCount: document.getElementById('controllerItemCount'),
         clearCsvBtn: document.getElementById('clearCsvBtn'),
         inputs: document.querySelectorAll('input, select, textarea'),
         buttons: {
@@ -644,9 +690,19 @@
       const themeToggle = document.getElementById('themeToggle');
       const goToTop = document.getElementById('goToTop');
       const csvToggle = document.getElementById('csvToggle');
+      const titleToggle = document.getElementById('titleToggle');
+      const detailToggle = document.getElementById('detailToggle');
+      const generationToggle = document.getElementById('generationToggle');
+      const controllerToggle = document.getElementById('controllerToggle');
 
       const imageCache = new Map();
-      let isCsvMinimized = false;
+      let sectionStates = {
+        csv: false,
+        title: false,
+        detail: false,
+        generation: false,
+        controller: false
+      };
       let currentPreviewData = null;
 
       window.applyPreset = applyPreset;
@@ -663,21 +719,45 @@
         document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
         tabContents.forEach(content => content.classList.remove('active'));
         document.getElementById(`${tabName}-tab`).classList.add('active');
+        // Reset section states to expanded when switching tabs
+        sectionStates = { csv: false, title: false, detail: false, generation: false, controller: false };
+        updateSectionStates();
         updateItemCount();
       }
 
-      function toggleCsv() {
-        isCsvMinimized = !isCsvMinimized;
+      function toggleSection(sectionId) {
+        sectionStates[sectionId] = !sectionStates[sectionId];
+        updateSectionStates();
+      }
+
+      function updateSectionStates() {
+        // CSV Section
         const csvInput = elements.csvInput;
-        if (isCsvMinimized) {
-          csvInput.classList.add('minimized');
-          csvToggle.textContent = '+';
-          csvToggle.classList.add('minimized');
-        } else {
-          csvInput.classList.remove('minimized');
-          csvToggle.textContent = '−';
-          csvToggle.classList.remove('minimized');
-        }
+        csvInput.classList.toggle('collapsed', sectionStates.csv);
+        csvToggle.textContent = sectionStates.csv ? '+' : '−';
+        elements.csvDropZone.querySelectorAll('input, button').forEach(el => {
+          el.style.display = sectionStates.csv ? 'none' : 'block';
+        });
+
+        // Title Settings
+        const titleSettings = document.getElementById('titleSettings');
+        titleSettings.classList.toggle('collapsed', sectionStates.title);
+        titleToggle.textContent = sectionStates.title ? '+' : '−';
+
+        // Detail Settings
+        const detailSettings = document.getElementById('detailSettings');
+        detailSettings.classList.toggle('collapsed', sectionStates.detail);
+        detailToggle.textContent = sectionStates.detail ? '+' : '−';
+
+        // Generation Settings
+        const generationSettings = document.getElementById('generationSettings');
+        generationSettings.classList.toggle('collapsed', sectionStates.generation);
+        generationToggle.textContent = sectionStates.generation ? '+' : '−';
+
+        // Controller Settings
+        const controllerSettings = document.getElementById('controllerSettings');
+        controllerSettings.classList.toggle('collapsed', sectionStates.controller);
+        controllerToggle.textContent = sectionStates.controller ? '+' : '−';
       }
 
       elements.csvFile.addEventListener('change', function(event) {
@@ -750,6 +830,9 @@
         const count = getValidLineCount();
         if (elements.itemCount) {
           elements.itemCount.textContent = `${count} items`;
+        }
+        if (elements.controllerItemCount) {
+          elements.controllerItemCount.textContent = `${count} items`;
         }
         elements.buttons.generate.disabled = count === 0;
       }
@@ -1293,7 +1376,7 @@
           <a href="#" onclick="exportBatch()">📦 Export All</a></small>
         `;
         scrollToResults();
-        window.currentResults = results; // Store results for exportBatch
+        window.currentResults = results;
         disableButtons(false);
       }
 
@@ -1470,10 +1553,16 @@
         }
       });
 
-      csvToggle.addEventListener('click', toggleCsv);
+      csvToggle.addEventListener('click', () => toggleSection('csv'));
+      titleToggle.addEventListener('click', () => toggleSection('title'));
+      detailToggle.addEventListener('click', () => toggleSection('detail'));
+      generationToggle.addEventListener('click', () => toggleSection('generation'));
+      controllerToggle.addEventListener('click', () => toggleSection('controller'));
+
       tabButtons.forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
       });
+
       elements.buttons.single.addEventListener('click', generateSingle);
       elements.buttons.generate.addEventListener('click', generateAll);
       elements.buttons.clear.addEventListener('click', () => {
