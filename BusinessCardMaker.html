@@ -119,6 +119,47 @@
       z-index: 0;
       pointer-events: none;
     }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 10;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 80%;
+      max-height: 80%;
+      overflow-y: auto;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .image-grid img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .image-grid img:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body class="flex flex-col md:flex-row gap-4 p-4">
@@ -137,6 +178,7 @@
     <div class="mb-4">
       <label class="block text-sm font-medium text-gray-700">Change Background</label>
       <input type="file" id="backgroundInput" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+      <button id="onlineBackgroundBtn" class="mt-2 w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Choose Online Background</button>
     </div>
     <div class="mb-4">
       <label class="block text-sm font-medium text-gray-700">Add Logo</label>
@@ -174,7 +216,85 @@
     <button id="downloadBtn" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Download Card</button>
   </div>
 
+  <!-- Modal for online backgrounds -->
+  <div class="modal" id="backgroundModal">
+    <div class="modal-content">
+      <h2 class="text-lg font-semibold mb-4">Select Background</h2>
+      <div class="image-grid" id="imageGrid"></div>
+      <button id="closeModal" class="mt-4 w-full py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700">Close</button>
+    </div>
+  </div>
+
   <script>
+    const backgroundImages = [
+      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/16/74/5158259f411ac49.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-minimalistic-geometric-business-card-background-image_239792.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-business-atmosphere-business-card-background-image_243064.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-simple-business-card-background-image_240069.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-gradient-geometric-flat-business-card-background-image_243088.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/32/44/085843de72ccfdd.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-simple-orange-business-card-background-image_240061.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-gradient-geometric-business-card-background-image_239805.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20190221/ourmid/pngtree-black-simple-business-invitation-card-image_40003.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-business-card-background-image_239795.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-business-minimalistic-business-card-background-image_237858.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/30/10/6958403c968b168.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-orange-geometric-business-card-background-image_239807.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20220814/pngtree-credit-card-closeup-secure-business-card-photo-image_33200936.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/32/01/325843684478042.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-flat-business-card-background-image_243066.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20201014/pngtree-abstract-wave-blue-particle-technology-background-abstract-design-template-for-brochures-image_416109.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/60/02/68586bb9304f478.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-geometric-business-card-background-image_239811.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_243092.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20240509/pngtree-blue-gradient-abstract-business-card-background-vector-image_15728489.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_pic/03/87/91/6957d3a7094fbc7.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20250928/pngtree-black-business-cards-featuring-leveld-logo-placed-on-dark-surface-next-image_19641811.webp',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-metal-texture-business-simple-creative-business-card-image_177652.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-business-tech-business-card-background-image_243063.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-orange-geometric-business-card-background-image_243080.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20210417/pngtree-business-card-background-image_610075.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-geometric-business-card-background-image_243062.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-business-tech-business-card-background-image_239798.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-black-business-atmosphere-business-card-background-image_239810.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_239814.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20220218/pngtree-black-and-red-metal-superhero-business-card-background-image_957823.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_239793.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20210817/pngtree-geometric-business-card-red-business-background-image_762944.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20220825/pngtree-a-womans-hand-grasping-a-bunch-of-sleek-black-business-cards-with-no-writing-photo-image_33447890.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20250925/pngtree-stacks-of-business-cards-featuring-a-stylized-logo-set-against-vibrant-image_19621885.webp',
+      'https://png.pngtree.com/thumb_back/fh260/background/20250925/pngtree-organized-modern-workspace-flat-lay-with-notebook-pen-wallet-and-business-image_19622394.webp',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-geometric-business-minimalistic-creative-business-card-image_177647.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20220215/pngtree-metal-wire-drawing-texture-business-simple-gray-business-card-background-image_926058.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-business-atmosphere-business-card-background-image_239808.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-business-tech-business-card-background-image_239809.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20220922/pngtree-multilingual-corporate-business-cards-for-festive-christmas-greetings-in-europe-photo-image_33883244.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20220218/pngtree-gold-brushed-business-card-background-image_966280.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-flat-business-card-background-image_243081.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20230207/pngtree-abstract-blue-gradient-geometric-business-card-background-image_1541501.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_243086.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190617/ourmid/pngtree-black-atmospheric-texture-business-card-background-material-image_128513.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-business-atmosphere-business-card-background-image_243061.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20220623/pngtree-flyer-business-card-background-template-image_1415171.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20220922/pngtree-european-language-merry-christmas-greetings-for-corporate-business-card-photo-image_33883014.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-line-business-atmosphere-business-card-background-image_239812.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190622/ourmid/pngtree-geometric-puzzle-color-business-card-background-image_218472.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-halo-business-technology-business-card-background-image_239821.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190628/ourmid/pngtree-flower-shop-business-card-image_264152.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20190221/ourmid/pngtree-business-invitation-card-synthesis-simple-image_16652.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_239797.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-geometric-business-card-background-image_239817.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190622/ourmid/pngtree-texture-geometric-business-card-frosted-background-image_217199.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-business-minimalist-creative-business-card-image_177667.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-business-card-background-image_239791.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_243069.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-geometric-lines-business-card-background-image_239790.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-blue-business-minimalistic-creative-business-card-image_177654.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-business-geometric-contrast-color-business-card-background-image_237854.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/background/20200718/pngtree-islamic-new-year-greeting-card-business-background-image_358319.jpg',
+      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-blue-technology-fashion-business-card-image_177277.jpg'
+    ];
+
     const cardMockup = document.getElementById('cardMockup');
     const cardImage = document.getElementById('cardImage');
     const cardOverlay = document.getElementById('cardOverlay');
@@ -192,6 +312,42 @@
     const gridToggle = document.getElementById('gridToggle');
     const gridOverlay = document.getElementById('gridOverlay');
     const downloadBtn = document.getElementById('downloadBtn');
+    const onlineBackgroundBtn = document.getElementById('onlineBackgroundBtn');
+    const backgroundModal = document.getElementById('backgroundModal');
+    const imageGrid = document.getElementById('imageGrid');
+    const closeModal = document.getElementById('closeModal');
+
+    // Populate image grid
+    function populateImageGrid() {
+      imageGrid.innerHTML = '';
+      backgroundImages.forEach((url, index) => {
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = `Background ${index + 1}`;
+        img.addEventListener('click', () => {
+          cardImage.src = url;
+          backgroundModal.style.display = 'none';
+        });
+        imageGrid.appendChild(img);
+      });
+    }
+
+    // Open/close modal
+    onlineBackgroundBtn.addEventListener('click', () => {
+      populateImageGrid();
+      backgroundModal.style.display = 'flex';
+    });
+
+    closeModal.addEventListener('click', () => {
+      backgroundModal.style.display = 'none';
+    });
+
+    // Close modal when clicking outside
+    backgroundModal.addEventListener('click', (e) => {
+      if (e.target === backgroundModal) {
+        backgroundModal.style.display = 'none';
+      }
+    });
 
     // Drag functionality
     function makeDraggable(element) {
@@ -390,11 +546,10 @@
 
     // Download card as image
     downloadBtn.addEventListener('click', () => {
-      // Temporarily remove grid and resize handles for clean output
       gridOverlay.style.display = 'none';
       textResizeHandle.style.display = 'none';
       logoResizeHandle.style.display = 'none';
-      cardMockup.style.transform = 'none'; // Remove 3D effect for download
+      cardMockup.style.transform = 'none';
 
       html2canvas(cardMockup, { scale: 2 }).then(canvas => {
         const link = document.createElement('a');
@@ -402,7 +557,6 @@
         link.href = canvas.toDataURL('image/png');
         link.click();
 
-        // Restore styles
         gridOverlay.style.display = gridToggle.checked ? 'block' : 'none';
         textResizeHandle.style.display = 'block';
         logoResizeHandle.style.display = logoImage.style.display === 'block' ? 'block' : 'none';
