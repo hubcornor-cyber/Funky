@@ -900,7 +900,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
    
     <script>
-       document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const DEFAULT_SETTINGS = {
         titleSize: 60, titleColor: '#ffffff', titleGlowColor: '#ff6b6b', titleShadowBlur: 20,
         titleBg1: '#00000080', titleBg2: '#00000040', titleBgOpacity: 80, titleBorderColor: '#ffffff',
@@ -992,7 +992,7 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (e) => {
-            elements.csvInput.value = e.target.result.replace(/\\n/g, '\n');
+            elements.csvInput.value = e.target.result; // No \n normalization
             updateItemCount();
             updatePreview();
             elements.statusText.innerHTML = `
@@ -1023,11 +1023,6 @@
             `;
             return false;
         }
-        if (parts[2].includes('\\n')) {
-            elements.statusText.innerHTML = `
-                ⚠️ <strong>Warning:</strong> Literal \\n detected in detail text. Use actual newlines or ensure proper CSV formatting.
-            `;
-        }
         return parts[0].startsWith('http');
     }
     
@@ -1047,7 +1042,7 @@
         }
         parts.push(current);
         while (parts.length < 3) parts.push('');
-        return parts.map(part => part.trim().replace(/\\n/g, '\n'));
+        return parts.map(part => part.trim()); // No \n replacement
     }
     
     function getValidLineCount() {
@@ -1262,11 +1257,11 @@
                 bgX = titleX - titleWidth/2 - padding;
                 bgWidth = titleWidth + padding * 2;
             } else if (settings.titleAlign === 'left') {
-                bgX = titleX + padding;
-                bgWidth = titleWidth + padding;
+                bgX = titleX - padding;
+                bgWidth = titleWidth + padding * 2;
             } else {
                 bgX = titleX - titleWidth - padding;
-                bgWidth = titleWidth + padding;
+                bgWidth = titleWidth + padding * 2;
             }
             if (settings.titleBgOpacity > 0) {
                 const gradient = ctx.createLinearGradient(
@@ -1297,17 +1292,59 @@
         }
         
         if (detail && detail.trim()) {
-            const lines = detail.split('\n').filter(line => line.trim());
+            const lines = detail.split('\\n').filter(line => line.trim()); // Split on literal \n
             console.log('Detail lines:', lines); // Debug
             if (lines.length > 0) {
                 ctx.save();
                 const lineHeight = settings.detailSize * scale * lineHeightMultiplier;
                 const maxLines = Math.floor((canvas.height - margin * 2) / lineHeight);
+                const padding = settings.detailPadding * scale;
+                const cornerRadius = settings.detailCornerRadius * scale;
+                const borderWidth = settings.detailBorderWidth * scale;
+                
+                // Calculate the total height and max width for the background
+                const totalHeight = lines.slice(0, maxLines).length * lineHeight;
+                let maxWidth = 0;
+                lines.slice(0, maxLines).forEach(line => {
+                    ctx.font = `${settings.detailSize * scale}px ${fontFamily}${settings.detailFontFamily}, sans-serif`;
+                    const textMetrics = ctx.measureText(line);
+                    maxWidth = Math.max(maxWidth, textMetrics.width);
+                });
+                
+                // Determine background position and dimensions
+                let bgX, bgWidth, bgY;
+                if (settings.detailAlign === 'center') {
+                    bgX = canvas.width / 2 - maxWidth / 2 - padding;
+                    bgWidth = maxWidth + padding * 2;
+                } else if (settings.detailAlign === 'left') {
+                    bgX = margin - padding;
+                    bgWidth = maxWidth + padding * 2;
+                } else {
+                    bgX = canvas.width - margin - maxWidth - padding;
+                    bgWidth = maxWidth + padding * 2;
+                }
+                bgY = canvas.height - margin - totalHeight - padding - settings.detailSlider * scale;
+                
+                // Draw background for all lines if opacity is set
+                if (settings.detailBgOpacity > 0) {
+                    const gradient = ctx.createLinearGradient(
+                        bgX, bgY,
+                        bgX + bgWidth, bgY + totalHeight + padding * 2
+                    );
+                    const startColor = hexToRgba(settings.detailBg1, settings.detailBgOpacity / 100);
+                    const endColor = hexToRgba(settings.detailBg2, settings.detailBgOpacity / 100);
+                    gradient.addColorStop(0, startColor);
+                    gradient.addColorStop(1, endColor);
+                    ctx.save();
+                    ctx.fillStyle = gradient;
+                    drawRoundedRect(bgX, bgY, bgWidth, totalHeight + padding * 2, cornerRadius, ctx);
+                    ctx.fill();
+                    ctx.restore();
+                }
+                
+                // Draw each line
                 lines.slice(0, maxLines).forEach((line, i) => {
                     ctx.font = `${settings.detailSize * scale}px ${fontFamily}${settings.detailFontFamily}, sans-serif`;
-                    ctx.textAlign = 'center';
-                    const textMetrics = ctx.measureText(line);
-                    const textWidth = textMetrics.width;
                     ctx.textAlign = settings.detailAlign;
                     let detailX;
                     if (settings.detailAlign === 'left') {
@@ -1322,36 +1359,7 @@
                     }
                     const lineY = canvas.height - (lines.length - i) * lineHeight - margin - settings.detailSlider * scale;
                     if (lineY > margin && lineY < canvas.height - margin) {
-                        const padding = settings.detailPadding * scale;
-                        const cornerRadius = settings.detailCornerRadius * scale;
-                        const borderWidth = settings.detailBorderWidth * scale;
-                        const textHeight = settings.detailSize * scale * lineHeightMultiplier;
-                        let bgX, bgWidth;
-                        if (settings.detailAlign === 'center') {
-                            bgX = detailX - textWidth/2 - padding;
-                            bgWidth = textWidth + padding * 2;
-                        } else if (settings.detailAlign === 'left') {
-                            bgX = detailX + padding;
-                            bgWidth = textWidth + padding;
-                        } else {
-                            bgX = detailX - textWidth - padding;
-                            bgWidth = textWidth + padding;
-                        }
-                        if (settings.detailBgOpacity > 0) {
-                            const gradient = ctx.createLinearGradient(
-                                bgX, lineY,
-                                bgX + bgWidth, lineY + textHeight
-                            );
-                            const startColor = hexToRgba(settings.detailBg1, settings.detailBgOpacity / 100);
-                            const endColor = hexToRgba(settings.detailBg2, settings.detailBgOpacity / 100);
-                            gradient.addColorStop(0, startColor);
-                            gradient.addColorStop(1, endColor);
-                            ctx.save();
-                            ctx.fillStyle = gradient;
-                            drawRoundedRect(bgX, lineY, bgWidth, textHeight, cornerRadius, ctx);
-                            ctx.fill();
-                            ctx.restore();
-                        }
+                        // Draw border/glow if set
                         if (borderWidth > 0) {
                             ctx.strokeStyle = settings.detailBorderColor;
                             ctx.lineWidth = borderWidth;
@@ -1359,6 +1367,7 @@
                             ctx.shadowBlur = settings.detailShadowBlur * scale;
                             ctx.strokeText(line, detailX, lineY);
                         }
+                        // Draw text
                         ctx.shadowBlur = 0;
                         ctx.fillStyle = settings.detailColor;
                         ctx.fillText(line, detailX, lineY);
@@ -1426,7 +1435,7 @@
         const contentType = title.trim() && detail.trim() ? 'Title + Detail' :
                             title.trim() ? 'Title Only' :
                             detail.trim() ? 'Detail Only' : 'Image Only';
-        const lineCount = detail.split('\n').filter(line => line.trim()).length;
+        const lineCount = detail.split('\\n').filter(line => line.trim()).length;
         try {
             elements.statusText.innerHTML = `
                 ⏳ <strong>Rendering Preview...</strong>
@@ -1752,7 +1761,7 @@
             if (file.type === 'text/csv' || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    elements.csvInput.value = event.target.result.replace(/\\n/g, '\n');
+                    elements.csvInput.value = event.target.result; // No \n normalization
                     updateItemCount();
                     updatePreview();
                     elements.statusText.innerHTML = `
@@ -1787,7 +1796,6 @@
     elements.inputs.forEach(input => {
         input.addEventListener('input', () => {
             if (input.id === 'csvInput') {
-                elements.csvInput.value = elements.csvInput.value.replace(/\\n/g, '\n');
                 updateItemCount();
             }
             updateSliderValues();
@@ -1840,7 +1848,7 @@
         themeToggle.textContent = '🌙';
     }
     
-    elements.csvInput.value = `https://cdn.pixabay.com/photo/2023/04/14/22/04/wallpaper-7926394_640.jpg,Professional Title,This is an amazing multi-line description text
+    elements.csvInput.value = `https://cdn.pixabay.com/photo/2023/04/14/22/04/wallpaper-7926394_640.jpg,Professional Title,Ask open-ended questions\\nto encourage conversation.
 https://cdn.pixabay.com/photo/2023/04/14/22/00/wallpaper-7926339_640.jpg,Creative Subtitle,Short description
 https://cdn.pixabay.com/photo/2023/04/14/22/00/wallpaper-7926339_640.jpg,gfgfd,Just the image - no text overlay`;
     updateSliderValues();
