@@ -12,6 +12,7 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | 📷 **Automation ScreenRecord**            | Create 100+ images with one click                | [ScreenRecord](https://hubcornor-cyber.github.io/Funky/ScreenRecord.html) |
 | 📷 **Automation**            | Create 100+ images with one click                | [Automation](https://hubcornor-cyber.github.io/Funky/Automation.html) |
 | 📷 **Automation Image**      | Mass generate images easily                       | [Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImage.html) |
+| 📷 **Automation Image**  | Generate images easily in android Friendly View       | [Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImageI.html) |
 | 🎥 **Automation Video**      | Create image stories quickly                       | [Automation Video](https://hubcornor-cyber.github.io/Funky/AutoVideo.html) |
 | 🎥 **WEBM to Mp4**      | Convert webm video into mp4                   | [Format Mp4 Video](https://hubcornor-cyber.github.io/mp4/examples/wasm-ffmpeg/index.html) |
 | 🎥      |                    | [Format Mp4 Video](https://hubcornor-cyber.github.io/mp4/examples/wasm-ffmpeg/mp4.html) |
