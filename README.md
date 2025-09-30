@@ -21,6 +21,7 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | 📘 **AutoText**          | Add colorful animated captions on images         | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoText.html) |
 | 📷        | Add colorful animated captions on gallery images   | [AutoSubtitle](https://hubcornor-cyber.github.io/Funky/AutoSubtitleOffline.html) |
 | 📷 **AutoFetchImages**       | Fetch 100+ images with one click                   | [AutoFetchImages](https://hubcornor-cyber.github.io/Funky/AutoFetchImages.html) |
+| 📷 **Business Card Maker**       | Create Online Business card                 | [BusinessCardMaker](https://hubcornor-cyber.github.io/Funky/BusinessCardMaker.html) |
 | 📷 **PixaBay FetchImages**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/Pixabay.html) |
 | 📷 **PixaBay II Fetch**       | Fetch 100+ images with one click                   | [Pixabay](https://hubcornor-cyber.github.io/Funky/PixabayII.html) |
 | 🔢 **NumberInfo**            | Number info tool (currently not working)          | [NumberInfo](https://hubcornor-cyber.github.io/Funky/NumberInfo.html) |
