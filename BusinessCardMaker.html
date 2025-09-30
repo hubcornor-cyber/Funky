@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Card Editor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #e8ecef;
+      font-family: Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .card-mockup {
+      width: 350px;
+      height: 200px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.1);
+      transform: perspective(1000px) rotateY(5deg) rotateX(5deg);
+      overflow: hidden;
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+
+    .card-mockup:hover {
+      transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+    }
+
+    .card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .card-overlay, .logo {
+      position: absolute;
+      z-index: 2;
+      cursor: move;
+      user-select: none;
+      transform-origin: center;
+    }
+
+    .card-overlay {
+      bottom: 10px;
+      left: 10px;
+      color: #fff;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      font-size: 0.9em;
+    }
+
+    .card-overlay h3 {
+      margin: 0;
+      font-size: 1.2em;
+    }
+
+    .card-overlay p {
+      margin: 5px 0 0;
+      font-size: 0.8em;
+    }
+
+    .logo {
+      top: 10px;
+      right: 10px;
+      max-width: 50px;
+      max-height: 50px;
+    }
+
+    .resize-handle {
+      position: absolute;
+      bottom: -5px;
+      right: -5px;
+      width: 10px;
+      height: 10px;
+      background-color: #007bff;
+      border-radius: 50%;
+      cursor: se-resize;
+      z-index: 3;
+    }
+
+    .controls {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+      max-width: 300px;
+    }
+
+    .grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 19px,
+        rgba(0, 0, 0, 0.1) 20px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 19px,
+        rgba(0, 0, 0, 0.1) 20px
+      );
+      z-index: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="flex flex-col md:flex-row gap-4 p-4">
+  <div class="card-mockup" id="cardMockup">
+    <div class="grid-overlay" id="gridOverlay" style="display: none;"></div>
+    <img src="https://static.vecteezy.com/system/resources/previews/024/140/681/non_2x/abstract-background-illustration-green-background-illustration-abstract-green-background-for-wallpaper-display-landing-page-banner-or-layout-simple-design-graphic-for-display-free-vector.jpg" alt="Business Card Mockup" class="card-image" id="cardImage">
+    <div class="card-overlay" id="cardOverlay">
+      <h3 contenteditable="true">John Doe</h3>
+      <p contenteditable="true">Graphic Designer | john.doe@example.com</p>
+      <div class="resize-handle" id="textResizeHandle"></div>
+    </div>
+    <img src="" alt="Logo" class="logo" id="logoImage" style="display: none;">
+    <div class="resize-handle logo-resize-handle" id="logoResizeHandle" style="display: none;"></div>
+  </div>
+  <div class="controls">
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Change Background</label>
+      <input type="file" id="backgroundInput" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Add Logo</label>
+      <input type="file" id="logoInput" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Text Color</label>
+      <input type="color" id="textColor" value="#ffffff" class="mt-1 w-full h-10">
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Font</label>
+      <select id="fontSelect" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="'Helvetica Neue', Helvetica, sans-serif">Helvetica</option>
+        <option value="'Times New Roman', Times, serif">Times New Roman</option>
+        <option value="'Georgia', serif">Georgia</option>
+      </select>
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Text Rotation</label>
+      <input type="range" id="textRotation" min="-180" max="180" value="0" class="mt-1 w-full">
+      <span id="textRotationValue">0°</span>
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Logo Rotation</label>
+      <input type="range" id="logoRotation" min="-180" max="180" value="0" class="mt-1 w-full">
+      <span id="logoRotationValue">0°</span>
+    </div>
+    <div class="mb-4">
+      <label class="flex items-center">
+        <input type="checkbox" id="gridToggle" class="mr-2">
+        <span class="text-sm font-medium text-gray-700">Show Grid</span>
+      </label>
+    </div>
+    <button id="downloadBtn" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">Download Card</button>
+  </div>
+
+  <script>
+    const cardMockup = document.getElementById('cardMockup');
+    const cardImage = document.getElementById('cardImage');
+    const cardOverlay = document.getElementById('cardOverlay');
+    const logoImage = document.getElementById('logoImage');
+    const textResizeHandle = document.getElementById('textResizeHandle');
+    const logoResizeHandle = document.getElementById('logoResizeHandle');
+    const backgroundInput = document.getElementById('backgroundInput');
+    const logoInput = document.getElementById('logoInput');
+    const textColor = document.getElementById('textColor');
+    const fontSelect = document.getElementById('fontSelect');
+    const textRotation = document.getElementById('textRotation');
+    const logoRotation = document.getElementById('logoRotation');
+    const textRotationValue = document.getElementById('textRotationValue');
+    const logoRotationValue = document.getElementById('logoRotationValue');
+    const gridToggle = document.getElementById('gridToggle');
+    const gridOverlay = document.getElementById('gridOverlay');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // Drag functionality
+    function makeDraggable(element) {
+      let isDragging = false;
+      let currentX, currentY, initialX, initialY;
+
+      element.addEventListener('mousedown', startDragging);
+      element.addEventListener('touchstart', startDragging, { passive: false });
+
+      function startDragging(e) {
+        e.preventDefault();
+        isDragging = true;
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+        initialX = clientX - (parseFloat(element.style.left) || 0);
+        initialY = clientY - (parseFloat(element.style.top) || 0);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag, { passive: false });
+        document.addEventListener('mouseup', stopDragging);
+        document.addEventListener('touchend', stopDragging);
+      }
+
+      function drag(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        const rect = cardMockup.getBoundingClientRect();
+        let x = clientX - initialX;
+        let y = clientY - initialY;
+
+        // Snap to grid if enabled
+        if (gridToggle.checked) {
+          x = Math.round(x / 20) * 20;
+          y = Math.round(y / 20) * 20;
+        }
+
+        // Constrain within card boundaries
+        x = Math.max(0, Math.min(x, rect.width - element.offsetWidth));
+        y = Math.max(0, Math.min(y, rect.height - element.offsetHeight));
+
+        element.style.left = `${x}px`;
+        element.style.top = `${y}px`;
+        element.style.bottom = 'auto';
+        element.style.right = 'auto';
+      }
+
+      function stopDragging() {
+        isDragging = false;
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('touchmove', drag);
+        document.removeEventListener('mouseup', stopDragging);
+        document.removeEventListener('touchend', stopDragging);
+      }
+    }
+
+    makeDraggable(cardOverlay);
+    makeDraggable(logoImage);
+
+    // Resize functionality
+    function makeResizable(element, handle, isImage = false) {
+      let isResizing = false;
+      let startWidth, startHeight, startX, startY;
+
+      handle.addEventListener('mousedown', startResizing);
+      handle.addEventListener('touchstart', startResizing, { passive: false });
+
+      function startResizing(e) {
+        e.preventDefault();
+        isResizing = true;
+        startWidth = element.offsetWidth;
+        startHeight = element.offsetHeight;
+        startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('touchmove', resize, { passive: false });
+        document.addEventListener('mouseup', stopResizing);
+        document.addEventListener('touchend', stopResizing);
+      }
+
+      function resize(e) {
+        if (!isResizing) return;
+        e.preventDefault();
+        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        if (isImage) {
+          element.style.maxWidth = `${Math.max(20, startWidth + dx)}px`;
+          element.style.maxHeight = `${Math.max(20, startHeight + dy)}px`;
+        } else {
+          element.style.width = `${Math.max(50, startWidth + dx)}px`;
+          element.style.fontSize = `${Math.max(0.8, 0.9 + dy / 100)}em`;
+        }
+      }
+
+      function stopResizing() {
+        isResizing = false;
+        document.removeEventListener('mousemove', resize);
+        document.removeEventListener('touchmove', resize);
+        document.removeEventListener('mouseup', stopResizing);
+        document.removeEventListener('touchend', stopResizing);
+      }
+    }
+
+    makeResizable(cardOverlay, textResizeHandle);
+    makeResizable(logoImage, logoResizeHandle, true);
+
+    // Pinch-to-resize for touch devices
+    function addPinchResize(element, isImage = false) {
+      let initialDistance = 0;
+      let startWidth = 0;
+
+      element.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          e.preventDefault();
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          initialDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+          startWidth = element.offsetWidth;
+        }
+      });
+
+      element.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2) {
+          e.preventDefault();
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          const distance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+          const scale = distance / initialDistance;
+          if (isImage) {
+            element.style.maxWidth = `${Math.max(20, startWidth * scale)}px`;
+            element.style.maxHeight = `${Math.max(20, startWidth * scale)}px`;
+          } else {
+            element.style.width = `${Math.max(50, startWidth * scale)}px`;
+          }
+        }
+      });
+    }
+
+    addPinchResize(cardOverlay);
+    addPinchResize(logoImage, true);
+
+    // Background image upload
+    backgroundInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          cardImage.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Logo upload
+    logoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          logoImage.src = reader.result;
+          logoImage.style.display = 'block';
+          logoResizeHandle.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Text color change
+    textColor.addEventListener('input', () => {
+      cardOverlay.style.color = textColor.value;
+    });
+
+    // Font selection
+    fontSelect.addEventListener('change', () => {
+      cardOverlay.style.fontFamily = fontSelect.value;
+    });
+
+    // Text rotation
+    textRotation.addEventListener('input', () => {
+      cardOverlay.style.transform = `rotate(${textRotation.value}deg)`;
+      textRotationValue.textContent = `${textRotation.value}°`;
+    });
+
+    // Logo rotation
+    logoRotation.addEventListener('input', () => {
+      logoImage.style.transform = `rotate(${logoRotation.value}deg)`;
+      logoRotationValue.textContent = `${logoRotation.value}°`;
+    });
+
+    // Grid toggle
+    gridToggle.addEventListener('change', () => {
+      gridOverlay.style.display = gridToggle.checked ? 'block' : 'none';
+    });
+
+    // Download card as image
+    downloadBtn.addEventListener('click', () => {
+      // Temporarily remove grid and resize handles for clean output
+      gridOverlay.style.display = 'none';
+      textResizeHandle.style.display = 'none';
+      logoResizeHandle.style.display = 'none';
+      cardMockup.style.transform = 'none'; // Remove 3D effect for download
+
+      html2canvas(cardMockup, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'business_card.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        // Restore styles
+        gridOverlay.style.display = gridToggle.checked ? 'block' : 'none';
+        textResizeHandle.style.display = 'block';
+        logoResizeHandle.style.display = logoImage.style.display === 'block' ? 'block' : 'none';
+        cardMockup.style.transform = 'perspective(1000px) rotateY(5deg) rotateX(5deg)';
+      });
+    });
+  </script>
+</body>
+</html>
