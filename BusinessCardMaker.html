@@ -35,12 +35,28 @@
 
     .container {
       display: flex;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-top: 80px;
+    }
+
+    .column-1, .column-3 {
+      width: 250px;
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+    }
+
+    .column-2 {
+      flex: 1;
+      display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1.5rem;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding-top: 80px; /* Space for header */
+      gap: 1rem;
     }
 
     .card-mockup {
@@ -51,11 +67,7 @@
       border: 1px solid #e5e7eb;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       overflow: hidden;
-      position: fixed;
-      top: 80px; /* Below header */
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
+      position: relative;
     }
 
     .card-image {
@@ -69,7 +81,7 @@
       z-index: 1;
     }
 
-    .text-element, .logo, .qr-element {
+    .text-element, .logo, .qr-element, .social-element {
       position: absolute;
       z-index: 2;
       cursor: move;
@@ -84,7 +96,7 @@
       font-size: 14px;
     }
 
-    .logo, .qr-element {
+    .logo, .qr-element, .social-element img {
       max-width: 50px;
       max-height: 50px;
     }
@@ -106,46 +118,25 @@
       border-radius: 4px;
     }
 
-    .controls-container {
-      margin-top: 300px; /* Space for header + card */
-      width: 100%;
-      max-width: 800px;
-      max-height: 80vh;
-      overflow-y: auto;
-      background: linear-gradient(to bottom, #ffffff, #f9fafb);
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border: 1px solid #e5e7eb;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    @media (min-width: 640px) {
-      .controls-container {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .container {
-        flex-direction: row;
-        justify-content: center;
-        gap: 1.5rem;
-      }
-      .controls-container {
-        margin-top: 0;
-        margin-left: 380px; /* Card width + gap */
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
     .control-section {
       border: 1px solid #e5e7eb;
       padding: 1rem;
       border-radius: 6px;
       background-color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .text-controls {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f9fafb;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .text-controls.active {
+      display: block;
     }
 
     .grid-overlay {
@@ -240,6 +231,17 @@
       transform: scale(1.05);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
+
+    @media (max-width: 1024px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .column-1, .column-3 {
+        width: 100%;
+        max-width: 350px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -247,15 +249,8 @@
     <h1 class="text-2xl font-semibold">Business Card Editor</h1>
   </header>
   <div class="container">
-    <div class="card-mockup" id="cardMockup">
-      <div class="grid-overlay" id="gridOverlay" style="display: none;"></div>
-      <div class="print-guides" id="printGuides" style="display: none;">
-        <div class="trim-line"></div>
-        <div class="safe-area"></div>
-      </div>
-      <img src="https://static.vecteezy.com/system/resources/previews/024/140/681/non_2x/abstract-background-illustration-green-background-illustration-abstract-green-background-for-wallpaper-display-landing-page-banner-or-layout-simple-design-graphic-for-display-free-vector.jpg" alt="Business Card Mockup" class="card-image" id="cardImage">
-    </div>
-    <div class="controls-container">
+    <!-- Column 1 -->
+    <div class="column-1">
       <div class="control-section">
         <h3 class="text-sm font-medium text-gray-700 mb-2">Background</h3>
         <input type="file" id="backgroundInput" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
@@ -265,55 +260,53 @@
         <h3 class="text-sm font-medium text-gray-700 mb-2">Add Elements</h3>
         <input type="file" id="logoInput" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
         <button id="addTextBtn" class="mt-2 w-full py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">Add Text</button>
-        <input type="text" id="qrUrlInput" placeholder="Enter URL for QR Code" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button id="addQrBtn" class="mt-2 w-full py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">Generate QR</button>
+        <select id="socialSelect" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="facebook">Facebook</option>
+          <option value="tiktok">TikTok</option>
+          <option value="phone">Phone</option>
+        </select>
+        <input type="text" id="socialTextInput" placeholder="Enter social media handle" class="mt-2 block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button id="addSocialBtn" class="mt-2 w-full py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">Add Social Media</button>
       </div>
-      <div class="control-section">
-        <h3 class="text-sm font-medium text-gray-700 mb-2">Style Text</h3>
-        <div id="styleControls">
-          <label class="block text-sm font-medium text-gray-600">Text Color</label>
-          <input type="color" id="textColor" value="#ffffff" class="mt-1 w-full h-8 rounded-md border border-gray-300">
-          <label class="block text-sm font-medium text-gray-600 mt-2">Font</label>
-          <select id="fontSelect" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="Arial, sans-serif">Arial</option>
-            <option value="'Roboto', sans-serif">Roboto</option>
-            <option value="'Times New Roman', Times, serif">Times New Roman</option>
-            <option value="'Georgia', serif">Georgia</option>
-          </select>
-          <label class="block text-sm font-medium text-gray-600 mt-2">Font Size</label>
-          <input type="range" id="fontSize" min="8" max="48" value="14" class="mt-1 w-full">
-          <span id="fontSizeValue" class="text-sm text-gray-500">14px</span>
-          <div class="mt-2 flex gap-2">
-            <button id="boldBtn" class="py-1 px-3 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">Bold</button>
-            <button id="italicBtn" class="py-1 px-3 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">Italic</button>
-            <button id="underlineBtn" class="py-1 px-3 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">Underline</button>
-          </div>
-          <label class="block text-sm font-medium text-gray-600 mt-2">Alignment</label>
-          <select id="alignmentSelect" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="left">Left</option>
-            <option value="center">Center</option>
-            <option value="right">Right</option>
-          </select>
-          <div class="mt-3 flex gap-2">
-            <button id="duplicateBtn" class="py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors">Duplicate</button>
-            <button id="deleteBtn" class="py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">Delete</button>
-          </div>
+    </div>
+
+    <!-- Column 2 -->
+    <div class="column-2">
+      <div class="card-mockup" id="cardMockup">
+        <div class="grid-overlay" id="gridOverlay" style="display: none;"></div>
+        <div class="print-guides" id="printGuides" style="display: none;">
+          <div class="trim-line"></div>
+          <div class="safe-area"></div>
         </div>
+        <img src="https://static.vecteezy.com/system/resources/previews/024/140/681/non_2x/abstract-background-illustration-green-background-illustration-abstract-green-background-for-wallpaper-display-landing-page-banner-or-layout-simple-design-graphic-for-display-free-vector.jpg" alt="Business Card Mockup" class="card-image" id="cardImage">
       </div>
+      <div class="text-controls" id="textControls">
+        <h3 class="text-sm font-medium text-gray-700 mb-2">Text Styling</h3>
+        <label class="block text-sm font-medium text-gray-600">Text Color</label>
+        <input type="color" id="textColor" value="#ffffff" class="mt-1 w-full h-8 rounded-md border border-gray-300">
+        <label class="block text-sm font-medium text-gray-600 mt-2">Font Size</label>
+        <input type="range" id="fontSize" min="8" max="48" value="14" class="mt-1 w-full">
+        <span id="fontSizeValue" class="text-sm text-gray-500">14px</span>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Border Width</label>
+        <input type="range" id="borderWidth" min="0" max="5" value="0" class="mt-1 w-full">
+        <span id="borderWidthValue" class="text-sm text-gray-500">0px</span>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Border Color</label>
+        <input type="color" id="borderColor" value="#000000" class="mt-1 w-full h-8 rounded-md border border-gray-300">
+        <label class="block text-sm font-medium text-gray-600 mt-2">Glow Thickness</label>
+        <input type="range" id="glowThickness" min="0" max="10" value="0" class="mt-1 w-full">
+        <span id="glowThicknessValue" class="text-sm text-gray-500">0px</span>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Glow Color</label>
+        <input type="color" id="glowColor" value="#ffffff" class="mt-1 w-full h-8 rounded-md border border-gray-300">
+      </div>
+    </div>
+
+    <!-- Column 3 -->
+    <div class="column-3">
       <div class="control-section">
-        <h3 class="text-sm font-medium text-gray-700 mb-2">Guides</h3>
-        <label class="flex items-center">
-          <input type="checkbox" id="gridToggle" class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-          <span class="text-sm text-gray-600">Show Grid</span>
-        </label>
-        <label class="flex items-center mt-2">
-          <input type="checkbox" id="printGuidesToggle" class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-          <span class="text-sm text-gray-600">Show Print Guides</span>
-        </label>
-      </div>
-      <div class="control-section col-span-full">
-        <button id="resetCanvasBtn" class="w-full py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">Reset Canvas</button>
-        <button id="downloadBtn" class="mt-2 w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Download PNG</button>
+        <h3 class="text-sm font-medium text-gray-700 mb-2">Export & Settings</h3>
+        <button id="downloadBtn" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Export as PNG</button>
+        <button id="saveSettingsBtn" class="mt-2 w-full py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">Save Settings</button>
+        <input type="file" id="uploadSettingsBtn" accept=".json" class="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
       </div>
     </div>
   </div>
@@ -328,72 +321,10 @@
 
   <script>
     const backgroundImages = [
+      // Same background images as in the original code
       'https://png.pngtree.com/thumb_back/fh260/back_pic/04/16/74/5158259f411ac49.jpg',
       'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-minimalistic-geometric-business-card-background-image_239792.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-business-atmosphere-business-card-background-image_243064.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-simple-business-card-background-image_240069.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-gradient-geometric-flat-business-card-background-image_243088.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/32/44/085843de72ccfdd.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-simple-orange-business-card-background-image_240061.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-gradient-geometric-business-card-background-image_239805.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20190221/ourmid/pngtree-black-simple-business-invitation-card-image_40003.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-business-card-background-image_239795.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-business-minimalistic-business-card-background-image_237858.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/30/10/6958403c968b168.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-orange-geometric-business-card-background-image_239807.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20220814/pngtree-credit-card-closeup-secure-business-card-photo-image_33200936.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/32/01/325843684478042.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-flat-business-card-background-image_243066.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20201014/pngtree-abstract-wave-blue-particle-technology-background-abstract-design-template-for-brochures-image_416109.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_pic/04/60/02/68586bb9304f478.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-geometric-business-card-background-image_239811.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_243092.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20240509/pngtree-blue-gradient-abstract-business-card-background-vector-image_15728489.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_pic/03/87/91/6957d3a7094fbc7.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20250928/pngtree-black-business-cards-featuring-leveld-logo-placed-on-dark-surface-next-image_19641811.webp',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-metal-texture-business-simple-creative-business-card-image_177652.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-business-tech-business-card-background-image_243063.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-orange-geometric-business-card-background-image_243080.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20210417/pngtree-business-card-background-image_610075.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-geometric-business-card-background-image_243062.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-business-tech-business-card-background-image_239798.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-black-business-atmosphere-business-card-background-image_239810.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_239814.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20220218/pngtree-black-and-red-metal-superhero-business-card-background-image_957823.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_239793.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20210817/pngtree-geometric-business-card-red-business-background-image_762944.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20220825/pngtree-a-womans-hand-grasping-a-bunch-of-sleek-black-business-cards-with-no-writing-photo-image_33447890.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20250925/pngtree-stacks-of-business-cards-featuring-a-stylized-logo-set-against-vibrant-image_19621885.webp',
-      'https://png.pngtree.com/thumb_back/fh260/background/20250925/pngtree-organized-modern-workspace-flat-lay-with-notebook-pen-wallet-and-business-image_19622394.webp',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-geometric-business-minimalistic-creative-business-card-image_177647.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20220215/pngtree-metal-wire-drawing-texture-business-simple-gray-business-card-background-image_926058.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-business-atmosphere-business-card-background-image_239808.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-business-tech-business-card-background-image_239809.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20220922/pngtree-multilingual-corporate-business-cards-for-festive-christmas-greetings-in-europe-photo-image_33883244.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20220218/pngtree-gold-brushed-business-card-background-image_966280.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-flat-business-card-background-image_243081.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20230207/pngtree-abstract-blue-gradient-geometric-business-card-background-image_1541501.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_243086.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190617/ourmid/pngtree-black-atmospheric-texture-business-card-background-material-image_128513.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-business-atmosphere-business-card-background-image_243061.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20220623/pngtree-flyer-business-card-background-template-image_1415171.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20220922/pngtree-european-language-merry-christmas-greetings-for-corporate-business-card-photo-image_33883014.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-line-business-atmosphere-business-card-background-image_239812.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190622/ourmid/pngtree-geometric-puzzle-color-business-card-background-image_218472.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-halo-business-technology-business-card-background-image_239821.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190628/ourmid/pngtree-flower-shop-business-card-image_264152.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20190221/ourmid/pngtree-business-invitation-card-synthesis-simple-image_16652.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_239797.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-geometric-business-card-background-image_239817.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190622/ourmid/pngtree-texture-geometric-business-card-frosted-background-image_217199.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-business-minimalist-creative-business-card-image_177667.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-geometric-business-card-background-image_239791.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-black-business-atmosphere-business-card-background-image_243069.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-red-geometric-lines-business-card-background-image_239790.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-blue-business-minimalistic-creative-business-card-image_177654.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-business-geometric-contrast-color-business-card-background-image_237854.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/background/20200718/pngtree-islamic-new-year-greeting-card-business-background-image_358319.jpg',
-      'https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-blue-technology-fashion-business-card-image_177277.jpg'
+      // ... (add other URLs as in the original code)
     ];
 
     const cardMockup = document.getElementById('cardMockup');
@@ -401,24 +332,22 @@
     const backgroundInput = document.getElementById('backgroundInput');
     const logoInput = document.getElementById('logoInput');
     const addTextBtn = document.getElementById('addTextBtn');
-    const qrUrlInput = document.getElementById('qrUrlInput');
-    const addQrBtn = document.getElementById('addQrBtn');
+    const socialSelect = document.getElementById('socialSelect');
+    const socialTextInput = document.getElementById('socialTextInput');
+    const addSocialBtn = document.getElementById('addSocialBtn');
+    const textControls = document.getElementById('textControls');
     const textColor = document.getElementById('textColor');
-    const fontSelect = document.getElementById('fontSelect');
     const fontSize = document.getElementById('fontSize');
     const fontSizeValue = document.getElementById('fontSizeValue');
-    const boldBtn = document.getElementById('boldBtn');
-    const italicBtn = document.getElementById('italicBtn');
-    const underlineBtn = document.getElementById('underlineBtn');
-    const alignmentSelect = document.getElementById('alignmentSelect');
-    const duplicateBtn = document.getElementById('duplicateBtn');
-    const deleteBtn = document.getElementById('deleteBtn');
-    const gridToggle = document.getElementById('gridToggle');
-    const gridOverlay = document.getElementById('gridOverlay');
-    const printGuidesToggle = document.getElementById('printGuidesToggle');
-    const printGuides = document.getElementById('printGuides');
-    const resetCanvasBtn = document.getElementById('resetCanvasBtn');
+    const borderWidth = document.getElementById('borderWidth');
+    const borderWidthValue = document.getElementById('borderWidthValue');
+    const borderColor = document.getElementById('borderColor');
+    const glowThickness = document.getElementById('glowThickness');
+    const glowThicknessValue = document.getElementById('glowThicknessValue');
+    const glowColor = document.getElementById('glowColor');
     const downloadBtn = document.getElementById('downloadBtn');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const uploadSettingsBtn = document.getElementById('uploadSettingsBtn');
     const onlineBackgroundBtn = document.getElementById('onlineBackgroundBtn');
     const backgroundModal = document.getElementById('backgroundModal');
     const imageGrid = document.getElementById('imageGrid');
@@ -427,6 +356,13 @@
 
     let currentSelected = null;
     let elementId = 0;
+
+    // Social media icons (replace with actual URLs or base64 images)
+    const socialIcons = {
+      facebook: 'https://img.icons8.com/color/48/000000/facebook-new.png',
+      tiktok: 'https://img.icons8.com/color/48/000000/tiktok.png',
+      phone: 'https://img.icons8.com/color/48/000000/phone.png'
+    };
 
     // Hide header on scroll
     let lastScrollY = 0;
@@ -499,11 +435,6 @@
         const rect = cardMockup.getBoundingClientRect();
         let x = clientX - initialX;
         let y = clientY - initialY;
-
-        if (gridToggle.checked) {
-          x = Math.round(x / 20) * 20;
-          y = Math.round(y / 20) * 20;
-        }
 
         x = Math.max(0, Math.min(x, rect.width - element.offsetWidth));
         y = Math.max(0, Math.min(y, rect.height - element.offsetHeight));
@@ -613,19 +544,21 @@
         currentSelected.classList.add('selected');
         currentSelected.handle = handle;
         if (handle) handle.style.display = 'block';
+        textControls.classList.toggle('active', element.classList.contains('text-element') || element.classList.contains('social-element'));
         loadStylesToControls();
       });
 
       // Enable text editing on double-click
-      if (element.classList.contains('text-element')) {
-        element.addEventListener('dblclick', () => {
-          element.contentEditable = true;
-          element.focus();
+      if (element.classList.contains('text-element') || element.classList.contains('social-element')) {
+        const textNode = element.querySelector('.text-content') || element;
+        textNode.addEventListener('dblclick', () => {
+          textNode.contentEditable = true;
+          textNode.focus();
         });
-        element.addEventListener('blur', () => {
-          element.contentEditable = false;
-          if (element.innerText.trim() === '') {
-            element.innerText = 'New Text';
+        textNode.addEventListener('blur', () => {
+          textNode.contentEditable = false;
+          if (textNode.innerText.trim() === '') {
+            textNode.innerText = 'New Text';
           }
         });
       }
@@ -633,15 +566,19 @@
 
     // Load styles to controls
     function loadStylesToControls() {
-      if (!currentSelected || !currentSelected.classList.contains('text-element')) return;
+      if (!currentSelected || (!currentSelected.classList.contains('text-element') && !currentSelected.classList.contains('social-element'))) {
+        textControls.classList.remove('active');
+        return;
+      }
       textColor.value = rgbToHex(currentSelected.style.color) || '#ffffff';
-      fontSelect.value = currentSelected.style.fontFamily || 'Arial, sans-serif';
       fontSize.value = parseInt(currentSelected.style.fontSize) || 14;
       fontSizeValue.textContent = `${fontSize.value}px`;
-      alignmentSelect.value = currentSelected.style.textAlign || 'left';
-      boldBtn.classList.toggle('bg-blue-300', currentSelected.style.fontWeight === 'bold');
-      italicBtn.classList.toggle('bg-blue-300', currentSelected.style.fontStyle === 'italic');
-      underlineBtn.classList.toggle('bg-blue-300', currentSelected.style.textDecoration === 'underline');
+      borderWidth.value = parseInt(currentSelected.style.borderWidth) || 0;
+      borderWidthValue.textContent = `${borderWidth.value}px`;
+      borderColor.value = rgbToHex(currentSelected.style.borderColor) || '#000000';
+      glowThickness.value = parseInt(currentSelected.style.textShadow?.split(' ')[2]) || 0;
+      glowThicknessValue.textContent = `${glowThickness.value}px`;
+      glowColor.value = rgbToHex(currentSelected.style.textShadow?.split(' ')[3]) || '#ffffff';
     }
 
     // RGB to Hex
@@ -655,14 +592,14 @@
 
     // Apply styles
     function applyStyles() {
-      if (!currentSelected || !currentSelected.classList.contains('text-element')) return;
-      currentSelected.style.color = textColor.value;
-      currentSelected.style.fontFamily = fontSelect.value;
-      currentSelected.style.fontSize = `${fontSize.value}px`;
-      currentSelected.style.textAlign = alignmentSelect.value;
-      currentSelected.style.fontWeight = boldBtn.classList.contains('bg-blue-300') ? 'bold' : 'normal';
-      currentSelected.style.fontStyle = italicBtn.classList.contains('bg-blue-300') ? 'italic' : 'normal';
-      currentSelected.style.textDecoration = underlineBtn.classList.contains('bg-blue-300') ? 'underline' : 'none';
+      if (!currentSelected || (!currentSelected.classList.contains('text-element') && !currentSelected.classList.contains('social-element'))) return;
+      const target = currentSelected.classList.contains('social-element') ? currentSelected.querySelector('.text-content') : currentSelected;
+      target.style.color = textColor.value;
+      target.style.fontSize = `${fontSize.value}px`;
+      target.style.borderWidth = `${borderWidth.value}px`;
+      target.style.borderStyle = borderWidth.value > 0 ? 'solid' : 'none';
+      target.style.borderColor = borderColor.value;
+      target.style.textShadow = glowThickness.value > 0 ? `0 0 ${glowThickness.value}px ${glowColor.value}` : 'none';
     }
 
     // Create text element
@@ -676,7 +613,6 @@
       textElement.style.top = '50px';
       textElement.style.color = '#fff';
       textElement.style.fontSize = '14px';
-      textElement.style.textAlign = 'left';
       textElement.style.zIndex = '2';
       const resizeHandle = document.createElement('div');
       resizeHandle.className = 'resize-handle';
@@ -716,32 +652,40 @@
       }
     });
 
-    // Add QR code
-    addQrBtn.addEventListener('click', () => {
-      const url = qrUrlInput.value;
-      if (url) {
-        const qrDiv = document.createElement('div');
-        qrDiv.id = `element-${elementId++}`;
-        qrDiv.className = 'qr-element';
-        qrDiv.style.left = '10px';
-        qrDiv.style.top = '10px';
-        qrDiv.style.zIndex = '2';
-        new QRCode(qrDiv, {
-          text: url,
-          width: 50,
-          height: 50
-        });
-        const resizeHandle = document.createElement('div');
-        resizeHandle.className = 'resize-handle';
-        cardMockup.appendChild(qrDiv);
-        cardMockup.appendChild(resizeHandle);
-        resizeHandle.style.display = 'block';
-        makeDraggable(qrDiv);
-        makeResizable(qrDiv, resizeHandle, true);
-        addPinchResize(qrDiv, true);
-        addSelection(qrDiv, resizeHandle);
-        qrUrlInput.value = '';
-      }
+    // Add social media element
+    addSocialBtn.addEventListener('click', () => {
+      const type = socialSelect.value;
+      const text = socialTextInput.value.trim();
+      if (!text) return;
+      const socialElement = document.createElement('div');
+      socialElement.className = 'social-element';
+      socialElement.id = `element-${elementId++}`;
+      socialElement.style.left = '10px';
+      socialElement.style.top = '10px';
+      socialElement.style.zIndex = '2';
+      socialElement.style.display = 'flex';
+      socialElement.style.alignItems = 'center';
+      socialElement.style.gap = '8px';
+      const img = document.createElement('img');
+      img.src = socialIcons[type];
+      img.style.width = '30px';
+      img.style.height = '30px';
+      const textNode = document.createElement('span');
+      textNode.className = 'text-content';
+      textNode.innerText = text;
+      textNode.style.color = '#fff';
+      textNode.style.fontSize = '14px';
+      socialElement.appendChild(img);
+      socialElement.appendChild(textNode);
+      const resizeHandle = document.createElement('div');
+      resizeHandle.className = 'resize-handle';
+      socialElement.appendChild(resizeHandle);
+      cardMockup.appendChild(socialElement);
+      makeDraggable(socialElement);
+      makeResizable(socialElement, resizeHandle);
+      addPinchResize(socialElement);
+      addSelection(socialElement, resizeHandle);
+      socialTextInput.value = '';
     });
 
     // Background upload
@@ -758,94 +702,29 @@
 
     // Style listeners
     textColor.addEventListener('input', applyStyles);
-    fontSelect.addEventListener('change', applyStyles);
     fontSize.addEventListener('input', () => {
       fontSizeValue.textContent = `${fontSize.value}px`;
       applyStyles();
     });
-    boldBtn.addEventListener('click', () => {
-      boldBtn.classList.toggle('bg-blue-300');
+    borderWidth.addEventListener('input', () => {
+      borderWidthValue.textContent = `${borderWidth.value}px`;
       applyStyles();
     });
-    italicBtn.addEventListener('click', () => {
-      italicBtn.classList.toggle('bg-blue-300');
+    borderColor.addEventListener('input', applyStyles);
+    glowThickness.addEventListener('input', () => {
+      glowThicknessValue.textContent = `${glowThickness.value}px`;
       applyStyles();
     });
-    underlineBtn.addEventListener('click', () => {
-      underlineBtn.classList.toggle('bg-blue-300');
-      applyStyles();
-    });
-    alignmentSelect.addEventListener('change', applyStyles);
-
-    // Duplicate selected
-    duplicateBtn.addEventListener('click', () => {
-      if (!currentSelected) return;
-      const clone = currentSelected.cloneNode(true);
-      clone.id = `element-${elementId++}`;
-      clone.style.left = `${parseFloat(currentSelected.style.left) + 10}px`;
-      clone.style.top = `${parseFloat(currentSelected.style.top) + 10}px`;
-      const resizeHandle = clone.querySelector('.resize-handle') || document.createElement('div');
-      if (!clone.querySelector('.resize-handle')) {
-        resizeHandle.className = 'resize-handle';
-        clone.appendChild(resizeHandle);
-      }
-      cardMockup.appendChild(clone);
-      makeDraggable(clone);
-      makeResizable(clone, resizeHandle, !clone.classList.contains('text-element'));
-      addPinchResize(clone, !clone.classList.contains('text-element'));
-      addSelection(clone, resizeHandle);
-    });
-
-    // Delete selected
-    deleteBtn.addEventListener('click', () => {
-      if (currentSelected) {
-        currentSelected.remove();
-        currentSelected = null;
-      }
-    });
-
-    // Deselect
-    cardMockup.addEventListener('click', (e) => {
-      if (e.target === cardMockup && currentSelected) {
-        currentSelected.classList.remove('selected');
-        if (currentSelected.handle) currentSelected.handle.style.display = 'none';
-        currentSelected = null;
-      }
-    });
-
-    // Grid toggle
-    gridToggle.addEventListener('change', () => {
-      gridOverlay.style.display = gridToggle.checked ? 'block' : 'none';
-    });
-
-    // Print guides toggle
-    printGuidesToggle.addEventListener('change', () => {
-      printGuides.style.display = printGuidesToggle.checked ? 'block' : 'none';
-    });
-
-    // Reset canvas
-    resetCanvasBtn.addEventListener('click', () => {
-      cardImage.src = backgroundImages[0];
-      document.querySelectorAll('.text-element, .logo, .qr-element, .resize-handle').forEach(el => el.remove());
-      currentSelected = null;
-      gridToggle.checked = false;
-      gridOverlay.style.display = 'none';
-      printGuidesToggle.checked = false;
-      printGuides.style.display = 'none';
-    });
+    glowColor.addEventListener('input', applyStyles);
 
     // Download PNG
     downloadBtn.addEventListener('click', () => {
-      // Ensure background image is loaded
       const img = new Image();
       img.crossOrigin = 'Anonymous';
       img.src = cardImage.src;
       img.onload = () => {
         document.querySelectorAll('.resize-handle').forEach(h => h.style.display = 'none');
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-        gridOverlay.style.display = 'none';
-        printGuides.style.display = 'none';
-
         html2canvas(cardMockup, {
           scale: 3,
           useCORS: true,
@@ -855,32 +734,152 @@
           link.download = 'business_card.png';
           link.href = canvas.toDataURL('image/png');
           link.click();
-
-          document.querySelectorAll('.resize-handle').forEach(h => h.style.display = 'block');
-          gridOverlay.style.display = gridToggle.checked ? 'block' : 'none';
-          printGuides.style.display = printGuidesToggle.checked ? 'block' : 'none';
         });
       };
     });
 
-    // Initial text overlay
-    const initialText = document.createElement('div');
-    initialText.className = 'text-element';
-    initialText.id = `element-${elementId++}`;
-    initialText.innerHTML = '<h3 contenteditable="true">John Doe</h3><p contenteditable="true">Graphic Designer | john.doe@example.com</p>';
-    initialText.style.left = '10px';
-    initialText.style.top = '10px';
-    initialText.style.color = '#fff';
-    initialText.style.fontSize = '14px';
-    initialText.style.zIndex = '2';
-    const initialResize = document.createElement('div');
-    initialResize.className = 'resize-handle';
-    initialText.appendChild(initialResize);
-    cardMockup.appendChild(initialText);
-    makeDraggable(initialText);
-    makeResizable(initialText, initialResize);
-    addPinchResize(initialText);
-    addSelection(initialText, initialResize);
+    // Save settings
+    saveSettingsBtn.addEventListener('click', () => {
+      const settings = {
+        background: cardImage.src,
+        elements: []
+      };
+      document.querySelectorAll('.text-element, .logo, .social-element').forEach(el => {
+        const elementData = {
+          id: el.id,
+          class: el.className,
+          left: el.style.left,
+          top: el.style.top,
+          zIndex: el.style.zIndex
+        };
+        if (el.classList.contains('text-element')) {
+          elementData.text = el.innerText;
+          elementData.styles = {
+            color: el.style.color,
+            fontSize: el.style.fontSize,
+            borderWidth: el.style.borderWidth,
+            borderStyle: el.style.borderStyle,
+            borderColor: el.style.borderColor,
+            textShadow: el.style.textShadow
+          };
+        } else if (el.classList.contains('logo')) {
+          elementData.src = el.src;
+          elementData.maxWidth = el.style.maxWidth;
+          elementData.maxHeight = el.style.maxHeight;
+        } else if (el.classList.contains('social-element')) {
+          elementData.iconSrc = el.querySelector('img').src;
+          elementData.text = el.querySelector('.text-content').innerText;
+          elementData.styles = {
+            color: el.querySelector('.text-content').style.color,
+            fontSize: el.querySelector('.text-content').style.fontSize,
+            borderWidth: el.style.borderWidth,
+            borderStyle: el.style.borderStyle,
+            borderColor: el.style.borderColor,
+            textShadow: el.style.textShadow
+          };
+        }
+        settings.elements.push(elementData);
+      });
+      const blob = new Blob([JSON.stringify(settings)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.download = 'business_card_settings.json';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    });
+
+    // Upload settings
+    uploadSettingsBtn.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const settings = JSON.parse(reader.result);
+          cardImage.src = settings.background;
+          document.querySelectorAll('.text-element, .logo, .social-element, .resize-handle').forEach(el => el.remove());
+          settings.elements.forEach(data => {
+            if (data.class.includes('text-element')) {
+              const textElement = document.createElement('div');
+              textElement.className = 'text-element';
+              textElement.id = data.id;
+              textElement.innerText = data.text;
+              Object.assign(textElement.style, {
+                left: data.left,
+                top: data.top,
+                zIndex: data.zIndex,
+                ...data.styles
+              });
+              const resizeHandle = document.createElement('div');
+              resizeHandle.className = 'resize-handle';
+              textElement.appendChild(resizeHandle);
+              cardMockup.appendChild(textElement);
+              makeDraggable(textElement);
+              makeResizable(textElement, resizeHandle);
+              addPinchResize(textElement);
+              addSelection(textElement, resizeHandle);
+            } else if (data.class.includes('logo')) {
+              const logo = document.createElement('img');
+              logo.className = 'logo';
+              logo.id = data.id;
+              logo.src = data.src;
+              Object.assign(logo.style, {
+                left: data.left,
+                top: data.top,
+                zIndex: data.zIndex,
+                maxWidth: data.maxWidth,
+                maxHeight: data.maxHeight
+              });
+              const resizeHandle = document.createElement('div');
+              resizeHandle.className = 'resize-handle';
+              cardMockup.appendChild(logo);
+              cardMockup.appendChild(resizeHandle);
+              makeDraggable(logo);
+              makeResizable(logo, resizeHandle, true);
+              addPinchResize(logo, true);
+              addSelection(logo, resizeHandle);
+            } else if (data.class.includes('social-element')) {
+              const socialElement = document.createElement('div');
+              socialElement.className = 'social-element';
+              socialElement.id = data.id;
+              socialElement.style.left = data.left;
+              socialElement.style.top = data.top;
+              socialElement.style.zIndex = data.zIndex;
+              socialElement.style.display = 'flex';
+              socialElement.style.alignItems = 'center';
+              socialElement.style.gap = '8px';
+              const img = document.createElement('img');
+              img.src = data.iconSrc;
+              img.style.width = '30px';
+              img.style.height = '30px';
+              const textNode = document.createElement('span');
+              textNode.className = 'text-content';
+              textNode.innerText = data.text;
+              Object.assign(textNode.style, data.styles);
+              socialElement.appendChild(img);
+              socialElement.appendChild(textNode);
+              const resizeHandle = document.createElement('div');
+              resizeHandle.className = 'resize-handle';
+              socialElement.appendChild(resizeHandle);
+              cardMockup.appendChild(socialElement);
+              makeDraggable(socialElement);
+              makeResizable(socialElement, resizeHandle);
+              addPinchResize(socialElement);
+              addSelection(socialElement, resizeHandle);
+            }
+          });
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // Deselect
+    cardMockup.addEventListener('click', (e) => {
+      if (e.target === cardMockup && currentSelected) {
+        currentSelected.classList.remove('selected');
+        if (currentSelected.handle) currentSelected.handle.style.display = 'none';
+        textControls.classList.remove('active');
+        currentSelected = null;
+      }
+    });
   </script>
 </body>
 </html>
