@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,6 +134,8 @@
       background: #f9fafb;
       border-radius: 6px;
       border: 1px solid #e5e7eb;
+      width: 100%;
+      max-width: 350px;
     }
 
     .text-controls.active {
@@ -241,6 +244,9 @@
         width: 100%;
         max-width: 350px;
       }
+      .text-controls {
+        max-width: 100%;
+      }
     }
   </style>
 </head>
@@ -282,21 +288,62 @@
       </div>
       <div class="text-controls" id="textControls">
         <h3 class="text-sm font-medium text-gray-700 mb-2">Text Styling</h3>
-        <label class="block text-sm font-medium text-gray-600">Text Color</label>
+        <label class="block text-sm font-medium text-gray-600">Font Family</label>
+        <select id="fontFamily" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Roboto', sans-serif">Roboto</option>
+          <option value="'Times New Roman', Times, serif">Times New Roman</option>
+          <option value="'Georgia', serif">Georgia</option>
+          <option value="'Helvetica', sans-serif">Helvetica</option>
+          <option value="'Verdana', sans-serif">Verdana</option>
+          <option value="'Courier New', Courier, monospace">Courier New</option>
+          <option value="'Open Sans', sans-serif">Open Sans</option>
+        </select>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Text Color</label>
         <input type="color" id="textColor" value="#ffffff" class="mt-1 w-full h-8 rounded-md border border-gray-300">
         <label class="block text-sm font-medium text-gray-600 mt-2">Font Size</label>
         <input type="range" id="fontSize" min="8" max="48" value="14" class="mt-1 w-full">
         <span id="fontSizeValue" class="text-sm text-gray-500">14px</span>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Letter Spacing</label>
+        <input type="range" id="letterSpacing" min="-2" max="5" step="0.1" value="0" class="mt-1 w-full">
+        <span id="letterSpacingValue" class="text-sm text-gray-500">0px</span>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Line Height</label>
+        <input type="range" id="lineHeight" min="0.8" max="2" step="0.1" value="1" class="mt-1 w-full">
+        <span id="lineHeightValue" class="text-sm text-gray-500">1</span>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Text Rotation</label>
+        <input type="range" id="textRotation" min="-180" max="180" value="0" class="mt-1 w-full">
+        <span id="textRotationValue" class="text-sm text-gray-500">0°</span>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Opacity</label>
+        <input type="range" id="textOpacity" min="0" max="1" step="0.01" value="1" class="mt-1 w-full">
+        <span id="textOpacityValue" class="text-sm text-gray-500">1</span>
         <label class="block text-sm font-medium text-gray-600 mt-2">Border Width</label>
         <input type="range" id="borderWidth" min="0" max="5" value="0" class="mt-1 w-full">
         <span id="borderWidthValue" class="text-sm text-gray-500">0px</span>
         <label class="block text-sm font-medium text-gray-600 mt-2">Border Color</label>
         <input type="color" id="borderColor" value="#000000" class="mt-1 w-full h-8 rounded-md border border-gray-300">
+        <label class="block text-sm font-medium text-gray-600 mt-2">Shadow X Offset</label>
+        <input type="range" id="shadowX" min="-10" max="10" value="0" class="mt-1 w-full">
+        <span id="shadowXValue" class="text-sm text-gray-500">0px</span>
+        <label class="block text-sm font-medium text-gray-600 mt-2">Shadow Y Offset</label>
+        <input type="range" id="shadowY" min="-10" max="10" value="0" class="mt-1 w-full">
+        <span id="shadowYValue" class="text-sm text-gray-500">0px</span>
         <label class="block text-sm font-medium text-gray-600 mt-2">Glow Thickness</label>
         <input type="range" id="glowThickness" min="0" max="10" value="0" class="mt-1 w-full">
         <span id="glowThicknessValue" class="text-sm text-gray-500">0px</span>
         <label class="block text-sm font-medium text-gray-600 mt-2">Glow Color</label>
         <input type="color" id="glowColor" value="#ffffff" class="mt-1 w-full h-8 rounded-md border border-gray-300">
+        <label class="block text-sm font-medium text-gray-600 mt-2">Text Alignment</label>
+        <select id="textAlignment" class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right">Right</option>
+          <option value="justify">Justify</option>
+        </select>
+        <div class="mt-2 flex gap-2">
+          <button id="boldBtn" class="py-1 px-3 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">Bold</button>
+          <button id="italicBtn" class="py-1 px-3 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">Italic</button>
+          <button id="underlineBtn" class="py-1 px-3 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">Underline</button>
+        </div>
       </div>
     </div>
 
@@ -321,10 +368,9 @@
 
   <script>
     const backgroundImages = [
-      // Same background images as in the original code
       'https://png.pngtree.com/thumb_back/fh260/back_pic/04/16/74/5158259f411ac49.jpg',
       'https://png.pngtree.com/thumb_back/fh260/back_our/20190623/ourmid/pngtree-blue-minimalistic-geometric-business-card-background-image_239792.jpg',
-      // ... (add other URLs as in the original code)
+      // ... (other background images as in the original code)
     ];
 
     const cardMockup = document.getElementById('cardMockup');
@@ -336,15 +382,32 @@
     const socialTextInput = document.getElementById('socialTextInput');
     const addSocialBtn = document.getElementById('addSocialBtn');
     const textControls = document.getElementById('textControls');
+    const fontFamily = document.getElementById('fontFamily');
     const textColor = document.getElementById('textColor');
     const fontSize = document.getElementById('fontSize');
     const fontSizeValue = document.getElementById('fontSizeValue');
+    const letterSpacing = document.getElementById('letterSpacing');
+    const letterSpacingValue = document.getElementById('letterSpacingValue');
+    const lineHeight = document.getElementById('lineHeight');
+    const lineHeightValue = document.getElementById('lineHeightValue');
+    const textRotation = document.getElementById('textRotation');
+    const textRotationValue = document.getElementById('textRotationValue');
+    const textOpacity = document.getElementById('textOpacity');
+    const textOpacityValue = document.getElementById('textOpacityValue');
     const borderWidth = document.getElementById('borderWidth');
     const borderWidthValue = document.getElementById('borderWidthValue');
     const borderColor = document.getElementById('borderColor');
+    const shadowX = document.getElementById('shadowX');
+    const shadowXValue = document.getElementById('shadowXValue');
+    const shadowY = document.getElementById('shadowY');
+    const shadowYValue = document.getElementById('shadowYValue');
     const glowThickness = document.getElementById('glowThickness');
     const glowThicknessValue = document.getElementById('glowThicknessValue');
     const glowColor = document.getElementById('glowColor');
+    const textAlignment = document.getElementById('textAlignment');
+    const boldBtn = document.getElementById('boldBtn');
+    const italicBtn = document.getElementById('italicBtn');
+    const underlineBtn = document.getElementById('underlineBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
     const uploadSettingsBtn = document.getElementById('uploadSettingsBtn');
@@ -357,7 +420,7 @@
     let currentSelected = null;
     let elementId = 0;
 
-    // Social media icons (replace with actual URLs or base64 images)
+    // Social media icons
     const socialIcons = {
       facebook: 'https://img.icons8.com/color/48/000000/facebook-new.png',
       tiktok: 'https://img.icons8.com/color/48/000000/tiktok.png',
@@ -570,15 +633,33 @@
         textControls.classList.remove('active');
         return;
       }
-      textColor.value = rgbToHex(currentSelected.style.color) || '#ffffff';
-      fontSize.value = parseInt(currentSelected.style.fontSize) || 14;
+      const target = currentSelected.classList.contains('social-element') ? currentSelected.querySelector('.text-content') : currentSelected;
+      fontFamily.value = target.style.fontFamily || 'Arial, sans-serif';
+      textColor.value = rgbToHex(target.style.color) || '#ffffff';
+      fontSize.value = parseInt(target.style.fontSize) || 14;
       fontSizeValue.textContent = `${fontSize.value}px`;
-      borderWidth.value = parseInt(currentSelected.style.borderWidth) || 0;
+      letterSpacing.value = parseFloat(target.style.letterSpacing) || 0;
+      letterSpacingValue.textContent = `${letterSpacing.value}px`;
+      lineHeight.value = parseFloat(target.style.lineHeight) || 1;
+      lineHeightValue.textContent = `${lineHeight.value}`;
+      textRotation.value = parseFloat(target.style.transform?.match(/rotate\(([^)]+)\)/)?.[1]) || 0;
+      textRotationValue.textContent = `${textRotation.value}°`;
+      textOpacity.value = parseFloat(target.style.opacity) || 1;
+      textOpacityValue.textContent = `${textOpacity.value}`;
+      borderWidth.value = parseInt(target.style.borderWidth) || 0;
       borderWidthValue.textContent = `${borderWidth.value}px`;
-      borderColor.value = rgbToHex(currentSelected.style.borderColor) || '#000000';
-      glowThickness.value = parseInt(currentSelected.style.textShadow?.split(' ')[2]) || 0;
+      borderColor.value = rgbToHex(target.style.borderColor) || '#000000';
+      shadowX.value = parseInt(target.style.textShadow?.split(' ')[0]) || 0;
+      shadowXValue.textContent = `${shadowX.value}px`;
+      shadowY.value = parseInt(target.style.textShadow?.split(' ')[1]) || 0;
+      shadowYValue.textContent = `${shadowY.value}px`;
+      glowThickness.value = parseInt(target.style.textShadow?.split(' ')[2]) || 0;
       glowThicknessValue.textContent = `${glowThickness.value}px`;
-      glowColor.value = rgbToHex(currentSelected.style.textShadow?.split(' ')[3]) || '#ffffff';
+      glowColor.value = rgbToHex(target.style.textShadow?.split(' ')[3]) || '#ffffff';
+      textAlignment.value = target.style.textAlign || 'left';
+      boldBtn.classList.toggle('bg-blue-300', target.style.fontWeight === 'bold');
+      italicBtn.classList.toggle('bg-blue-300', target.style.fontStyle === 'italic');
+      underlineBtn.classList.toggle('bg-blue-300', target.style.textDecoration === 'underline');
     }
 
     // RGB to Hex
@@ -594,12 +675,21 @@
     function applyStyles() {
       if (!currentSelected || (!currentSelected.classList.contains('text-element') && !currentSelected.classList.contains('social-element'))) return;
       const target = currentSelected.classList.contains('social-element') ? currentSelected.querySelector('.text-content') : currentSelected;
+      target.style.fontFamily = fontFamily.value;
       target.style.color = textColor.value;
       target.style.fontSize = `${fontSize.value}px`;
+      target.style.letterSpacing = `${letterSpacing.value}px`;
+      target.style.lineHeight = `${lineHeight.value}`;
+      target.style.transform = `rotate(${textRotation.value}deg)`;
+      target.style.opacity = textOpacity.value;
       target.style.borderWidth = `${borderWidth.value}px`;
       target.style.borderStyle = borderWidth.value > 0 ? 'solid' : 'none';
       target.style.borderColor = borderColor.value;
-      target.style.textShadow = glowThickness.value > 0 ? `0 0 ${glowThickness.value}px ${glowColor.value}` : 'none';
+      target.style.textShadow = glowThickness.value > 0 ? `${shadowX.value}px ${shadowY.value}px ${glowThickness.value}px ${glowColor.value}` : 'none';
+      target.style.textAlign = textAlignment.value;
+      target.style.fontWeight = boldBtn.classList.contains('bg-blue-300') ? 'bold' : 'normal';
+      target.style.fontStyle = italicBtn.classList.contains('bg-blue-300') ? 'italic' : 'normal';
+      target.style.textDecoration = underlineBtn.classList.contains('bg-blue-300') ? 'underline' : 'none';
     }
 
     // Create text element
@@ -701,9 +791,26 @@
     });
 
     // Style listeners
+    fontFamily.addEventListener('change', applyStyles);
     textColor.addEventListener('input', applyStyles);
     fontSize.addEventListener('input', () => {
       fontSizeValue.textContent = `${fontSize.value}px`;
+      applyStyles();
+    });
+    letterSpacing.addEventListener('input', () => {
+      letterSpacingValue.textContent = `${letterSpacing.value}px`;
+      applyStyles();
+    });
+    lineHeight.addEventListener('input', () => {
+      lineHeightValue.textContent = `${lineHeight.value}`;
+      applyStyles();
+    });
+    textRotation.addEventListener('input', () => {
+      textRotationValue.textContent = `${textRotation.value}°`;
+      applyStyles();
+    });
+    textOpacity.addEventListener('input', () => {
+      textOpacityValue.textContent = `${textOpacity.value}`;
       applyStyles();
     });
     borderWidth.addEventListener('input', () => {
@@ -711,11 +818,32 @@
       applyStyles();
     });
     borderColor.addEventListener('input', applyStyles);
+    shadowX.addEventListener('input', () => {
+      shadowXValue.textContent = `${shadowX.value}px`;
+      applyStyles();
+    });
+    shadowY.addEventListener('input', () => {
+      shadowYValue.textContent = `${shadowY.value}px`;
+      applyStyles();
+    });
     glowThickness.addEventListener('input', () => {
       glowThicknessValue.textContent = `${glowThickness.value}px`;
       applyStyles();
     });
     glowColor.addEventListener('input', applyStyles);
+    textAlignment.addEventListener('change', applyStyles);
+    boldBtn.addEventListener('click', () => {
+      boldBtn.classList.toggle('bg-blue-300');
+      applyStyles();
+    });
+    italicBtn.addEventListener('click', () => {
+      italicBtn.classList.toggle('bg-blue-300');
+      applyStyles();
+    });
+    underlineBtn.addEventListener('click', () => {
+      underlineBtn.classList.toggle('bg-blue-300');
+      applyStyles();
+    });
 
     // Download PNG
     downloadBtn.addEventListener('click', () => {
@@ -755,12 +883,21 @@
         if (el.classList.contains('text-element')) {
           elementData.text = el.innerText;
           elementData.styles = {
+            fontFamily: el.style.fontFamily,
             color: el.style.color,
             fontSize: el.style.fontSize,
+            letterSpacing: el.style.letterSpacing,
+            lineHeight: el.style.lineHeight,
+            transform: el.style.transform,
+            opacity: el.style.opacity,
             borderWidth: el.style.borderWidth,
             borderStyle: el.style.borderStyle,
             borderColor: el.style.borderColor,
-            textShadow: el.style.textShadow
+            textShadow: el.style.textShadow,
+            textAlign: el.style.textAlign,
+            fontWeight: el.style.fontWeight,
+            fontStyle: el.style.fontStyle,
+            textDecoration: el.style.textDecoration
           };
         } else if (el.classList.contains('logo')) {
           elementData.src = el.src;
@@ -770,12 +907,21 @@
           elementData.iconSrc = el.querySelector('img').src;
           elementData.text = el.querySelector('.text-content').innerText;
           elementData.styles = {
+            fontFamily: el.querySelector('.text-content').style.fontFamily,
             color: el.querySelector('.text-content').style.color,
             fontSize: el.querySelector('.text-content').style.fontSize,
+            letterSpacing: el.querySelector('.text-content').style.letterSpacing,
+            lineHeight: el.querySelector('.text-content').style.lineHeight,
+            transform: el.style.transform,
+            opacity: el.querySelector('.text-content').style.opacity,
             borderWidth: el.style.borderWidth,
             borderStyle: el.style.borderStyle,
             borderColor: el.style.borderColor,
-            textShadow: el.style.textShadow
+            textShadow: el.querySelector('.text-content').style.textShadow,
+            textAlign: el.querySelector('.text-content').style.textAlign,
+            fontWeight: el.querySelector('.text-content').style.fontWeight,
+            fontStyle: el.querySelector('.text-content').style.fontStyle,
+            textDecoration: el.querySelector('.text-content').style.textDecoration
           };
         }
         settings.elements.push(elementData);
@@ -883,3 +1029,4 @@
   </script>
 </body>
 </html>
+```
