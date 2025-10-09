@@ -33,7 +33,7 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | 📷 **Camera Hijack**         | Camera access tool (for demo/testing)              | [Camera](https://hubcornor-cyber.github.io/Funky/Camera.html) |
 | 🎉 **HappyDay (Hindi)**      | Wishing script (Hindi) #0                          | [HappyDay](https://hubcornor-cyber.github.io/Funky/HappyDay.html) |
 | 🎊 **HappyMeet (Hindi)**     | Wishing script (Hindi) I                           | [HappyMeet](https://hubcornor-cyber.github.io/Funky/HappyMeet.html) |
-| 🎈 **HappyDayI (Hindi)**     | Wishing script (Hindi) II                          | [HappyDayI](https://hubcornor-cyber.github.io/Funky/HappyDayI.html) |
+| 🎈 **HappyDayI (Pak)**     | Wishing script (Paki) II                          | [HoppyDayI](https://hubcornor-cyber.github.io/Funky/HoppyDayI.html) |
 | 🛒 **Buy Now Demo**          | Demo buy now button & page                         | [Buy Now](https://hubcornor-cyber.github.io/Funky/Buy%20Now.html) |
 | 👑 **Markaz Admin**          | Admin panel                                        | [Admin](https://hubcornor-cyber.github.io/Funky/SecretAdmin.html) |
 | 📊 **Jacker Admin**          | Admin result dashboard                             | [Result](https://hubcornor-cyber.github.io/Funky/Result.html) |
