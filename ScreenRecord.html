@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Offline Screen Recorder</title>
     <style>
         html, body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: sans-serif;
             text-align: center;
             background-color: #f9f9f9;
@@ -34,70 +33,144 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            text-decoration: none;
         }
 
         #downloadBtn:hover {
             background-color: #45a049;
         }
+
+        #stopBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #stopBtn:hover {
+            background-color: #d32f2f;
+        }
+
+        #durationInput {
+            margin-top: 15px;
+            width: 80px;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Offline Screen Recorder (10 Seconds)</h1>
-    <p>Recording will start automatically and stop after 10 seconds.</p>
-    <video id="player" controls autoplay playsinline></video>
-    <br>
-    <a id="downloadBtn" href="#" download="recording.webm">Download Recording</a>
+<h1>Offline Screen Recorder</h1>
+<p>Set recording time (seconds) and recording will start automatically.</p>
+<input type="number" id="durationInput" value="20" min="1" step="1" />
+<label for="durationInput">Recording Duration (seconds)</label>
 
-    <!-- Load local RecordRTC -->
-    <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
+<br />
+<video id="player" controls autoplay playsinline></video>
+<br />
+<button id="stopBtn">Stop Recording</button>
+<br />
+<a id="downloadBtn" href="#" download="recording.webm">Download Recording</a>
 
-    <script>
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-            alert('Your browser does not support screen recording (getDisplayMedia).');
-            throw new Error('getDisplayMedia not supported.');
-        }
+<!-- Load local RecordRTC -->
+<script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
 
-        const video = document.getElementById('player');
-        const downloadBtn = document.getElementById('downloadBtn');
+<script>
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        alert('Your browser does not support screen recording (getDisplayMedia).');
+        throw new Error('getDisplayMedia not supported.');
+    }
 
-        navigator.mediaDevices.getDisplayMedia({ video: true }).then(screenStream => {
+    const video = document.getElementById('player');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const durationInput = document.getElementById('durationInput');
+
+    let recorder;
+    let screenStream;
+    let recordingStopped = false;
+    let autoStopTimeout;
+
+    function stopRecordingHandler() {
+        if (recordingStopped) return;
+        recordingStopped = true;
+
+        clearTimeout(autoStopTimeout);
+
+        recorder.stopRecording(() => {
+            const blob = recorder.getBlob();
+
+            // Stop screen stream
+            screenStream.getTracks().forEach(track => track.stop());
+
+            // Update video
+            video.srcObject = null;
+            const videoURL = URL.createObjectURL(blob);
+            video.src = videoURL;
+            video.muted = false;
+            video.controls = true;
+            video.play(); 
+
+            // Show download link
+            downloadBtn.href = videoURL;
+            downloadBtn.style.display = 'inline-block';
+
+            // Disable stop button after stopping
+            stopBtn.disabled = true;
+
+            // Reload window after 5 seconds
+            setTimeout(() => {
+                window.location.reload();
+            }, 555000);
+        }); 
+    }
+
+    function startRecording(durationSec) {
+        navigator.mediaDevices.getDisplayMedia({ video: true }).then(stream => {
+            screenStream = stream;
             video.srcObject = screenStream;
             video.muted = true;
             video.play();
 
-            const recorder = RecordRTC(screenStream, {
+            recorder = RecordRTC(screenStream, {
                 type: 'video',
                 mimeType: 'video/webm'
             });
 
             recorder.startRecording();
 
-            setTimeout(() => {
-                recorder.stopRecording(() => {
-                    const blob = recorder.getBlob();
-
-                    // Stop screen stream
-                    screenStream.getTracks().forEach(track => track.stop());
-
-                    // Update video
-                    video.srcObject = null;
-                    const videoURL = URL.createObjectURL(blob);
-                    video.src = videoURL;
-                    video.muted = false;
-                    video.controls = true;
-                    video.play();
-
-                    // Show download link
-                    downloadBtn.href = videoURL;
-                    downloadBtn.style.display = 'inline-block';
-                });
-            }, 10 * 1000); // 10 seconds
+            // Auto stop after specified seconds
+            autoStopTimeout = setTimeout(() => {
+                stopRecordingHandler();
+            }, durationSec * 1000);
 
         }).catch(err => {
             alert('Screen capture failed: ' + err);
             console.error(err);
         });
-    </script>
+    }
+
+    stopBtn.addEventListener('click', stopRecordingHandler);
+
+    // Start recording on page load with input value
+    window.onload = () => {
+        const duration = parseInt(durationInput.value, 10);
+        if (duration > 0) {
+            startRecording(duration);
+        }
+    };
+
+    // If user changes duration before recording starts, you could add a "Start" button for manual start,
+    // but per your request, we auto-start on load with the input value.
+</script>
+
 </body>
 </html>
