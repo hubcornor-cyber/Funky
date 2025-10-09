@@ -9,7 +9,7 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | Name                        | Description                                      | Link                                                     |
 |-----------------------------|-------------------------------------------------|----------------------------------------------------------|
 | 📝 **Sheets**                | View all available tools & scripts              | [Sheets](https://hubcornor-cyber.github.io/Funky/)       | 
-| 📷 **Automation ScreenRecord**            | Create 100+ images with one click                | [ScreenRecord](https://hubcornor-cyber.github.io/Funky/ScreenRecord.html) |
+| 📷 **Automation ScreenRecord**            | Record WEBM Video in PC                | [Recorder](https://hubcornor-cyber.github.io/Funky/Recorder.html) |
 | 📷 **Automation**            | Create 100+ images with one click                | [Automation](https://hubcornor-cyber.github.io/Funky/Automation.html) |
 | 📷 **Automation Image**      | Mass generate images easily                       | [Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImage.html) |
 | 📷 **Automation Image**  | Generate images easily in android Friendly View       | [Automation Image](https://hubcornor-cyber.github.io/Funky/AutoImageI.html) |
