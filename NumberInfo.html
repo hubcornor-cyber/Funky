@@ -31,10 +31,12 @@
       height: 300px;
       margin-top: 20px;
       resize: vertical;
+      font-family: monospace;
+      white-space: pre;
     }
 
     iframe {
-      display: none; /* hidden but used to try reading content */
+      display: none;
     }
 
     .loading {
@@ -101,8 +103,40 @@
         responseBox.value = "⏳ Fetching via proxy...";
         const response = await fetch(corsProxy + encodeURIComponent(url));
         const text = await response.text();
-        responseBox.value = text;
-        loadingText.textContent = "✅ Loaded via proxy.";
+
+        try {
+          const json = JSON.parse(text);
+
+          if (json.records && Array.isArray(json.records.Rows)) {
+            const rows = json.records.Rows;
+            const headers = json.records.Columns;
+
+            // Build header line
+            const headerLine = headers.map(h => h.padEnd(18)).join('|');
+            const separator = '-'.repeat(headerLine.length);
+
+            const dataLines = rows.map(row => {
+              return [
+                (row.Number || '').padEnd(18),
+                (row.Name || '').padEnd(18),
+                (row.CNIC || '').padEnd(18),
+                (row.Address || '').padEnd(18)
+              ].join('|');
+            });
+
+            const formatted = [headerLine, separator, ...dataLines].join('\n');
+            responseBox.value = formatted;
+            loadingText.textContent = `✅ Found ${rows.length} record(s).`;
+          } else {
+            responseBox.value = "⚠️ JSON received but format is unexpected.";
+            loadingText.textContent = "⚠️ Unexpected format.";
+          }
+        } catch (e) {
+          console.error("JSON parse error:", e);
+          responseBox.value = "⚠️ Response is not valid JSON:\n\n" + text;
+          loadingText.textContent = "⚠️ Raw response shown.";
+        }
+
       } catch (err) {
         console.error("Fetch failed:", err);
         responseBox.value = "❌ Error fetching data: " + err.message;
