@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Subtitle and Boy Scene</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #e0e0e0;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: background 0.7s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #boy-media {
+            max-width: 300px;
+            max-height: 400px;
+            position: absolute;
+            top: 20%;
+            transition: opacity 0.7s ease;
+            display: none;
+        }
+
+        #subtitle {
+            position: absolute;
+            bottom: 10%;
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            transition: all 0.7s ease;
+            z-index: 1;
+            white-space: pre-wrap;
+        }
+
+        .subtitle-line {
+            display: inline-block;
+        }
+
+        .fadeSlide {
+            animation: fadeSlide 1s ease-in-out;
+        }
+
+        @keyframes fadeSlide {
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        .typewriter {
+            animation: typewriter 1s steps(20) forwards;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid;
+        }
+
+        @keyframes typewriter {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+
+        .scale {
+            animation: scale 1s ease-in-out;
+        }
+
+        @keyframes scale {
+            0% { opacity: 0; transform: scale(0.5); }
+            20% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        #control-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #control-panel.minimized {
+            display: none;
+        }
+
+        #expand-button {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e90ff, #00ced1);
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        #expand-button.visible {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .color-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        #control-panel button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1e90ff, #00ced1);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        #control-panel button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #scene-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .scene-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scene-item img, .scene-item video {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .scene-item .placeholder {
+            width: 50px;
+            height: 50px;
+            background: #ccc;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .scene-item span {
+            flex-grow: 1;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        #preview-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 300px;
+            z-index: 2;
+            display: none;
+        }
+
+        .preview-item {
+            width: 80px;
+            height: 80px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 8px;
+            border: 2px solid #333;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-item:hover::after {
+            content: attr(data-text);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px;
+            font-size: 0.8em;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 600px) {
+            #subtitle {
+                font-size: 1.2em;
+                max-width: 90%;
+            }
+            #boy-media {
+                max-width: 200px;
+                max-height: 300px;
+            }
+            #control-panel {
+                width: 90%;
+                left: 5%;
+            }
+            .color-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="control-panel">
+        <div class="input-group">
+            <label for="scene-text">Subtitle Text (use \n for new line)</label>
+            <input type="text" id="scene-text" placeholder="Enter subtitle text (e.g., Line 1\nLine 2)">
+        </div>
+        <div class="input-group">
+            <label for="text-color">Text Color</label>
+            <input type="color" id="text-color" value="#ffffff">
+        </div>
+        <div class="input-group">
+            <label for="duration">Duration (ms)</label>
+            <input type="number" id="duration" value="4000" min="1000" step="100">
+        </div>
+        <div class="input-group">
+            <label for="glow-color">Glow Color</label>
+            <input type="color" id="glow-color" value="#ff4500">
+        </div>
+        <div class="input-group">
+            <label for="border-style">Border Style</label>
+            <select id="border-style">
+                <option value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="border-thickness">Border Thickness (px)</label>
+            <input type="number" id="border-thickness" value="2" min="0" step="1">
+        </div>
+        <div class="input-group">
+            <label for="animation-style">Subtitle Animation</label>
+            <select id="animation-style">
+                <option value="fadeSlide">Fade & Slide</option>
+                <option value="typewriter">Typewriter</option>
+                <option value="scale">Scale</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label><input type="checkbox" id="animation-checkbox" checked> Use Subtitle Animation</label>
+        </div>
+        <div class="input-group">
+            <label>Background Type</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="bg-image-checkbox" onchange="toggleBackgroundInputs()"> Image</label>
+                <label><input type="checkbox" id="bg-color-checkbox" checked onchange="toggleBackgroundInputs()"> Color/Gradient</label>
+            </div>
+        </div>
+        <div class="input-group" id="image-input" style="display: none;">
+            <label for="bg-image">Image URL</label>
+            <input type="text" id="bg-image" placeholder="e.g., https://example.com/image.jpg">
+        </div>
+        <div class="input-group" id="color-input">
+            <label for="bg-type">Background Style</label>
+            <select id="bg-type" onchange="toggleColorInputs()">
+                <option value="solid">Solid Color</option>
+                <option value="gradient">Gradient</option>
+            </select>
+            <div id="solid-color-input">
+                <label for="bg-solid-color">Color</label>
+                <input type="color" id="bg-solid-color" value="#e0e0e0">
+            </div>
+            <div id="gradient-inputs" style="display: none;" class="color-inputs">
+                <div>
+                    <label for="bg-degree">Degree</label>
+                    <input type="number" id="bg-degree" value="135" min="0" max="360" step="1">
+                </div>
+                <div>
+                    <label for="bg-color1">Color 1</label>
+                    <input type="color" id="bg-color1" value="#ff6b6b">
+                </div>
+                <div>
+                    <label for="bg-color2">Color 2</label>
+                    <input type="color" id="bg-color2" value="#ffe066">
+                </div>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Boy Media</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" id="media-checkbox" checked onchange="toggleMediaInput()"> Use Boy Media</label>
+            </div>
+            <div id="media-input">
+                <label for="media">Image/Video URL</label>
+                <input type="text" id="media" placeholder="e.g., https://example.com/image.jpg">
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="load-scenes">Load Scenes (JSON)</label>
+            <input type="file" id="load-scenes" accept=".json">
+        </div>
+        <button onclick="exportScenes()">Export Scenes</button>
+        <button onclick="addScene()">Add Scene</button>
+        <button onclick="minimizePanel()">Minimize</button>
+        <button onclick="startShow()">Start Show</button>
+        <button onclick="togglePreview()">Show/Hide Preview</button>
+        <div id="scene-list"></div>
+    </div>
+    <button id="expand-button" onclick="expandPanel()">Expand</button>
+    <img id="boy-media" src="" alt="Boy Character">
+    <div id="subtitle"></div>
+    <div id="preview-panel"></div>
+
+    <script>
+        let scenes = [];
+        let currentSceneIndex = 0;
+        let sceneInterval;
+        let isPreviewVisible = false;
+        let editingIndex = -1;
+        let isControlPanelMinimized = false;
+        let subtitleInterval;
+
+        // Default scenes for testing
+        scenes = [
+            {
+                background: "ur[](https://via.placeholder.com/1920x1080?text=Sky)",
+                backgroundType: "image",
+                bgImage: "https://via.placeholder.com/1920x1080?text=Sky",
+                text: "Shan AWan\nSid Creative",
+                textColor: "#ffffff",
+                border: "solid",
+                glowColor: "#ff4500",
+                borderThickness: "2",
+                duration: 4000,
+                media: "https://via.placeholder.com/300x400?text=Boy",
+                useMedia: true,
+                animation: "fadeSlide",
+                useAnimation: true
+            },
+            {
+                background: "#1a1a1a",
+                backgroundType: "solid",
+                bgSolidColor: "#1a1a1a",
+                text: "Exploring the Unknown",
+                textColor: "#00ffcc",
+                border: "dashed",
+                glowColor: "#00ff00",
+                borderThickness: "3",
+                duration: 5000,
+                media: "",
+                useMedia: false,
+                animation: "typewriter",
+                useAnimation: true
+            }
+        ];
+        renderSceneList();
+        updatePreview();
+        displayScene(currentSceneIndex);
+
+        function toggleBackgroundInputs() {
+            const imageCheckbox = document.getElementById('bg-image-checkbox');
+            const colorCheckbox = document.getElementById('bg-color-checkbox');
+            const imageInput = document.getElementById('image-input');
+            const colorInput = document.getElementById('color-input');
+
+            if (imageCheckbox.checked) {
+                colorCheckbox.checked = false;
+                imageInput.style.display = 'block';
+                colorInput.style.display = 'none';
+            } else {
+                imageCheckbox.checked = false;
+                colorCheckbox.checked = true;
+                imageInput.style.display = 'none';
+                colorInput.style.display = 'block';
+                toggleColorInputs();
+            }
+        }
+
+        function toggleColorInputs() {
+            const bgType = document.getElementById('bg-type').value;
+            const solidColorInput = document.getElementById('solid-color-input');
+            const gradientInputs = document.getElementById('gradient-inputs');
+            solidColorInput.style.display = bgType === 'solid' ? 'block' : 'none';
+            gradientInputs.style.display = bgType === 'gradient' ? 'grid' : 'none';
+        }
+
+        function toggleMediaInput() {
+            const mediaCheckbox = document.getElementById('media-checkbox');
+            const mediaInput = document.getElementById('media-input');
+            mediaInput.style.display = mediaCheckbox.checked ? 'block' : 'none';
+        }
+
+        async function validateImageUrl(url) {
+            if (!url) return false;
+            try {
+                const img = new Image();
+                img.src = url;
+                return new Promise((resolve) => {
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    setTimeout(() => resolve(false), 3000);
+                });
+            } catch {
+                return false;
+            }
+        }
+
+        async function addScene() {
+            const isImage = document.getElementById('bg-image-checkbox').checked;
+            const isColor = document.getElementById('bg-color-checkbox').checked;
+            const bgType = document.getElementById('bg-type').value;
+            const isMedia = document.getElementById('media-checkbox').checked;
+            const animationStyle = document.getElementById('animation-style').value;
+            const useAnimation = document.getElementById('animation-checkbox').checked;
+
+            let background = "#e0e0e0";
+            let backgroundType = "solid";
+            let bgSolidColor = "#e0e0e0";
+            let bgDegree = 135;
+            let bgColor1 = "#ff6b6b";
+            let bgColor2 = "#ffe066";
+            let bgImage = "";
+
+            if (isImage) {
+                bgImage = document.getElementById('bg-image').value.trim();
+                const isValidImage = bgImage ? await validateImageUrl(bgImage) : false;
+                background = isValidImage ? `url(${bgImage})` : "#e0e0e0";
+                backgroundType = isValidImage ? "image" : "solid";
+            } else if (isColor) {
+                if (bgType === "solid") {
+                    background = document.getElementById('bg-solid-color').value;
+                    bgSolidColor = background;
+                    backgroundType = "solid";
+                } else {
+                    bgDegree = parseInt(document.getElementById('bg-degree').value) || 135;
+                    bgColor1 = document.getElementById('bg-color1').value;
+                    bgColor2 = document.getElementById('bg-color2').value;
+                    background = `linear-gradient(${bgDegree}deg, ${bgColor1}, ${bgColor2})`;
+                    backgroundType = "gradient";
+                }
+            }
+
+            let media = isMedia ? document.getElementById('media').value.trim() : "";
+            if (isMedia && media) {
+                const isValidMedia = await validateImageUrl(media);
+                if (!isValidMedia) media = "";
+            }
+
+            // Normalize subtitle text to handle literal \n
+            let rawText = document.getElementById('scene-text').value.trim() || "Default Text";
+            rawText = rawText.replace(/\\n/g, '\n');
+
+            const scene = {
+                background,
+                backgroundType,
+                bgSolidColor,
+                bgDegree,
+                bgColor1,
+                bgColor2,
+                bgImage,
+                text: rawText,
+                textColor: document.getElementById('text-color').value,
+                border: document.getElementById('border-style').value,
+                glowColor: document.getElementById('glow-color').value,
+                borderThickness: document.getElementById('border-thickness').value,
+                duration: parseInt(document.getElementById('duration').value) || 4000,
+                media,
+                useMedia: isMedia,
+                animation: animationStyle,
+                useAnimation
+            };
+
+            if (editingIndex >= 0) {
+                scenes[editingIndex] = scene;
+                editingIndex = -1;
+            } else {
+                scenes.push(scene);
+            }
+
+            resetForm();
+            renderSceneList();
+            updatePreview();
+        }
+
+        function editScene(index) {
+            const scene = scenes[index];
+            document.getElementById('scene-text').value = scene.text;
+            document.getElementById('text-color').value = scene.textColor;
+            document.getElementById('duration').value = scene.duration;
+            document.getElementById('glow-color').value = scene.glowColor;
+            document.getElementById('border-style').value = scene.border;
+            document.getElementById('border-thickness').value = scene.borderThickness;
+            document.getElementById('animation-style').value = scene.animation;
+            document.getElementById('animation-checkbox').checked = scene.useAnimation;
+
+            const imageCheckbox = document.getElementById('bg-image-checkbox');
+            const colorCheckbox = document.getElementById('bg-color-checkbox');
+            const imageInput = document.getElementById('bg-image');
+            const colorInput = document.getElementById('color-input');
+            const bgType = document.getElementById('bg-type');
+
+            imageCheckbox.checked = scene.backgroundType === "image";
+            colorCheckbox.checked = scene.backgroundType !== "image";
+            imageInput.style.display = scene.backgroundType === "image" ? 'block' : 'none';
+            colorInput.style.display = scene.backgroundType !== "image" ? 'block' : 'none';
+
+            if (scene.backgroundType === "image") {
+                imageInput.value = scene.bgImage;
+            } else if (scene.backgroundType === "solid") {
+                bgType.value = "solid";
+                document.getElementById('bg-solid-color').value = scene.bgSolidColor;
+            } else {
+                bgType.value = "gradient";
+                document.getElementById('bg-degree').value = scene.bgDegree;
+                document.getElementById('bg-color1').value = scene.bgColor1;
+                document.getElementById('bg-color2').value = scene.bgColor2;
+            }
+            toggleColorInputs();
+
+            const mediaCheckbox = document.getElementById('media-checkbox');
+            const mediaInput = document.getElementById('media-input');
+            mediaCheckbox.checked = scene.useMedia;
+            mediaInput.style.display = scene.useMedia ? 'block' : 'none';
+            document.getElementById('media').value = scene.media;
+
+            editingIndex = index;
+        }
+
+        function deleteScene(index) {
+            scenes.splice(index, 1);
+            renderSceneList();
+            updatePreview();
+            if (currentSceneIndex >= scenes.length) {
+                currentSceneIndex = 0;
+                displayScene(currentSceneIndex);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('scene-text').value = '';
+            document.getElementById('text-color').value = '#ffffff';
+            document.getElementById('duration').value = '4000';
+            document.getElementById('glow-color').value = '#ff4500';
+            document.getElementById('border-style').value = 'solid';
+            document.getElementById('border-thickness').value = '2';
+            document.getElementById('animation-style').value = 'fadeSlide';
+            document.getElementById('animation-checkbox').checked = true;
+            document.getElementById('bg-image-checkbox').checked = false;
+            document.getElementById('bg-color-checkbox').checked = true;
+            document.getElementById('bg-image').value = '';
+            document.getElementById('bg-type').value = 'solid';
+            document.getElementById('bg-solid-color').value = '#e0e0e0';
+            document.getElementById('bg-degree').value = '135';
+            document.getElementById('bg-color1').value = '#ff6b6b';
+            document.getElementById('bg-color2').value = '#ffe066';
+            document.getElementById('media-checkbox').checked = false;
+            document.getElementById('media').value = '';
+            document.getElementById('image-input').style.display = 'none';
+            document.getElementById('color-input').style.display = 'block';
+            document.getElementById('media-input').style.display = 'none';
+            toggleColorInputs();
+            editingIndex = -1;
+        }
+
+        function renderSceneList() {
+            const sceneList = document.getElementById('scene-list');
+            sceneList.innerHTML = '';
+            scenes.forEach((scene, index) => {
+                const sceneItem = document.createElement('div');
+                sceneItem.className = 'scene-item';
+                const isVideo = scene.media && (scene.media.includes('.mp4') || scene.media.includes('.webm'));
+                let thumbnailHtml = '';
+                if (scene.useMedia && scene.media) {
+                    thumbnailHtml = isVideo ?
+                        `<video src="${scene.media}" autoplay loop muted></video>` :
+                        `<img src="${scene.media}" alt="Scene Preview" onerror="const div = document.createElement('div'); div.className='placeholder'; div.style.background='#e0e0e0'; this.parentElement.replaceChild(div, this);">`;
+                } else {
+                    thumbnailHtml = `<div class="placeholder" style="background: ${scene.background};${scene.backgroundType === 'image' ? 'background-size: cover; background-repeat: no-repeat;' : ''}"></div>`;
+                }
+                const firstLine = scene.text.split('\n')[0].substring(0, 15) + (scene.text.split('\n')[0].length > 15 ? '...' : '');
+                sceneItem.innerHTML = `
+                    ${thumbnailHtml}
+                    <span>${firstLine}</span>
+                    <button onclick="editScene(${index})">Edit</button>
+                    <button onclick="deleteScene(${index})">Delete</button>
+                `;
+                sceneList.appendChild(sceneItem);
+            });
+        }
+
+        function displayScene(index) {
+            if (index >= scenes.length) {
+                endShow();
+                return;
+            }
+            const scene = scenes[index];
+            if (!scene) return;
+
+            // Clear any existing subtitle interval
+            if (subtitleInterval) clearInterval(subtitleInterval);
+
+            // Update body background
+            document.body.style.background = scene.background;
+            document.body.style.backgroundSize = scene.backgroundType === "image" ? 'cover' : 'auto';
+            document.body.style.backgroundRepeat = scene.backgroundType === "image" ? 'no-repeat' : 'repeat';
+
+            // Update subtitle
+            const subtitle = document.getElementById('subtitle');
+            subtitle.style.color = scene.textColor;
+            subtitle.style.border = `${scene.borderThickness}px ${scene.border} #333`;
+            subtitle.style.textShadow = `0 0 12px ${scene.glowColor}, 0 0 24px ${scene.glowColor}`;
+
+            // Handle multi-line subtitles
+            const lines = scene.text.split('\n').filter(line => line.trim() !== '');
+            let lineIndex = 0;
+
+            function displayNextLine() {
+                if (lineIndex < lines.length) {
+                    const className = scene.useAnimation ? `subtitle-line ${scene.animation}` : '';
+                    subtitle.innerHTML = `<span class="${className}">${lines[lineIndex]}</span>`;
+                    lineIndex++;
+                } else {
+                    clearInterval(subtitleInterval);
+                    subtitle.innerHTML = '';
+                }
+            }
+
+            if (lines.length > 0) {
+                const lineDuration = scene.duration / lines.length;
+                displayNextLine();
+                subtitleInterval = setInterval(displayNextLine, lineDuration);
+            } else {
+                subtitle.innerHTML = '';
+            }
+
+            // Update boy media
+            const boyMedia = document.getElementById('boy-media');
+            boyMedia.style.opacity = 0;
+            boyMedia.style.display = 'none';
+            if (scene.media && scene.useMedia) {
+                setTimeout(() => {
+                    if (scene.media.includes('.mp4') || scene.media.includes('.webm')) {
+                        boyMedia.outerHTML = `<video id="boy-media" autoplay loop muted style="max-width: 300px; max-height: 400px; position: absolute; top: 20%; transition: opacity 0.7s ease; display: block;" onerror="this.style.display='none'"><source src="${scene.media}" type="video/mp4"></video>`;
+                    } else {
+                        boyMedia.outerHTML = `<img id="boy-media" src="${scene.media}" alt="Boy Character" style="max-width: 300px; max-height: 400px; position: absolute; top: 20%; transition: opacity 0.7s ease; display: block;" onerror="this.style.display='none'">`;
+                    }
+                    const newBoyMedia = document.getElementById('boy-media');
+                    newBoyMedia.style.opacity = 1;
+                }, 700);
+            }
+        }
+
+        async function updatePreview() {
+            const previewPanel = document.getElementById('preview-panel');
+            previewPanel.innerHTML = '';
+            for (const [index, scene] of scenes.entries()) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                let background = scene.background;
+                if (scene.backgroundType === "image" && scene.bgImage) {
+                    const isValidImage = await validateImageUrl(scene.bgImage);
+                    background = isValidImage ? scene.background : "#e0e0e0";
+                }
+                previewItem.style.background = background;
+                if (scene.backgroundType === "image") {
+                    previewItem.style.backgroundSize = 'cover';
+                    previewItem.style.backgroundRepeat = 'no-repeat';
+                } else {
+                    previewItem.style.backgroundSize = 'auto';
+                    previewItem.style.backgroundRepeat = 'repeat';
+                }
+                const firstLine = scene.text.split('\n')[0].substring(0, 20) + (scene.text.split('\n')[0].length > 20 ? '...' : '');
+                previewItem.setAttribute('data-text', firstLine);
+                previewItem.onclick = () => {
+                    currentSceneIndex = index;
+                    clearInterval(sceneInterval);
+                    displayScene(currentSceneIndex);
+                    document.getElementById('preview-panel').style.display = 'none';
+                    isPreviewVisible = false;
+                    startShow();
+                };
+                previewPanel.appendChild(previewItem);
+            }
+        }
+
+        function togglePreview() {
+            isPreviewVisible = !isPreviewVisible;
+            document.getElementById('preview-panel').style.display = isPreviewVisible ? 'flex' : 'none';
+            if (isPreviewVisible) {
+                clearInterval(sceneInterval);
+            } else {
+                startShow();
+            }
+        }
+
+        function minimizePanel() {
+            isControlPanelMinimized = true;
+            document.getElementById('control-panel').classList.add('minimized');
+            document.getElementById('expand-button').classList.add('visible');
+            document.getElementById('expand-button').style.display = 'block';
+        }
+
+        function expandPanel() {
+            isControlPanelMinimized = false;
+            document.getElementById('control-panel').classList.remove('minimized');
+            document.getElementById('expand-button').classList.remove('visible');
+            document.getElementById('expand-button').style.display = 'none';
+        }
+
+        function startShow() {
+            if (scenes.length === 0) {
+                alert('No scenes loaded. Please add at least one scene.');
+                return;
+            }
+            isControlPanelMinimized = document.getElementById('control-panel').classList.contains('minimized');
+            document.getElementById('control-panel').classList.add('minimized');
+            document.getElementById('expand-button').classList.remove('visible');
+            document.getElementById('expand-button').style.display = 'none';
+            document.getElementById('preview-panel').style.display = 'none';
+            clearInterval(sceneInterval);
+            currentSceneIndex = 0;
+            displayScene(currentSceneIndex);
+            sceneInterval = setInterval(() => {
+                currentSceneIndex++;
+                if (currentSceneIndex < scenes.length) {
+                    displayScene(currentSceneIndex);
+                } else {
+                    clearInterval(sceneInterval);
+                    endShow();
+                }
+            }, scenes[currentSceneIndex].duration);
+        }
+
+        function endShow() {
+            clearInterval(subtitleInterval);
+            document.getElementById('control-panel').classList.remove('minimized');
+            if (isControlPanelMinimized) {
+                document.getElementById('control-panel').classList.add('minimized');
+                document.getElementById('expand-button').classList.add('visible');
+                document.getElementById('expand-button').style.display = 'block';
+            }
+            document.getElementById('subtitle').textContent = '';
+            document.getElementById('boy-media').style.opacity = 0;
+            document.getElementById('boy-media').style.display = 'none';
+            alert('Show ended! You can restart or edit scenes.');
+        }
+
+        function loadScenes(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                alert('No file selected. Please choose a JSON file.');
+                console.error('No file selected.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const loadedScenes = JSON.parse(e.target.result);
+                    console.log('Parsed JSON:', loadedScenes);
+                    if (!Array.isArray(loadedScenes)) {
+                        alert('Invalid JSON format: Must be an array of scenes.');
+                        console.error('JSON is not an array:', loadedScenes);
+                        return;
+                    }
+
+                    // Validate each scene
+                    const validScenes = loadedScenes.filter((scene, index) => {
+                        const isValid = (
+                            scene &&
+                            typeof scene.background === 'string' &&
+                            ['image', 'solid', 'gradient'].includes(scene.backgroundType) &&
+                            typeof scene.text === 'string' &&
+                            typeof scene.textColor === 'string' &&
+                            ['solid', 'dashed', 'dotted'].includes(scene.border) &&
+                            typeof scene.glowColor === 'string' &&
+                            typeof scene.borderThickness === 'string' &&
+                            typeof scene.duration === 'number' &&
+                            typeof scene.useMedia === 'boolean' &&
+                            ['fadeSlide', 'typewriter', 'scale'].includes(scene.animation) &&
+                            typeof scene.useAnimation === 'boolean'
+                        );
+                        if (!isValid) {
+                            console.warn(`Scene at index ${index} is invalid:`, scene);
+                        }
+                        return isValid;
+                    });
+
+                    if (validScenes.length === 0) {
+                        alert('No valid scenes found in the JSON file.');
+                        console.error('No valid scenes found.');
+                        return;
+                    }
+
+                    // Replace scenes
+                    scenes = validScenes;
+                    currentSceneIndex = 0;
+                    renderSceneList();
+                    updatePreview();
+                    displayScene(currentSceneIndex);
+                    alert(`${validScenes.length} scene(s) loaded successfully!`);
+                    console.log('Loaded scenes:', scenes);
+                } catch (error) {
+                    alert('Error loading JSON file: ' + error.message);
+                    console.error('JSON parsing error:', error);
+                }
+            };
+            reader.onerror = function() {
+                alert('Error reading file.');
+                console.error('File reading error:', reader.error);
+            };
+            reader.readAsText(file);
+        }
+
+        function exportScenes() {
+            if (scenes.length === 0) {
+                alert('No scenes to export.');
+                return;
+            }
+
+            const json = JSON.stringify(scenes, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'scenes.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } 
+
+        // Attach event listener for file input
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadScenesInput = document.getElementById('load-scenes');
+            if (loadScenesInput) {
+                loadScenesInput.addEventListener('change', loadScenes);
+                console.log('Event listener attached to load-scenes input.');
+            } else {
+                console.error('load-scenes input not found in DOM.');
+            }
+        });
+
+        // Initialize inputs
+        toggleBackgroundInputs();
+        toggleMediaInput();
+    </script>
+</body>
+</html>
