@@ -122,6 +122,24 @@
             display: block;
         }
 
+        #download-button {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ff4500, #ff8c00);
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        #download-button.visible {
+            display: block;
+        }
+
         .input-group {
             margin-bottom: 15px;
         }
@@ -253,6 +271,10 @@
             text-overflow: ellipsis;
         }
 
+        #capture-canvas {
+            display: none;
+        }
+
         @media (max-width: 600px) {
             #subtitle {
                 font-size: 1.2em;
@@ -371,9 +393,11 @@
         <div id="scene-list"></div>
     </div>
     <button id="expand-button" onclick="expandPanel()">Expand</button>
+    <button id="download-button" onclick="downloadVideo()">Download Video</button>
     <img id="boy-media" src="" alt="Boy Character">
     <div id="subtitle"></div>
     <div id="preview-panel"></div>
+    <canvas id="capture-canvas"></canvas>
 
     <script>
         let scenes = [];
@@ -383,6 +407,9 @@
         let editingIndex = -1;
         let isControlPanelMinimized = false;
         let subtitleInterval;
+        let mediaRecorder;
+        let recordedChunks = [];
+        let canvas, ctx;
 
         // Default scenes for testing
         scenes = [
@@ -510,7 +537,6 @@
                 if (!isValidMedia) media = "";
             }
 
-            // Normalize subtitle text to handle literal \n
             let rawText = document.getElementById('scene-text').value.trim() || "Default Text";
             rawText = rawText.replace(/\\n/g, '\n');
 
@@ -652,6 +678,74 @@
             });
         }
 
+        async function drawSceneToCanvas(scene, line, lineIndex, totalLines) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background
+            if (scene.backgroundType === 'image' && scene.bgImage) {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = scene.bgImage;
+                await new Promise((resolve) => {
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        ctx.fillStyle = '#e0e0e0';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        resolve();
+                    };
+                });
+            } else if (scene.backgroundType === 'gradient') {
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                gradient.addColorStop(0, scene.bgColor1);
+                gradient.addColorStop(1, scene.bgColor2);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = scene.bgSolidColor || '#e0e0e0';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Draw boy media
+            if (scene.useMedia && scene.media) {
+                if (scene.media.includes('.mp4') || scene.media.includes('.webm')) {
+                    const video = document.getElementById('boy-media');
+                    if (video.readyState >= 2) {
+                        ctx.drawImage(video, canvas.width * 0.35, canvas.height * 0.2, canvas.width * 0.3, canvas.height * 0.4);
+                    }
+                } else {
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    img.src = scene.media;
+                    await new Promise((resolve) => {
+                        img.onload = () => {
+                            ctx.drawImage(img, canvas.width * 0.35, canvas.height * 0.2, canvas.width * 0.3, canvas.height * 0.4);
+                            resolve();
+                        };
+                        img.onerror = () => resolve();
+                    });
+                }
+            }
+
+            // Draw subtitle
+            if (line) {
+                ctx.font = 'bold 48px Poppins';
+                ctx.fillStyle = scene.textColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.lineWidth = parseInt(scene.borderThickness) * 2;
+                ctx.strokeStyle = '#333';
+                ctx.fillText(line, canvas.width / 2, canvas.height * 0.9);
+                ctx.strokeText(line, canvas.width / 2, canvas.height * 0.9);
+                ctx.shadowColor = scene.glowColor;
+                ctx.shadowBlur = 12;
+                ctx.fillText(line, canvas.width / 2, canvas.height * 0.9);
+                ctx.shadowBlur = 0;
+            }
+        }
+
         function displayScene(index) {
             if (index >= scenes.length) {
                 endShow();
@@ -660,32 +754,30 @@
             const scene = scenes[index];
             if (!scene) return;
 
-            // Clear any existing subtitle interval
             if (subtitleInterval) clearInterval(subtitleInterval);
 
-            // Update body background
             document.body.style.background = scene.background;
             document.body.style.backgroundSize = scene.backgroundType === "image" ? 'cover' : 'auto';
             document.body.style.backgroundRepeat = scene.backgroundType === "image" ? 'no-repeat' : 'repeat';
 
-            // Update subtitle
             const subtitle = document.getElementById('subtitle');
             subtitle.style.color = scene.textColor;
             subtitle.style.border = `${scene.borderThickness}px ${scene.border} #333`;
             subtitle.style.textShadow = `0 0 12px ${scene.glowColor}, 0 0 24px ${scene.glowColor}`;
 
-            // Handle multi-line subtitles
             const lines = scene.text.split('\n').filter(line => line.trim() !== '');
             let lineIndex = 0;
 
-            function displayNextLine() {
+            async function displayNextLine() {
                 if (lineIndex < lines.length) {
                     const className = scene.useAnimation ? `subtitle-line ${scene.animation}` : '';
                     subtitle.innerHTML = `<span class="${className}">${lines[lineIndex]}</span>`;
+                    await drawSceneToCanvas(scene, lines[lineIndex], lineIndex, lines.length);
                     lineIndex++;
                 } else {
                     clearInterval(subtitleInterval);
                     subtitle.innerHTML = '';
+                    await drawSceneToCanvas(scene, '', lineIndex, lines.length);
                 }
             }
 
@@ -695,9 +787,9 @@
                 subtitleInterval = setInterval(displayNextLine, lineDuration);
             } else {
                 subtitle.innerHTML = '';
+                drawSceneToCanvas(scene, '', 0, 0);
             }
 
-            // Update boy media
             const boyMedia = document.getElementById('boy-media');
             boyMedia.style.opacity = 0;
             boyMedia.style.display = 'none';
@@ -776,6 +868,24 @@
                 alert('No scenes loaded. Please add at least one scene.');
                 return;
             }
+
+            // Initialize canvas
+            canvas = document.getElementById('capture-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx = canvas.getContext('2d');
+
+            // Start video recording
+            recordedChunks = [];
+            const stream = canvas.captureStream(30); // 30 FPS
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            mediaRecorder.start();
+
             isControlPanelMinimized = document.getElementById('control-panel').classList.contains('minimized');
             document.getElementById('control-panel').classList.add('minimized');
             document.getElementById('expand-button').classList.remove('visible');
@@ -806,7 +916,40 @@
             document.getElementById('subtitle').textContent = '';
             document.getElementById('boy-media').style.opacity = 0;
             document.getElementById('boy-media').style.display = 'none';
-            alert('Show ended! You can restart or edit scenes.');
+
+            // Stop recording and show download button
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = () => {
+                    const downloadButton = document.getElementById('download-button');
+                    downloadButton.classList.add('visible');
+                    downloadButton.style.display = 'block';
+                };
+            }
+
+            alert('Show ended! You can download the video, restart, or edit scenes.');
+        }
+
+        function downloadVideo() {
+            if (recordedChunks.length === 0) {
+                alert('No video recorded.');
+                return;
+            }
+
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'show.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Hide download button after download
+            const downloadButton = document.getElementById('download-button');
+            downloadButton.classList.remove('visible');
+            downloadButton.style.display = 'none';
         }
 
         function loadScenes(event) {
@@ -828,7 +971,6 @@
                         return;
                     }
 
-                    // Validate each scene
                     const validScenes = loadedScenes.filter((scene, index) => {
                         const isValid = (
                             scene &&
@@ -856,7 +998,6 @@
                         return;
                     }
 
-                    // Replace scenes
                     scenes = validScenes;
                     currentSceneIndex = 0;
                     renderSceneList();
@@ -892,9 +1033,8 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        } 
+        }
 
-        // Attach event listener for file input
         document.addEventListener('DOMContentLoaded', () => {
             const loadScenesInput = document.getElementById('load-scenes');
             if (loadScenesInput) {
@@ -905,7 +1045,6 @@
             }
         });
 
-        // Initialize inputs
         toggleBackgroundInputs();
         toggleMediaInput();
     </script>
