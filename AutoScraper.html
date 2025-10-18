@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Tag Data to CSV (Including data-src)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        h2, h3 {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Extract Tag Data to CSV (Including data-src)</h2>
+
+<label for="htmlInput">Step 1: Paste HTML Code:</label>
+<textarea id="htmlInput" rows="10" placeholder="Paste your HTML code here..."></textarea>
+
+<label for="tagInput">Step 2: Enter Tag Name (e.g., source,data-src img, src):</label>
+<input type="text" id="tagInput" placeholder="Enter tag name">
+
+<button id="extractBtn">Extract Tag Data to CSV</button>
+<button id="copyBtn">Copy CSV</button>
+
+<h3>Output CSV</h3>
+<textarea id="output" rows="10" readonly placeholder="Tag data will appear here as CSV..."></textarea>
+
+<script>
+// DOM elements
+const htmlInput = document.getElementById('htmlInput');
+const tagInput = document.getElementById('tagInput');
+const output = document.getElementById('output');
+
+// Convert relative URLs to absolute URLs
+function toAbsoluteUrl(baseUrl, relativeUrl) {
+    if (!baseUrl || !relativeUrl) return relativeUrl;
+    try {
+        return new URL(relativeUrl, baseUrl).href;
+    } catch {
+        return relativeUrl;
+    }
+}
+
+// Escape CSV field to handle commas, quotes, and newlines
+function escapeCsvField(field) {
+    if (field == null) return '';
+    field = field.toString().replace(/"/g, '""');
+    if (field.includes(',') || field.includes('\n') || field.includes('"')) {
+        return `"${field}"`;
+    }
+    return field;
+}
+
+// Step 1: Extract tag data and generate CSV
+document.getElementById('extractBtn').addEventListener('click', () => {
+    const html = htmlInput.value.trim();
+    const tagName = tagInput.value.trim().toLowerCase();
+
+    if (!html) {
+        alert('Please paste HTML code!');
+        output.value = '';
+        return;
+    }
+    if (!tagName) {
+        alert('Please enter a tag name!');
+        output.value = '';
+        return;
+    }
+
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Query all tags with the specified name
+        const tags = doc.querySelectorAll(tagName);
+        if (tags.length === 0) {
+            output.value = `No '${tagName}' tags found!`;
+            return;
+        }
+
+        // Prompt for base URL to resolve relative URLs (optional)
+        const baseUrl = prompt('Enter base URL for resolving relative URLs (optional, leave blank if not needed):', '');
+
+        // Common attributes to extract, including data-src for source tags
+        const commonAttributes = tagName === 'source' 
+            ? []
+            : ['src', 'href'];
+
+        // Collect unique attributes across all tags
+        const allAttributes = new Set();
+        tags.forEach(tag => {
+            Array.from(tag.attributes).forEach(attr => allAttributes.add(attr.name));
+        });
+        const attributes = [...allAttributes].filter(attr => commonAttributes.includes(attr) || attr === 'data-src');
+
+        // Prepare CSV headers
+        const headers = [...attributes];
+        const rows = [headers.map(escapeCsvField).join(',')];
+
+        // Extract data for each tag
+        Array.from(tags).forEach((tag, index) => {
+            const content = tag.textContent.trim();
+            const row = [
+               
+                ...attributes.map(attr => {
+                    let value = tag.getAttribute(attr) || '';
+                   
+                        value = toAbsoluteUrl(baseUrl, value);
+                    
+                    return value;
+                })
+            ];
+            rows.push(row.map(escapeCsvField).join(','));
+        });
+
+        // Join rows with \n for CSV
+        output.value = rows.join('\n');
+    } catch (err) {
+        alert('Error parsing HTML! Check console.');
+        console.error(err);
+        output.value = '';
+    }
+});
+
+// Step 2: Copy CSV to clipboard
+document.getElementById('copyBtn').addEventListener('click', () => {
+    if (!output.value.trim()) {
+        alert('No CSV data to copy!');
+        return;
+    }
+    output.select();
+    try {
+        document.execCommand('copy');
+        alert('CSV copied to clipboard!');
+    } catch (err) {
+        alert('Error copying CSV! Check console.');
+        console.error(err);
+    }
+});
+</script>
+
+</body>
+</html>
