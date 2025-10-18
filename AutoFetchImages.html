@@ -1,14 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>URL to Image CSV</title>
-<style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    input[type="text"], textarea { width: 100%; padding: 10px; margin: 10px 0; font-family: monospace; }
-    button { padding: 10px 20px; margin: 5px 0; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL to Image CSV with Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+        #preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .preview-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100px;
+        }
+        .preview-item img {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .preview-item img.error {
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .preview-item button {
+            margin-top: 5px;
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .preview-item button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
 
@@ -28,39 +82,52 @@
 <h3>Output CSV</h3>
 <textarea id="output" rows="10" readonly placeholder="Image URLs will appear here..."></textarea>
 
+<h3>Image Previews</h3>
+<div id="preview-container"></div>
+
 <script>
 const urlInput = document.getElementById('urlInput');
 const sourceCode = document.getElementById('sourceCode');
 const output = document.getElementById('output');
+const previewContainer = document.getElementById('preview-container');
+
+// Convert relative URLs to absolute URLs
+function toAbsoluteUrl(baseUrl, relativeUrl) {
+    try {
+        return new URL(relativeUrl, baseUrl).href;
+    } catch {
+        return relativeUrl;
+    }
+}
 
 // Step 1: Fetch HTML source
 document.getElementById('fetchSourceBtn').addEventListener('click', async () => {
     const url = urlInput.value.trim();
-    if(!url){
+    if (!url) {
         alert('Enter a valid URL!');
         return;
     }
 
     output.value = '';
     sourceCode.value = 'Fetching...';
+    previewContainer.innerHTML = '';
 
     try {
-        // Use CORS proxy because many websites block direct fetch from browser
         const proxy = 'https://api.allorigins.win/get?url=';
         const response = await fetch(proxy + encodeURIComponent(url));
         const data = await response.json();
         sourceCode.value = data.contents;
-    } catch(err){
+    } catch (err) {
         sourceCode.value = '';
         alert('Error fetching URL! Check console.');
         console.error(err);
-    } 
+    }
 });
- 
-// Step 2: Extract images from source
-document.getElementById('extractBtn').addEventListener('click', () => {
+
+// Step 2: Extract images and show previews
+document.getElementById('extractBtn').addEventListener('click', async () => {
     const html = sourceCode.value;
-    if(!html.trim()){
+    if (!html.trim()) {
         alert('No HTML source to parse!');
         return;
     }
@@ -69,15 +136,55 @@ document.getElementById('extractBtn').addEventListener('click', () => {
     const doc = parser.parseFromString(html, 'text/html');
 
     const imgTags = doc.querySelectorAll('img');
-    const urls = Array.from(imgTags).map(img => img.getAttribute('src')).filter(src => src);
+    const baseUrl = urlInput.value.trim();
+    const urls = Array.from(imgTags)
+        .map(img => img.getAttribute('src'))
+        .filter(src => src)
+        .map(src => toAbsoluteUrl(baseUrl, src));
 
-    if(urls.length === 0){
+    if (urls.length === 0) {
         output.value = 'No images found!';
+        previewContainer.innerHTML = '<p>No images found!</p>';
         return;
     }
 
     output.value = urls.join('\n');
-});
+
+    // Clear previous previews
+    previewContainer.innerHTML = '';
+
+    // Create previews and download buttons
+    for (const url of urls) {
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+
+        const img = document.createElement('img');
+        img.src = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        img.alt = 'Image Preview';
+        img.onerror = () => {
+            img.className = 'error';
+            img.src = '';
+            img.style.width = '100px';
+            img.style.height = '100px';
+            img.innerHTML = 'Image not loaded';
+        };
+        previewItem.appendChild(img);
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.textContent = 'Download';
+        downloadBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = url.split('/').pop() || 'image';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+        previewItem.appendChild(downloadBtn);
+
+        previewContainer.appendChild(previewItem);
+    }
+}); 
 
 // Copy CSV
 document.getElementById('copyBtn').addEventListener('click', () => {
