@@ -45,7 +45,7 @@ Welcome to the **Funky Hubcorner**! This repository hosts a collection of awesom
 | 📱 **Insta Chat UI**         | Instagram style colorful UI + chat script          | [InstaChat](https://hubcornor-cyber.github.io/Funky/InstaChat.html) |
 | 📞 **Whatsapp Chat UI**      | Whatsapp style chat UI + script                      | [WhatsappChat](https://hubcornor-cyber.github.io/Funky/WhatsappChat.html) |
 | 🎮 **3dot Game**             | Simple dot game                                     | [3dotGame](https://hubcornor-cyber.github.io/Funky/3dotGame.html) |
-| 🔍 **38 Spot Game**          | Spot the difference game                            | [38SpotGame](https://hubcornor-cyber.github.io/Funky/38SpotGame.html) |
+| 🔍 **38 Spot Game**          | Spot the difference game                            | [38SpotGame](https://hubcornor-cyber.github.io/Funky/3BSpotGame.html) |
 | 🔍 **3B Spot Game**          | Spot the 3B game                                   | [38SpotGame](https://hubcornor-cyber.github.io/Funky/38SpotGame.html) |
 
 ---
